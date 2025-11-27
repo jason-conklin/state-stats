@@ -1,27 +1,109 @@
-export default function Home() {
+import { MapExplorer } from "@/components/map/MapExplorer";
+import { prisma } from "@/lib/db";
+import { getUSStateFeatures } from "@/lib/mapData";
+import { states as stateList } from "@/lib/states";
+
+type MetricData = {
+  id: string;
+  name: string;
+  unit?: string | null;
+  description?: string | null;
+  sourceName?: string | null;
+  category?: string | null;
+  isDefault?: boolean | null;
+  years: number[];
+  dataByYear: Record<number, Record<string, number | null>>;
+  minValue: number | null;
+  maxValue: number | null;
+};
+
+async function loadMapData() {
+  const metrics = await prisma.metric.findMany({
+    include: { source: true },
+    orderBy: { name: "asc" },
+  });
+
+  const metricIds = metrics.map((m) => m.id);
+  const observations = await prisma.observation.findMany({
+    where: { metricId: { in: metricIds } },
+    select: { metricId: true, stateId: true, year: true, value: true },
+  });
+
+  const metricData: Record<string, MetricData> = {};
+  metrics.forEach((metric) => {
+    metricData[metric.id] = {
+      id: metric.id,
+      name: metric.name,
+      unit: metric.unit,
+      description: metric.description,
+      sourceName: metric.source?.name ?? null,
+      category: metric.category,
+      isDefault: metric.isDefault,
+      years: [],
+      dataByYear: {},
+      minValue: null,
+      maxValue: null,
+    };
+  });
+
+  observations.forEach((obs) => {
+    const metric = metricData[obs.metricId];
+    if (!metric) return;
+
+    const yearBucket = metric.dataByYear[obs.year] ?? {};
+    yearBucket[obs.stateId] = typeof obs.value === "number" ? obs.value : Number(obs.value);
+    metric.dataByYear[obs.year] = yearBucket;
+
+    // Track min/max
+    const numericValue = yearBucket[obs.stateId];
+    if (numericValue !== null && numericValue !== undefined && !Number.isNaN(numericValue)) {
+      metric.minValue = metric.minValue === null ? numericValue : Math.min(metric.minValue, numericValue);
+      metric.maxValue = metric.maxValue === null ? numericValue : Math.max(metric.maxValue, numericValue);
+    }
+  });
+
+  // Finalize year arrays
+  Object.values(metricData).forEach((metric) => {
+    const years = Object.keys(metric.dataByYear)
+      .map((year) => Number(year))
+      .sort((a, b) => a - b);
+    metric.years = years;
+  });
+
+  const defaultMetricId =
+    metricData["median_household_income"]?.id ??
+    metrics.find((m) => m.isDefault)?.id ??
+    metrics[0]?.id ??
+    "median_household_income";
+  const defaultYear = metricData[defaultMetricId]?.years[metricData[defaultMetricId].years.length - 1] ?? new Date().getFullYear();
+
+  return {
+    metrics: Object.values(metricData),
+    defaultMetricId,
+    defaultYear,
+  };
+}
+
+export default async function Home() {
+  const { metrics, defaultMetricId, defaultYear } = await loadMapData();
+  const features = getUSStateFeatures();
+
   return (
-    <section className="space-y-8">
-      <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Map (placeholder)
-        </p>
-        <h1 className="text-3xl font-semibold leading-tight text-slate-900">
-          Visualize state-level metrics across the U.S.
-        </h1>
-        <p className="max-w-3xl text-base text-slate-600">
-          This page will host the interactive choropleth map. For now, it is a simple
-          landing spot while we wire up the backend, ingestion pipeline, and shared data
-          definitions.
+    <section className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Map</p>
+        <h1 className="text-3xl font-semibold leading-tight text-slate-900">State-level insights</h1>
+        <p className="text-slate-600">
+          Explore U.S. states by metric and year with interactive map, hover tooltip, pinned state details, and an accessible table.
         </p>
       </div>
-      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">What&apos;s coming</h2>
-        <ul className="list-disc space-y-2 pl-5 text-slate-600">
-          <li>Choropleth and hover tooltips powered by d3-geo + topojson-client</li>
-          <li>Metric selector with defaults from our Prisma-backed catalog</li>
-          <li>Live data refreshed by the ingestion pipeline</li>
-        </ul>
-      </div>
+      <MapExplorer
+        metrics={metrics}
+        defaultMetricId={defaultMetricId}
+        defaultYear={defaultYear}
+        states={stateList}
+        features={features}
+      />
     </section>
   );
 }

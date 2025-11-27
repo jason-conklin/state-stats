@@ -1,0 +1,26 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">StateStats Map Placeholder</title>
+  <desc id="desc">Placeholder preview image for the StateStats map page</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eef2ff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="80" y="80" width="1040" height="420" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="100" y="130" font-family="Inter, system-ui, sans-serif" font-size="36" fill="#0f172a" font-weight="700">StateStats</text>
+  <text x="100" y="170" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#475569">Interactive map of U.S. states by metric and year</text>
+  <rect x="100" y="210" width="200" height="24" rx="12" fill="#e2e8f0"/>
+  <rect x="320" y="210" width="150" height="24" rx="12" fill="#cbd5e1"/>
+  <rect x="490" y="210" width="140" height="24" rx="12" fill="#94a3b8"/>
+  <rect x="100" y="260" width="880" height="200" rx="16" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="120" y="300" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#94a3b8">Map preview placeholder</text>
+  <circle cx="1050" cy="280" r="18" fill="#0ea5e9" opacity="0.9"/>
+  <circle cx="1020" cy="320" r="16" fill="#38bdf8" opacity="0.9"/>
+  <circle cx="1075" cy="340" r="14" fill="#7dd3fc" opacity="0.9"/>
+  <circle cx="1030" cy="380" r="12" fill="#bae6fd" opacity="0.9"/>
+  <rect x="100" y="480" width="180" height="16" rx="8" fill="#e2e8f0"/>
+  <rect x="300" y="480" width="220" height="16" rx="8" fill="#cbd5e1"/>
+  <rect x="540" y="480" width="180" height="16" rx="8" fill="#94a3b8"/>
+</svg>

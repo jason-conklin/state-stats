@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { NavBar } from "@/components/NavBar";
+import { getLatestSuccessfulIngestion } from "@/lib/ingestion";
+import { formatDateTime } from "@/lib/format";
+import { Footer } from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,28 +28,25 @@ export const metadata: Metadata = {
   description: "Explore U.S. state-level metrics with maps, charts, and data downloads.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const latestIngestion = await getLatestSuccessfulIngestion();
+  const lastUpdatedLabel = latestIngestion?.completedAt
+    ? formatDateTime(latestIngestion.completedAt)
+    : "—";
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 text-slate-900 antialiased`}>
         <div className="min-h-screen">
-          <header className="border-b border-slate-200 bg-white/90 backdrop-blur-sm">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-              <div className="text-lg font-semibold tracking-tight text-slate-900">StateStats</div>
-              <nav className="flex items-center gap-6 text-sm font-medium text-slate-700">
-                {navLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="rounded-md px-2 py-1 transition hover:bg-slate-100">
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          </header>
-          <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+          <NavBar links={navLinks} lastUpdatedLabel={lastUpdatedLabel} />
+          <main id="main-content" className="mx-auto max-w-6xl px-6 py-10">
+            {children}
+          </main>
+          <Footer />
         </div>
       </body>
     </html>
