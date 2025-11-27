@@ -75,23 +75,19 @@ async function loadMetricData(metricId: string) {
 
 type GraphPageProps = { searchParams?: Promise<QueryParams> | QueryParams };
 
+export const dynamic = "force-dynamic";
+
 export default async function GraphPage(props: GraphPageProps) {
   try {
-    const resolvedParams = (await Promise.resolve(props.searchParams)) ?? {};
-    const params: QueryParams = resolvedParams;
-    const getStringParam = (key: string): string | undefined => {
-      const val = params[key];
-      if (typeof val === "string") return val;
-      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "string") return val[0];
-      return undefined;
-    };
+    const params: QueryParams = (await Promise.resolve(props.searchParams)) ?? {};
 
     const metrics = await prisma.metric.findMany({ orderBy: { name: "asc" } });
     const fallbackMetricId =
       metrics.find((m) => m.id === "median_household_income")?.id ??
       metrics.find((m) => m.isDefault)?.id ??
       metrics[0]?.id;
-    const metricParam = getStringParam("metric");
+    const metricRaw = params.metric;
+    const metricParam = Array.isArray(metricRaw) ? metricRaw[0] : metricRaw;
     const requestedMetric = typeof metricParam === "string" ? metricParam : undefined;
     const selectedMetricId = metrics.find((m) => m.id === requestedMetric)?.id ?? fallbackMetricId;
 
@@ -110,15 +106,18 @@ export default async function GraphPage(props: GraphPageProps) {
     const defaultStart = availableYears[0] ?? new Date().getFullYear();
     const defaultEnd = availableYears[availableYears.length - 1] ?? defaultStart;
 
-    const statesParam = getStringParam(params.states);
+    const statesRaw = params.states;
+    const statesParam = Array.isArray(statesRaw) ? statesRaw.join(",") : statesRaw;
     const requestedStates = normalizeStateIds(typeof statesParam === "string" ? statesParam : undefined);
     const defaultStates = DEFAULT_STATE_ABBRS.map(
       (abbr) => stateList.find((s) => s.abbreviation === abbr)?.id,
     ).filter(Boolean) as string[];
     const selectedStates = requestedStates.length > 0 ? requestedStates : defaultStates;
 
-    const startYearParamRaw = getStringParam(params.startYear);
-    const endYearParamRaw = getStringParam(params.endYear);
+    const startYearRaw = params.startYear;
+    const endYearRaw = params.endYear;
+    const startYearParamRaw = Array.isArray(startYearRaw) ? startYearRaw[0] : startYearRaw;
+    const endYearParamRaw = Array.isArray(endYearRaw) ? endYearRaw[0] : endYearRaw;
     const startYearParam = startYearParamRaw ? Number(startYearParamRaw) : undefined;
     const endYearParam = endYearParamRaw ? Number(endYearParamRaw) : undefined;
 
@@ -127,7 +126,8 @@ export default async function GraphPage(props: GraphPageProps) {
     const endYear =
       endYearParam && availableYears.includes(endYearParam) ? endYearParam : defaultEnd;
 
-    const modeParam = getStringParam(params.mode);
+    const modeRaw = params.mode;
+    const modeParam = Array.isArray(modeRaw) ? modeRaw[0] : modeRaw;
     const normalization = modeParam === "indexed" ? "indexed" : "raw";
 
     return (
