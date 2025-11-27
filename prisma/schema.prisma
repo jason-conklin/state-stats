@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IngestionStatus {
+  in_progress
+  success
+  failed
+  partial
+}
+
+model State {
+  id            String        @id @db.Char(2)
+  name          String
+  abbreviation  String        @db.Char(2)
+  observations  Observation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([abbreviation])
+}
+
+model DataSource {
+  id            String         @id
+  name          String
+  description   String?
+  homepageUrl   String?
+  apiDocsUrl    String?
+  metrics       Metric[]
+  ingestionRuns IngestionRun[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Metric {
+  id           String        @id
+  name         String
+  description  String?
+  unit         String
+  category     String
+  isDefault    Boolean       @default(false)
+  sourceId     String
+  source       DataSource    @relation(fields: [sourceId], references: [id])
+  observations Observation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([sourceId])
+}
+
+model Observation {
+  id        String   @id @default(uuid())
+  stateId   String
+  metricId  String
+  year      Int
+  value     Float
+  state     State    @relation(fields: [stateId], references: [id])
+  metric    Metric   @relation(fields: [metricId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stateId, metricId, year])
+  @@index([metricId, year])
+  @@index([stateId, year])
+}
+
+model IngestionRun {
+  id           String           @id @default(uuid())
+  dataSourceId String
+  dataSource   DataSource       @relation(fields: [dataSourceId], references: [id])
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?
+  status       IngestionStatus  @default(in_progress)
+  details      Json?
+
+  @@index([dataSourceId])
+}
