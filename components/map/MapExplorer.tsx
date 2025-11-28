@@ -216,7 +216,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
+    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-16 md:pb-0" ref={mapContainerRef}>
       {/* Mobile top row: hamburger + controls */}
       <div className="flex items-start gap-2 px-3 pt-3 sm:px-6 sm:pt-6 md:hidden">
         <button
@@ -442,7 +442,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
 
         {/* Mobile inline data table */}
-        <section className="sm:hidden mt-4 w-full px-3 pb-8">
+        <section className="sm:hidden mt-4 w-full px-3 pb-16">
           <div className="w-full rounded-t-3xl bg-white shadow-sm">
             <DataTablePanel
               year={selectedYear}

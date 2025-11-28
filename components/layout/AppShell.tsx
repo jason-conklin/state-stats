@@ -54,7 +54,7 @@ export function AppShell({ children, navLinks, statusText }: Props) {
       <main className="relative flex-1 overflow-hidden">
         <button
           type="button"
-          className="absolute left-3 top-3 z-30 hidden h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow md:inline-flex"
+          className="absolute left-3 top-3 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow md:hidden"
           onClick={() => setMobileOpen(true)}
           aria-label="Open navigation"
         >

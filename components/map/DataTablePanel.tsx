@@ -40,7 +40,7 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
   return (
     <>
       {/* Mobile: inline section below the map */}
-      <div className="w-full px-4 pb-6 pt-2 md:hidden">
+      <div className="w-full px-4 pb-10 pt-2 md:hidden">
         <div className="w-full rounded-t-3xl bg-white shadow-md ring-1 ring-slate-200">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
             <div>
