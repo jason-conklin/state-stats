@@ -12,15 +12,15 @@ type Props = {
 };
 
 const COLOR_PALETTE = [
-  "#2563eb",
-  "#16a34a",
-  "#ea580c",
-  "#9333ea",
-  "#0ea5e9",
-  "#f59e0b",
-  "#db2777",
-  "#10b981",
-  "#64748b",
+  "#166534",
+  "#22a66f",
+  "#0f766e",
+  "#4ade80",
+  "#065f46",
+  "#22c55e",
+  "#0ea5a7",
+  "#84cc16",
+  "#15803d",
 ];
 
 function getColorForState(stateId: string, selectedStateIds: string[]) {

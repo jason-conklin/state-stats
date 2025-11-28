@@ -4,7 +4,8 @@ export type QuantizeBucket = {
 };
 
 const neutralColor = "#e5e7eb";
-const quantizePalette = ["#e0f2ff", "#b3dcff", "#85c3f5", "#5aa9e6", "#2f8ed6", "#1b6fb7", "#0f4f8f"];
+// Green sequential palette from light to dark.
+const quantizePalette = ["#e7f5ec", "#c4e8d4", "#8cd0ad", "#4baa78", "#1b7f4a", "#0f3e28"];
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -64,8 +65,8 @@ export function createContinuousColorScale(min: number | null, max: number | nul
     };
   }
 
-  const startColor = "#e0f2ff";
-  const endColor = "#0f4f8f";
+  const startColor = "#e7f5ec";
+  const endColor = "#1b7f4a";
 
   const colorScale = (value: number | null) => {
     if (value === null || Number.isNaN(value)) return neutralColor;

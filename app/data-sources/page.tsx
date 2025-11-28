@@ -45,7 +45,7 @@ export default async function DataSourcesPage() {
                     <h3 className="text-lg font-semibold text-slate-900">{source.name}</h3>
                     <p className="text-xs text-slate-500">{source.id}</p>
                   </div>
-                  <div className="flex gap-3 text-xs text-blue-700">
+                  <div className="flex gap-3 text-xs text-[color:var(--ss-green)]">
                     {source.homepageUrl && (
                       <a href={source.homepageUrl} target="_blank" rel="noreferrer" className="hover:underline">
                         Homepage
@@ -64,7 +64,7 @@ export default async function DataSourcesPage() {
                   <p className="text-sm text-slate-500">No description provided.</p>
                 )}
                 <div className="flex items-center gap-3 text-xs text-slate-600">
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                  <span className="rounded-full bg-[color:var(--ss-green-light)] px-3 py-1 text-[color:var(--ss-green-dark)]">
                     Metrics: {source.metrics.length}
                   </span>
                   <span className="rounded-full bg-slate-100 px-3 py-1">
@@ -99,7 +99,7 @@ export default async function DataSourcesPage() {
                   <td className="px-4 py-3 text-slate-700">
                     {metric.source ? (
                       <a
-                        className="text-blue-700 hover:underline"
+                        className="text-[color:var(--ss-green)] hover:underline"
                         href={`#source-${metric.sourceId}`}
                         title={metric.source.name}
                       >

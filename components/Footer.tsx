@@ -11,17 +11,17 @@ const footerLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white/80">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-        <span className="font-semibold text-slate-900">StateStats</span>
+    <footer className="border-t border-[color:var(--ss-green-mid)]/40 bg-white/80">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+        <span className="font-semibold text-[color:var(--ss-green-dark)]">StateStats</span>
         <div className="flex flex-wrap gap-3">
           {footerLinks.map((link) =>
             link.href.startsWith("http") ? (
-              <a key={link.href} href={link.href} className="hover:text-slate-900">
+              <a key={link.href} href={link.href} className="hover:text-[color:var(--ss-green)]">
                 {link.label}
               </a>
             ) : (
-              <Link key={link.href} href={link.href} className="hover:text-slate-900">
+              <Link key={link.href} href={link.href} className="hover:text-[color:var(--ss-green)]">
                 {link.label}
               </Link>
             ),

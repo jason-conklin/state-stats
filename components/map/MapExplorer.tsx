@@ -121,34 +121,16 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       });
   }, [states, valuesByStateId, rankByStateId]);
 
-  const latestYear = selectedMetric?.years[selectedMetric.years.length - 1];
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="font-semibold">Live data auto-ingestion: Active</span>
-        </div>
-        {latestYear ? (
-          <p className="text-amber-800">
-            Showing data through <span className="font-semibold">{latestYear}</span> for metric{" "}
-            <span className="font-semibold">{selectedMetric?.name}</span>.
-          </p>
-        ) : null}
-      </div>
-
-      <div className="relative grid gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr_260px]">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Metric & Scale</p>
-                <h2 className="text-lg font-semibold text-slate-900">Explore metrics</h2>
-              </div>
-            </div>
-            <div className="mt-4 space-y-3">
-              <label className="block text-sm font-medium text-slate-700" htmlFor="metric-select">
+    <div className="space-y-8">
+      <div
+        className="w-full sm:w-screen px-4 pt-3 pb-2 flex flex-col gap-3 md:flex-row md:items-start md:justify-between"
+        style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
+      >
+        <div className="w-full md:w-72 lg:w-80">
+          <div className="w-full rounded-xl border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-sm backdrop-blur">
+            <div className="space-y-2 text-[12px] sm:text-sm">
+              <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
                 Metric
               </label>
               <select
@@ -159,8 +141,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   const nextMetricId = e.target.value;
                   setSelectedMetricId(nextMetricId);
                   const nextMetric = metrics.find((m) => m.id === nextMetricId);
-                  const latestYear = nextMetric?.years[nextMetric.years.length - 1];
-                  if (latestYear) setSelectedYear(latestYear);
+                  const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
+                  if (latestYearValue) setSelectedYear(latestYearValue);
                 }}
               >
                 {metrics.map((metric) => (
@@ -171,13 +153,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               </select>
 
               <div>
-                <p className="text-sm font-medium text-slate-700">Scale</p>
-                <div className="mt-2 inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 text-sm" role="group" aria-label="Select scale mode">
+                <p className="text-xs font-semibold text-slate-700">Scale</p>
+                <div className="mt-2 inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 text-xs" role="group" aria-label="Select scale mode">
                   {(["quantize", "continuous"] as const).map((mode) => (
                     <button
                       key={mode}
                       onClick={() => setScaleMode(mode)}
-                      className={`rounded-md px-3 py-1 font-medium transition ${
+                      className={`rounded-md px-3 py-1 font-semibold transition ${
                         scaleMode === mode
                           ? "bg-white text-slate-900 shadow-sm"
                           : "text-slate-600 hover:text-slate-800"
@@ -197,154 +179,160 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               ) : null}
             </div>
           </div>
+        </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Map</p>
-                <h1 className="text-xl font-semibold text-slate-900">
-                  {selectedMetric?.name ?? "Metric"} ({selectedYear})
-                </h1>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                <span className="rounded-full bg-slate-100 px-2 py-1">Hover to preview</span>
-                <span className="rounded-full bg-slate-100 px-2 py-1">Click to pin</span>
-              </div>
-            </div>
+        <div className="flex-1 flex justify-center items-start">
+          <h1 className="text-lg md:text-xl font-semibold tracking-tight text-slate-900 text-center">
+            Interactive U.S. state-level data and trends
+          </h1>
+        </div>
 
-            <div className="relative mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-              <USChoropleth
-                features={features}
-                valuesByStateId={valuesByStateId}
-                colorScale={colorScale}
-                onHover={(stateId, position) => {
-                  if (!stateId || !position) {
-                    setHovered(null);
-                    return;
-                  }
-                  setHovered({ stateId, ...position });
-                }}
-                onClick={(stateId) => setPinnedStateId(stateId)}
-                selectedYear={selectedYear}
-              />
-
-              {tooltipContent ? (
-                <div
-                  className="pointer-events-none absolute z-10 w-60 rounded-lg border border-slate-200 bg-white/95 p-3 text-sm shadow-lg"
-                  style={{
-                    left: Math.min(Math.max(tooltipContent.position.x + 12, 0), 320),
-                    top: tooltipContent.position.y + 12,
-                  }}
-                >
-                  <p className="text-sm font-semibold text-slate-900">{tooltipContent.stateName}</p>
-                  <p className="text-slate-700">
-                    {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
-                  </p>
-                  {tooltipContent.rank ? (
-                    <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
-                  ) : (
-                    <p className="text-xs text-slate-500">No data</p>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Year</p>
-                <h2 className="text-xl font-semibold text-slate-900">{selectedYear}</h2>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500">{selectedMetric?.years[0] ?? "–"}</span>
+        <div className="w-full md:w-72 lg:w-80 md:self-start">
+          <div className="rounded-xl border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-sm backdrop-blur">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
+            <h2 className="text-2xl font-semibold text-slate-900">{selectedYear}</h2>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-[11px] text-slate-500">{selectedMetric?.years[0] ?? "–"}</span>
               <input
                 type="range"
                 min={selectedMetric?.years[0] ?? 0}
                 max={selectedMetric?.years[selectedMetric.years.length - 1] ?? 0}
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="w-full accent-slate-700"
+                className="w-full accent-[color:var(--ss-green)]"
                 step={1}
                 aria-label="Select year"
               />
-              <span className="text-xs text-slate-500">{selectedMetric?.years[selectedMetric.years.length - 1] ?? "–"}</span>
+              <span className="text-[11px] text-slate-500">{selectedMetric?.years[selectedMetric.years.length - 1] ?? "–"}</span>
             </div>
-            <Legend
-              {...(legend.mode === "quantize"
-                ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
-                : {
-                    mode: "continuous" as const,
-                    minValue: legend.minValue,
-                    maxValue: legend.maxValue,
-                    gradient: legend.gradient,
-                    unit: selectedMetric?.unit ?? undefined,
-                  })}
+          </div>
+        </div>
+      </div>
+
+      <section
+        className="relative w-full sm:w-screen"
+        style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
+      >
+        <div className="relative w-full sm:w-screen overflow-hidden bg-transparent">
+          <div className="relative w-full sm:w-screen h-[65vh] md:h-[75vh] lg:h-[calc(100vh-8rem)] overflow-hidden rounded-none bg-white shadow-lg ring-1 ring-slate-100">
+            <USChoropleth
+              features={features}
+              valuesByStateId={valuesByStateId}
+              colorScale={colorScale}
+              onHover={(stateId, position) => {
+                if (!stateId || !position) {
+                  setHovered(null);
+                  return;
+                }
+                setHovered({ stateId, ...position });
+              }}
+              onClick={(stateId) => setPinnedStateId(stateId)}
+              selectedYear={selectedYear}
             />
-            {pinnedCard && pinnedCard.state ? (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Pinned</p>
-                <div className="mt-1 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{pinnedCard.state.name}</p>
-                    <p className="text-sm text-slate-700">
-                      {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
-                    </p>
+
+            {tooltipContent ? (
+              <div
+                className="pointer-events-none absolute z-20 w-60 rounded-lg border border-slate-200 bg-white/95 p-3 text-sm shadow-lg"
+                style={{
+                  left: tooltipContent.position.x + 12,
+                  top: tooltipContent.position.y + 12,
+                }}
+              >
+                <p className="text-sm font-semibold text-slate-900">{tooltipContent.stateName}</p>
+                <p className="text-slate-700">
+                  {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
+                </p>
+                {tooltipContent.rank ? (
+                  <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
+                ) : (
+                  <p className="text-xs text-slate-500">No data</p>
+                )}
+              </div>
+            ) : null}
+
+            {/* Legend */}
+            <div className="absolute bottom-2 left-2 z-10 w-52 max-w-full sm:left-4 sm:bottom-4 sm:w-60">
+              <Legend
+                {...(legend.mode === "quantize"
+                  ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
+                  : {
+                      mode: "continuous" as const,
+                      minValue: legend.minValue,
+                      maxValue: legend.maxValue,
+                      gradient: legend.gradient,
+                      unit: selectedMetric?.unit ?? undefined,
+                    })}
+              />
+            </div>
+
+            {/* Pinned */}
+            <div className="absolute bottom-2 right-2 z-10 max-w-full sm:right-4 sm:bottom-4">
+              {pinnedCard && pinnedCard.state ? (
+                <div className="flex w-64 flex-col gap-2 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-md backdrop-blur">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{pinnedCard.state.name}</p>
+                      <p className="text-sm text-slate-700">
+                        {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
+                      </p>
                     {pinnedCard.rank ? (
-                      <p className="text-xs text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
+                      <p className="text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
                     ) : (
-                      <p className="text-xs text-slate-500">No data</p>
+                      <p className="text-[11px] text-slate-500">No data</p>
                     )}
                   </div>
                   <Link
                     href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                    className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                    className="rounded-md border border-[color:var(--ss-green)] px-3 py-1 text-[11px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
                   >
                     Add to compare
                   </Link>
                 </div>
               </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-                Click a state on the map to pin it.
-              </div>
-            )}
+              ) : (
+                <div className="w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-3 text-xs text-slate-600 shadow-sm backdrop-blur">
+                  Click a state on the map to pin it.
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Data table</p>
-            <h2 className="text-lg font-semibold text-slate-900">Values for {selectedYear}</h2>
+      <section className="mx-auto mt-10 w-full max-w-6xl px-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Data table</p>
+              <h2 className="text-lg font-semibold text-slate-900">Values for {selectedYear}</h2>
+            </div>
+            <p className="text-xs text-slate-500">Accessible table of state values</p>
           </div>
-          <p className="text-xs text-slate-500">Accessible table of state values</p>
-        </div>
-        <div className="mt-3 overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="px-3 py-2">Rank</th>
-                <th className="px-3 py-2">State</th>
-                <th className="px-3 py-2">Value</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {tableRows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50">
-                  <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
-                  <td className="px-3 py-2 text-slate-900">{row.name}</td>
-                  <td className="px-3 py-2 text-slate-700">
-                    {formatMetricValue(row.value, selectedMetric?.unit ?? undefined)}
-                  </td>
+          <div className="mt-3 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="px-3 py-2">Rank</th>
+                  <th className="px-3 py-2">State</th>
+                  <th className="px-3 py-2">Value</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {tableRows.map((row) => (
+                  <tr key={row.id} className="hover:bg-slate-50">
+                    <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
+                    <td className="px-3 py-2 text-slate-900">{row.name}</td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {formatMetricValue(row.value, selectedMetric?.unit ?? undefined)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -89,14 +89,7 @@ export default async function Home() {
   const features = getUSStateFeatures();
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Map</p>
-        <h1 className="text-3xl font-semibold leading-tight text-slate-900">State-level insights</h1>
-        <p className="text-slate-600">
-          Explore U.S. states by metric and year with interactive map, hover tooltip, pinned state details, and an accessible table.
-        </p>
-      </div>
+    <section className="-mt-2">
       <MapExplorer
         metrics={metrics}
         defaultMetricId={defaultMetricId}

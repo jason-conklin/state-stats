@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f0f6f7; /* subtle aqua tint for contrast behind light map greens */
   --foreground: #171717;
+  /* StateStats palette: primary + supporting greens */
+  --ss-green: #1b7f4a;
+  --ss-green-light: #e7f5ec;
+  --ss-green-mid: #4baa78;
+  --ss-green-dark: #145c36;
+  --ss-gray: #0f172a;
 }
 
 @theme inline {

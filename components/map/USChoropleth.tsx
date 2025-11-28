@@ -45,7 +45,7 @@ export function USChoropleth({
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-xl bg-slate-50">
+    <div className="relative w-full h-full overflow-hidden rounded-xl bg-slate-50">
       <svg
         viewBox="0 0 960 560"
         role="img"
