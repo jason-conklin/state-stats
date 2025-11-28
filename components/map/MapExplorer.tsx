@@ -212,17 +212,17 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative h-full w-full bg-[#e3f2fd]" ref={mapContainerRef}>
+    <div className="relative w-full h-[65vh] md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
       {/* Top-center control pill */}
-      <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 px-4 w-full">
-        <div className="pointer-events-auto mx-auto flex max-w-[min(90vw,1000px)] flex-wrap items-center justify-center gap-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-slate-200">
-          <div className="flex flex-wrap items-center gap-2 min-w-[220px]">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
+      <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 px-3 w-full md:top-4">
+        <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-2 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
+          <div className="flex flex-wrap items-center gap-2 min-w-[200px] md:min-w-[220px]">
+            <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
               Metric
             </label>
             <select
               id="metric-select"
-              className="min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
+              className="min-w-[170px] md:min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
               value={selectedMetric?.id}
               onChange={(e) => {
                 const nextMetricId = e.target.value;
@@ -242,8 +242,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
           <div className="hidden h-6 w-px bg-slate-200 sm:block" />
 
-          <div className="flex flex-1 min-w-[240px] items-center gap-3">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
+          <div className="flex flex-1 min-w-[220px] items-center gap-2 md:gap-3">
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
             <input
               type="range"
               min={yearMin}
@@ -260,7 +260,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </span>
           </div>
         </div>
-        <p className="pointer-events-none mx-auto mt-2 max-w-[min(90vw,1000px)] text-center text-xs text-slate-600">
+        <p className="pointer-events-none mx-auto mt-1 md:mt-2 max-w-[min(90vw,1000px)] text-center text-xs text-slate-600">
           Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
         </p>
       </div>

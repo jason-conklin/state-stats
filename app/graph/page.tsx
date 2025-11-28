@@ -142,21 +142,21 @@ export default async function GraphPage(props: GraphPageProps) {
     const normalization = modeParam === "indexed" ? "indexed" : "raw";
 
     return (
-      <div className="h-full w-full overflow-y-auto p-6">
-        <section className="space-y-6">
+      <div className="h-full w-full overflow-y-auto bg-sky-50 p-4 md:bg-slate-950 md:bg-opacity-90 md:p-6">
+        <section className="space-y-4 md:space-y-6">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Compare
             </p>
-            <h1 className="text-3xl font-semibold leading-tight text-slate-900">
+            <h1 className="text-2xl md:text-3xl font-semibold leading-tight text-slate-900 md:text-white">
               Compare states over time
             </h1>
-            <p className="text-slate-600">
+            <p className="text-slate-700 md:text-slate-300">
               Select a metric, pick states, and explore trends across years. Use indexed mode to
               compare relative changes.
             </p>
           </div>
-          <div className="h-[70vh] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="h-[65vh] md:h-[70vh] rounded-2xl border border-slate-200 bg-white p-4 shadow-md md:bg-slate-900 md:border-slate-700 md:shadow-lg">
             <GraphExplorer
               metrics={metrics.map((m) => ({
                 id: m.id,
