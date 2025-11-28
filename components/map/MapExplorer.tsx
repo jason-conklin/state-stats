@@ -122,99 +122,76 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [states, valuesByStateId, rankByStateId]);
 
   return (
-    <div className="space-y-8">
-      <div
-        className="w-full sm:w-screen px-4 pt-3 pb-2 flex flex-col gap-3 md:flex-row md:items-start md:justify-between"
-        style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
-      >
-        <div className="w-full md:w-72 lg:w-80">
-          <div className="w-full rounded-xl border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-sm backdrop-blur">
-            <div className="space-y-2 text-[12px] sm:text-sm">
-              <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
-                Metric
-              </label>
-              <select
-                id="metric-select"
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none"
-                value={selectedMetric?.id}
-                onChange={(e) => {
-                  const nextMetricId = e.target.value;
-                  setSelectedMetricId(nextMetricId);
-                  const nextMetric = metrics.find((m) => m.id === nextMetricId);
-                  const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
-                  if (latestYearValue) setSelectedYear(latestYearValue);
-                }}
-              >
-                {metrics.map((metric) => (
-                  <option key={metric.id} value={metric.id}>
-                    {metric.name} {metric.unit ? `(${metric.unit})` : ""}
-                  </option>
-                ))}
-              </select>
+    <div className="relative h-full w-full">
+      {/* Top-center control pill */}
+      <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 px-4 w-full">
+        <div className="pointer-events-auto mx-auto flex max-w-[min(90vw,1000px)] flex-wrap items-center justify-center gap-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-slate-200">
+          <div className="flex flex-wrap items-center gap-2 min-w-[220px]">
+            <label className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
+              Metric
+            </label>
+            <select
+              id="metric-select"
+              className="min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none"
+              value={selectedMetric?.id}
+              onChange={(e) => {
+                const nextMetricId = e.target.value;
+                setSelectedMetricId(nextMetricId);
+                const nextMetric = metrics.find((m) => m.id === nextMetricId);
+                const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
+                if (latestYearValue) setSelectedYear(latestYearValue);
+              }}
+            >
+              {metrics.map((metric) => (
+                <option key={metric.id} value={metric.id}>
+                  {metric.name} {metric.unit ? `(${metric.unit})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div>
-                <p className="text-xs font-semibold text-slate-700">Scale</p>
-                <div className="mt-2 inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 text-xs" role="group" aria-label="Select scale mode">
-                  {(["quantize", "continuous"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => setScaleMode(mode)}
-                      className={`rounded-md px-3 py-1 font-semibold transition ${
-                        scaleMode === mode
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-600 hover:text-slate-800"
-                      }`}
-                      type="button"
-                    >
-                      {mode === "quantize" ? "Quantize" : "Continuous"}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div className="hidden h-6 w-px bg-slate-200 sm:block" />
 
-              {selectedMetric?.sourceName ? (
-                <p className="text-xs text-slate-500">
-                  Source: <span className="font-semibold text-slate-700">{selectedMetric.sourceName}</span>
-                </p>
-              ) : null}
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600">Scale</p>
+            <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-xs" role="group" aria-label="Select scale mode">
+              {(["quantize", "continuous"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setScaleMode(mode)}
+                  className={`rounded-full px-3 py-1 font-semibold transition ${
+                    scaleMode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-800"
+                  }`}
+                  type="button"
+                >
+                  {mode === "quantize" ? "Quantize" : "Continuous"}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 flex justify-center items-start">
-          <h1 className="text-lg md:text-xl font-semibold tracking-tight text-slate-900 text-center">
-            Interactive U.S. state-level data and trends
-          </h1>
-        </div>
+          <div className="hidden h-6 w-px bg-slate-200 sm:block" />
 
-        <div className="w-full md:w-72 lg:w-80 md:self-start">
-          <div className="rounded-xl border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-sm backdrop-blur">
+          <div className="flex flex-1 min-w-[240px] items-center gap-3">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
-            <h2 className="text-2xl font-semibold text-slate-900">{selectedYear}</h2>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-[11px] text-slate-500">{selectedMetric?.years[0] ?? "–"}</span>
-              <input
-                type="range"
-                min={selectedMetric?.years[0] ?? 0}
-                max={selectedMetric?.years[selectedMetric.years.length - 1] ?? 0}
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="w-full accent-[color:var(--ss-green)]"
-                step={1}
-                aria-label="Select year"
-              />
-              <span className="text-[11px] text-slate-500">{selectedMetric?.years[selectedMetric.years.length - 1] ?? "–"}</span>
-            </div>
+            <input
+              type="range"
+              min={selectedMetric?.years[0] ?? 0}
+              max={selectedMetric?.years[selectedMetric.years.length - 1] ?? 0}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="flex-1 accent-[color:var(--ss-green)]"
+              step={1}
+              aria-label="Select year"
+            />
+            <span className="text-sm font-semibold text-slate-900">{selectedYear}</span>
           </div>
         </div>
       </div>
 
-      <section
-        className="relative w-full sm:w-screen"
-        style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
-      >
-        <div className="relative w-full sm:w-screen overflow-hidden bg-transparent">
-          <div className="relative w-full sm:w-screen h-[65vh] md:h-[75vh] lg:h-[calc(100vh-8rem)] overflow-hidden rounded-none bg-white shadow-lg ring-1 ring-slate-100">
+      <section className="relative h-full w-full">
+        <div className="absolute inset-0 overflow-hidden bg-transparent">
+          <div className="absolute inset-0 overflow-hidden rounded-none bg-white shadow-lg ring-1 ring-slate-100">
             <USChoropleth
               features={features}
               valuesByStateId={valuesByStateId}
@@ -251,22 +228,24 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             ) : null}
 
             {/* Legend */}
-            <div className="absolute bottom-2 left-2 z-10 w-52 max-w-full sm:left-4 sm:bottom-4 sm:w-60">
-              <Legend
-                {...(legend.mode === "quantize"
-                  ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
-                  : {
-                      mode: "continuous" as const,
-                      minValue: legend.minValue,
-                      maxValue: legend.maxValue,
-                      gradient: legend.gradient,
-                      unit: selectedMetric?.unit ?? undefined,
-                    })}
-              />
+            <div className="pointer-events-auto absolute bottom-4 left-4 z-10 w-52 max-w-full sm:w-60">
+              <div className="rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
+                <Legend
+                  {...(legend.mode === "quantize"
+                    ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
+                    : {
+                        mode: "continuous" as const,
+                        minValue: legend.minValue,
+                        maxValue: legend.maxValue,
+                        gradient: legend.gradient,
+                        unit: selectedMetric?.unit ?? undefined,
+                      })}
+                />
+              </div>
             </div>
 
             {/* Pinned */}
-            <div className="absolute bottom-2 right-2 z-10 max-w-full sm:right-4 sm:bottom-4">
+            <div className="pointer-events-auto absolute bottom-4 right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
                 <div className="flex w-64 flex-col gap-2 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-md backdrop-blur">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
@@ -276,20 +255,20 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                       <p className="text-sm text-slate-700">
                         {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
                       </p>
-                    {pinnedCard.rank ? (
-                      <p className="text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
-                    ) : (
-                      <p className="text-[11px] text-slate-500">No data</p>
-                    )}
+                      {pinnedCard.rank ? (
+                        <p className="text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
+                      ) : (
+                        <p className="text-[11px] text-slate-500">No data</p>
+                      )}
+                    </div>
+                    <Link
+                      href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
+                      className="rounded-md border border-[color:var(--ss-green)] px-3 py-1 text-[11px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
+                    >
+                      Add to compare
+                    </Link>
                   </div>
-                  <Link
-                    href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                    className="rounded-md border border-[color:var(--ss-green)] px-3 py-1 text-[11px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
-                  >
-                    Add to compare
-                  </Link>
                 </div>
-              </div>
               ) : (
                 <div className="w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-3 text-xs text-slate-600 shadow-sm backdrop-blur">
                   Click a state on the map to pin it.
@@ -300,8 +279,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         </div>
       </section>
 
-      <section className="mx-auto mt-10 w-full max-w-6xl px-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="pointer-events-auto absolute bottom-2 left-1/2 z-20 w-full max-w-5xl -translate-x-1/2 px-4">
+        <div className="max-h-[40vh] overflow-y-auto rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Data table</p>
@@ -332,7 +311,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </table>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

@@ -131,43 +131,49 @@ export default async function GraphPage(props: GraphPageProps) {
     const normalization = modeParam === "indexed" ? "indexed" : "raw";
 
     return (
-      <section className="space-y-6">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Compare
-          </p>
-          <h1 className="text-3xl font-semibold leading-tight text-slate-900">
-            Compare states over time
-          </h1>
-          <p className="text-slate-600">
-            Select a metric, pick states, and explore trends across years. Use indexed mode to
-            compare relative changes.
-          </p>
-        </div>
-        <GraphExplorer
-          metrics={metrics.map((m) => ({
-            id: m.id,
-            name: m.name,
-            unit: m.unit,
-            description: m.description,
-          }))}
-          states={stateList}
-          initialMetricId={selectedMetricId}
-          initialSelectedStates={selectedStates}
-          availableYears={availableYears}
-          initialYearRange={{ start: startYear, end: endYear }}
-          initialNormalization={normalization === "indexed" ? "indexed" : "raw"}
-          initialSeries={metricData?.series ?? []}
-        />
-      </section>
+      <div className="h-full w-full overflow-y-auto p-6">
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Compare
+            </p>
+            <h1 className="text-3xl font-semibold leading-tight text-slate-900">
+              Compare states over time
+            </h1>
+            <p className="text-slate-600">
+              Select a metric, pick states, and explore trends across years. Use indexed mode to
+              compare relative changes.
+            </p>
+          </div>
+          <div className="h-[70vh] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <GraphExplorer
+              metrics={metrics.map((m) => ({
+                id: m.id,
+                name: m.name,
+                unit: m.unit,
+                description: m.description,
+              }))}
+              states={stateList}
+              initialMetricId={selectedMetricId}
+              initialSelectedStates={selectedStates}
+              availableYears={availableYears}
+              initialYearRange={{ start: startYear, end: endYear }}
+              initialNormalization={normalization === "indexed" ? "indexed" : "raw"}
+              initialSeries={metricData?.series ?? []}
+            />
+          </div>
+        </section>
+      </div>
     );
   } catch (error) {
     console.error("Graph page error:", error);
     return (
-      <section className="space-y-4">
-        <h1 className="text-2xl font-semibold text-slate-900">Compare states over time</h1>
-        <p className="text-slate-600">Unable to load data for this view. Please try again later.</p>
-      </section>
+      <div className="h-full w-full overflow-y-auto p-6">
+        <section className="space-y-4">
+          <h1 className="text-2xl font-semibold text-slate-900">Compare states over time</h1>
+          <p className="text-slate-600">Unable to load data for this view. Please try again later.</p>
+        </section>
+      </div>
     );
   }
 }

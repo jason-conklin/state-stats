@@ -1,14 +1,15 @@
 export default function AboutPage() {
   return (
-    <section className="space-y-8">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">About</p>
-        <h1 className="text-3xl font-semibold text-slate-900">Why StateStats exists</h1>
-        <p className="max-w-3xl text-slate-600">
-          StateStats helps users explore U.S. state-level data over time through interactive maps and
-          comparison charts. The goal is to keep public data accessible, explorable, and transparent.
-        </p>
-      </div>
+    <div className="h-full w-full overflow-y-auto p-6">
+      <section className="space-y-8">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">About</p>
+          <h1 className="text-3xl font-semibold text-slate-900">Why StateStats exists</h1>
+          <p className="max-w-3xl text-slate-600">
+            StateStats helps users explore U.S. state-level data over time through interactive maps and
+            comparison charts. The goal is to keep public data accessible, explorable, and transparent.
+          </p>
+        </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -39,13 +40,14 @@ export default function AboutPage() {
         </ol>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">About the creator</h2>
-        <p className="mt-2 text-sm text-slate-700">
-          Placeholder bio: This section will introduce the creator, motivation for building StateStats,
-          and ways to get in touch. Content coming soon.
-        </p>
-      </div>
-    </section>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">About the creator</h2>
+          <p className="mt-2 text-sm text-slate-700">
+            Placeholder bio: This section will introduce the creator, motivation for building StateStats,
+            and ways to get in touch. Content coming soon.
+          </p>
+        </div>
+      </section>
+    </div>
   );
 }

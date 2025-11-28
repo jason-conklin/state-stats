@@ -89,7 +89,7 @@ export default async function Home() {
   const features = getUSStateFeatures();
 
   return (
-    <section className="-mt-2">
+    <section className="relative h-full w-full">
       <MapExplorer
         metrics={metrics}
         defaultMetricId={defaultMetricId}

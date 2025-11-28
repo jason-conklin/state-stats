@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { NavBar } from "@/components/NavBar";
 import { getLatestSuccessfulIngestion } from "@/lib/ingestion";
 import { formatDateTime } from "@/lib/format";
-import { Footer } from "@/components/Footer";
 import { prisma } from "@/lib/db";
+import { AppShell } from "@/components/layout/AppShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,13 +53,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-slate-900 antialiased`}>
-        <div className="min-h-screen">
-          <NavBar links={navLinks} lastUpdatedLabel={lastUpdatedLabel} statusText={statusText} />
-          <main id="main-content" className="mx-auto max-w-6xl px-6 py-10">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <AppShell navLinks={navLinks} statusText={statusText}>
+          {children}
+        </AppShell>
       </body>
     </html>
   );

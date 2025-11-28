@@ -20,62 +20,63 @@ export default async function DataSourcesPage() {
   });
 
   return (
-    <section className="space-y-8">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Data sources</p>
-        <h1 className="text-3xl font-semibold leading-tight text-slate-900">Pipelines and providers</h1>
-        <p className="max-w-3xl text-slate-600">
-          See where each metric originates, when it last ingested, and which metrics are powered by each source.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-slate-900">Sources</h2>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {dataSources.map((source) => {
-            const lastRun = source.ingestionRuns[0];
-            return (
-              <div
-                key={source.id}
-                id={`source-${source.id}`}
-                className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{source.name}</h3>
-                    <p className="text-xs text-slate-500">{source.id}</p>
-                  </div>
-                  <div className="flex gap-3 text-xs text-[color:var(--ss-green)]">
-                    {source.homepageUrl && (
-                      <a href={source.homepageUrl} target="_blank" rel="noreferrer" className="hover:underline">
-                        Homepage
-                      </a>
-                    )}
-                    {source.apiDocsUrl && (
-                      <a href={source.apiDocsUrl} target="_blank" rel="noreferrer" className="hover:underline">
-                        API docs
-                      </a>
-                    )}
-                  </div>
-                </div>
-                {source.description ? (
-                  <p className="text-sm text-slate-700">{source.description}</p>
-                ) : (
-                  <p className="text-sm text-slate-500">No description provided.</p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-slate-600">
-                  <span className="rounded-full bg-[color:var(--ss-green-light)] px-3 py-1 text-[color:var(--ss-green-dark)]">
-                    Metrics: {source.metrics.length}
-                  </span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1">
-                    Last success: {lastRun?.completedAt ? formatDateTime(lastRun.completedAt) : "—"}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+    <div className="h-full w-full overflow-y-auto p-6">
+      <section className="space-y-8">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Data sources</p>
+          <h1 className="text-3xl font-semibold leading-tight text-slate-900">Pipelines and providers</h1>
+          <p className="max-w-3xl text-slate-600">
+            See where each metric originates, when it last ingested, and which metrics are powered by each source.
+          </p>
         </div>
-      </div>
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-slate-900">Sources</h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {dataSources.map((source) => {
+              const lastRun = source.ingestionRuns[0];
+              return (
+                <div
+                  key={source.id}
+                  id={`source-${source.id}`}
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900">{source.name}</h3>
+                      <p className="text-xs text-slate-500">{source.id}</p>
+                    </div>
+                    <div className="flex gap-3 text-xs text-[color:var(--ss-green)]">
+                      {source.homepageUrl && (
+                        <a href={source.homepageUrl} target="_blank" rel="noreferrer" className="hover:underline">
+                          Homepage
+                        </a>
+                      )}
+                      {source.apiDocsUrl && (
+                        <a href={source.apiDocsUrl} target="_blank" rel="noreferrer" className="hover:underline">
+                          API docs
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {source.description ? (
+                    <p className="text-sm text-slate-700">{source.description}</p>
+                  ) : (
+                    <p className="text-sm text-slate-500">No description provided.</p>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-slate-600">
+                    <span className="rounded-full bg-[color:var(--ss-green-light)] px-3 py-1 text-[color:var(--ss-green-dark)]">
+                      Metrics: {source.metrics.length}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      Last success: {lastRun?.completedAt ? formatDateTime(lastRun.completedAt) : "—"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
       <div className="space-y-3">
         <h2 className="text-xl font-semibold text-slate-900">Metrics</h2>
@@ -119,5 +120,6 @@ export default async function DataSourcesPage() {
         </div>
       </div>
     </section>
+    </div>
   );
 }
