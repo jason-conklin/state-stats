@@ -21,6 +21,13 @@ export function AppShell({ children, navLinks, statusText }: Props) {
     window.dispatchEvent(new CustomEvent("statestats:sidebar-toggle", { detail: { collapsed } }));
   }, [collapsed]);
 
+  // Allow child components to request opening the mobile nav via a custom event.
+  useEffect(() => {
+    const handler = () => setMobileOpen(true);
+    window.addEventListener("statestats:open-nav", handler);
+    return () => window.removeEventListener("statestats:open-nav", handler);
+  }, []);
+
   useEffect(() => {
     const handleTableToggle = (event: Event) => {
       const detail = (event as CustomEvent<{ open?: boolean }>).detail;
@@ -45,16 +52,6 @@ export function AppShell({ children, navLinks, statusText }: Props) {
       />
 
       <main className="relative flex-1 overflow-hidden">
-        <div className="flex items-center gap-2 px-3 pt-3 md:hidden">
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open navigation"
-          >
-            ☰
-          </button>
-        </div>
         <button
           type="button"
           className="absolute left-3 top-3 z-30 hidden h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow md:inline-flex"

@@ -217,8 +217,67 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
   return (
     <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
-      {/* Top-center control pill */}
-      <div className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 px-3 w-full md:top-4">
+      {/* Mobile top row: hamburger + controls */}
+      <div className="flex items-start gap-2 px-3 pt-3 sm:px-6 sm:pt-6 md:hidden">
+        <button
+          type="button"
+          aria-label="Open navigation"
+          onClick={() => window.dispatchEvent(new CustomEvent("statestats:open-nav"))}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow"
+        >
+          ☰
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
+            <div className="flex flex-1 min-w-0 items-center gap-2">
+              <label className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
+                Metric
+              </label>
+              <select
+                id="metric-select"
+                className="w-full min-w-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer truncate"
+                value={selectedMetric?.id}
+                onChange={(e) => {
+                  const nextMetricId = e.target.value;
+                  setSelectedMetricId(nextMetricId);
+                  const nextMetric = metrics.find((m) => m.id === nextMetricId);
+                  const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
+                  if (latestYearValue) setSelectedYear(latestYearValue);
+                }}
+              >
+                {metrics.map((metric) => (
+                  <option key={metric.id} value={metric.id}>
+                    {metric.name} {metric.unit ? `(${metric.unit})` : ""} {metric.category ? `• ${metric.category}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-1 min-w-0 items-center gap-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Year</p>
+              <input
+                type="range"
+                min={yearMin}
+                max={yearMax}
+                value={sliderValue}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
+                step={1}
+                aria-label="Select year"
+                disabled={!selectedMetric?.years.length}
+              />
+              <span className="text-sm font-semibold text-slate-900">
+                {selectedMetric?.years.length ? selectedYear : "—"}
+              </span>
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-slate-600">
+            Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+          </p>
+        </div>
+      </div>
+
+      {/* Desktop control pill */}
+      <div className="hidden pointer-events-none md:absolute md:left-1/2 md:top-4 md:z-20 md:block md:-translate-x-1/2 md:px-0 w-full px-3">
         <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
           <div className="flex flex-wrap items-center gap-1 min-w-[200px] md:gap-2 md:min-w-[220px]">
             <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
@@ -384,19 +443,41 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
         </div>
 
-        <DataTablePanel
-          year={selectedYear}
-          rows={tableRows.map((row) => ({
-            rank: row.rank ?? null,
-            stateId: row.id,
-            stateName: row.name,
-            value: row.value,
-            displayValue: formatMetricValue(row.value, selectedMetric?.unit ?? undefined),
-          }))}
-          selectedStateId={pinnedStateId}
-          isOpen={isTableOpen}
-          onToggle={() => setTableOpen(!isTableOpen)}
-        />
+        {/* Mobile inline data table */}
+        <section className="sm:hidden mt-4 w-full px-3 pb-8">
+          <div className="w-full rounded-t-3xl bg-white shadow-sm">
+            <DataTablePanel
+              year={selectedYear}
+              rows={tableRows.map((row) => ({
+                rank: row.rank ?? null,
+                stateId: row.id,
+                stateName: row.name,
+                value: row.value,
+                displayValue: formatMetricValue(row.value, selectedMetric?.unit ?? undefined),
+              }))}
+              selectedStateId={pinnedStateId}
+              isOpen
+              onToggle={() => {}}
+            />
+          </div>
+        </section>
+
+        {/* Desktop overlay table */}
+        <div className="hidden sm:block">
+          <DataTablePanel
+            year={selectedYear}
+            rows={tableRows.map((row) => ({
+              rank: row.rank ?? null,
+              stateId: row.id,
+              stateName: row.name,
+              value: row.value,
+              displayValue: formatMetricValue(row.value, selectedMetric?.unit ?? undefined),
+            }))}
+            selectedStateId={pinnedStateId}
+            isOpen={isTableOpen}
+            onToggle={() => setTableOpen(!isTableOpen)}
+          />
+        </div>
       </section>
     </div>
   );
