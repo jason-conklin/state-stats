@@ -228,7 +228,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           ☰
         </button>
         <div className="flex-1 min-w-0">
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
+          <div className="pointer-events-auto flex flex-col gap-2 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
             <div className="flex flex-1 min-w-0 items-center gap-2">
               <label className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
                 Metric
@@ -252,22 +252,24 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 ))}
               </select>
             </div>
-            <div className="flex flex-1 min-w-0 items-center gap-2">
+            <div className="flex flex-col min-w-0 gap-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Year</p>
-              <input
-                type="range"
-                min={yearMin}
-                max={yearMax}
-                value={sliderValue}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
-                step={1}
-                aria-label="Select year"
-                disabled={!selectedMetric?.years.length}
-              />
-              <span className="text-sm font-semibold text-slate-900">
-                {selectedMetric?.years.length ? selectedYear : "—"}
-              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={yearMin}
+                  max={yearMax}
+                  value={sliderValue}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
+                  step={1}
+                  aria-label="Select year"
+                  disabled={!selectedMetric?.years.length}
+                />
+                <span className="text-sm font-semibold text-slate-900">
+                  {selectedMetric?.years.length ? selectedYear : "—"}
+                </span>
+              </div>
             </div>
           </div>
           <p className="mt-1 text-xs text-slate-600">
@@ -351,20 +353,20 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
           {tooltipContent ? (
               <div
-                className="pointer-events-none absolute z-20 w-60 rounded-lg border border-slate-200 bg-white/95 p-3 text-sm shadow-lg"
+                className="pointer-events-none absolute z-20 w-44 sm:w-60 rounded-lg border border-slate-200 bg-white/95 p-2.5 text-xs sm:text-sm shadow-lg"
                 style={{
-                  left: tooltipContent.position.x + 12,
-                  top: tooltipContent.position.y + 12,
+                  left: tooltipContent.position.x + 10,
+                  top: tooltipContent.position.y + 10,
                 }}
               >
                 <p className="text-sm font-semibold text-slate-900">{tooltipContent.stateName}</p>
-                <p className="text-slate-700">
+                <p className="text-slate-700 text-[12px] sm:text-sm">
                   {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
                 </p>
                 {tooltipContent.rank ? (
-                  <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
+                  <p className="text-[11px] text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
                 ) : (
-                  <p className="text-xs text-slate-500">No data</p>
+                  <p className="text-[11px] text-slate-500">No data</p>
                 )}
               </div>
           ) : null}
@@ -401,7 +403,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           {/* Pinned */}
             <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
-                <div className="flex w-52 sm:w-64 flex-col gap-1.5 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2.5 sm:p-3 shadow-md backdrop-blur text-xs">
+                <div className="flex w-48 sm:w-64 flex-col gap-1.5 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2 sm:p-3 shadow-md backdrop-blur text-[11px] sm:text-xs">
                   <div className="flex items-start justify-between gap-1.5">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
                     <button

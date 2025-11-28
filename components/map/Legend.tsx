@@ -21,7 +21,7 @@ export function Legend(props: LegendProps) {
   const domainMin = props.domain?.[0] ?? null;
   const domainMax = props.domain?.[1] ?? null;
   return (
-    <div className="w-full max-w-[240px] sm:max-w-full rounded-lg border border-[color:var(--ss-green-mid)]/40 bg-white p-2 shadow-sm">
+    <div className="w-full max-w-[440px] sm:max-w-full rounded-lg border border-[color:var(--ss-green-mid)]/40 bg-white p-2 shadow-sm">
       <div className="flex items-center justify-between">
         <p className="text-[12px] font-semibold text-[color:var(--ss-green-dark)]">Legend</p>
         {props.unitLabel ? <span className="text-[10px] text-slate-500">{props.unitLabel}</span> : null}
