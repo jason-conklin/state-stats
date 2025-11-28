@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
+import { useEffect } from "react";
 
 type NavLink = { href: string; label: string };
 
@@ -14,6 +15,23 @@ type Props = {
 export function AppShell({ children, navLinks, statusText }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Emit sidebar toggle events after state commits to avoid cross-render setState warnings.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("statestats:sidebar-toggle", { detail: { collapsed } }));
+  }, [collapsed]);
+
+  useEffect(() => {
+    const handleTableToggle = (event: Event) => {
+      const detail = (event as CustomEvent<{ open?: boolean }>).detail;
+      if (detail?.open) {
+        // If data table is opened, collapse the sidebar.
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener("statestats:table-toggle", handleTableToggle as EventListener);
+    return () => window.removeEventListener("statestats:table-toggle", handleTableToggle as EventListener);
+  }, []);
 
   return (
     <div className="flex h-screen bg-[var(--background)] text-slate-900">

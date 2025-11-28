@@ -2,7 +2,7 @@
 
 import { Feature, Geometry } from "geojson";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Legend } from "./Legend";
 import { USChoropleth } from "./USChoropleth";
 import { createContinuousColorScale, createQuantizeColorScale } from "@/lib/mapScales";
@@ -147,9 +147,14 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       });
   }, [states, valuesByStateId, rankByStateId]);
 
+  const setTableOpen = useCallback((next: boolean) => {
+    setIsTableOpen(next);
+    window.dispatchEvent(new CustomEvent("statestats:table-toggle", { detail: { open: next } }));
+  }, []);
+
   const handleStateClick = (stateId: string) => {
     setPinnedStateId(stateId);
-    if (stateId) setIsTableOpen(true);
+    if (stateId) setTableOpen(true);
   };
 
   useEffect(() => {
@@ -193,6 +198,18 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     }
     setIsLegendOpen((prev) => !prev);
   };
+
+  // Close the data table when the sidebar expands.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ collapsed?: boolean }>).detail;
+      if (detail && detail.collapsed === false) {
+        setTableOpen(false);
+      }
+    };
+    window.addEventListener("statestats:sidebar-toggle", handler as EventListener);
+    return () => window.removeEventListener("statestats:sidebar-toggle", handler as EventListener);
+  }, [setTableOpen]);
 
   return (
     <div className="relative h-full w-full bg-[#e3f2fd]" ref={mapContainerRef}>
@@ -364,7 +381,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           }))}
           selectedStateId={pinnedStateId}
           isOpen={isTableOpen}
-          onToggle={() => setIsTableOpen((prev) => !prev)}
+          onToggle={() => setTableOpen(!isTableOpen)}
         />
       </section>
     </div>
