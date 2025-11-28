@@ -6,8 +6,18 @@ export type QuantizeBucket = {
   label: string;
 };
 
-// A richer sequential green palette from light mint to deep emerald.
-export const GREEN_STEPS = ["#e8f6f0", "#c7ebd9", "#9fd9c0", "#73c1a0", "#47a37e", "#257a59", "#0b5440"];
+// A higher-contrast sequential green palette (light → dark).
+export const GREEN_STEPS = [
+  "#f4fbf7",
+  "#e0f5ea",
+  "#c2ead7",
+  "#9fdcc1",
+  "#73c7a0",
+  "#47aa7e",
+  "#27825b",
+  "#135640",
+  "#032f22",
+];
 export const NO_DATA_COLOR = "#e5e7eb";
 
 export function createQuantizeColorScale(min: number | null, max: number | null) {

@@ -42,6 +42,16 @@ type LegendState =
   | { mode: "quantize"; buckets: QuantizeBucket[] }
   | { mode: "continuous"; minValue: number | null; maxValue: number | null; gradient: string };
 
+function getYearDomain(valuesForYear: Record<string, number | null> | undefined): [number, number] | null {
+  if (!valuesForYear) return null;
+  const vals = Object.values(valuesForYear).filter((v): v is number => typeof v === "number" && !Number.isNaN(v));
+  if (!vals.length) return null;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) return null;
+  return [min, max];
+}
+
 export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, features }: Props) {
   const metricMap = useMemo(() => {
     const map = new Map<string, MetricData>();
@@ -81,20 +91,32 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     return ranks;
   }, [valuesByStateId]);
 
-  const minValue = selectedMetric?.minValue ?? null;
-  const maxValue = selectedMetric?.maxValue ?? null;
+  const globalMin = selectedMetric?.minValue ?? null;
+  const globalMax = selectedMetric?.maxValue ?? null;
+  const yearDomain = useMemo(() => getYearDomain(valuesByStateId), [valuesByStateId]);
+  const colorDomain = useMemo(() => {
+    if (yearDomain) return yearDomain;
+    if (globalMin !== null && globalMax !== null && globalMin !== globalMax) return [globalMin, globalMax] as [number, number];
+    return null;
+  }, [yearDomain, globalMin, globalMax]);
 
   const { colorScale, legend } = useMemo<{
-    colorScale: (value: number | null) => string;
+    colorScale: ((value: number | null) => string) | null;
     legend: LegendState;
   }>(() => {
+    if (!colorDomain) {
+      return {
+        colorScale: null,
+        legend: { mode: "quantize", buckets: [] },
+      };
+    }
     if (scaleMode === "quantize") {
-      const { colorScale, buckets } = createQuantizeColorScale(minValue, maxValue);
+      const { colorScale, buckets } = createQuantizeColorScale(colorDomain[0], colorDomain[1]);
       return { colorScale, legend: { mode: "quantize", buckets } };
     }
-    const { colorScale, gradient } = createContinuousColorScale(minValue, maxValue);
-    return { colorScale, legend: { mode: "continuous", minValue, maxValue, gradient } };
-  }, [scaleMode, minValue, maxValue]);
+    const { colorScale, gradient } = createContinuousColorScale(colorDomain[0], colorDomain[1]);
+    return { colorScale, legend: { mode: "continuous", minValue: colorDomain[0], maxValue: colorDomain[1], gradient } };
+  }, [scaleMode, colorDomain]);
 
   const tooltipContent = useMemo(() => {
     if (!hovered) return null;
@@ -250,22 +272,24 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       <section className="relative h-full w-full bg-[#e3f2fd]">
         <div className="absolute inset-0 overflow-hidden bg-[#c6e6ffff] p-0">
           <div className="h-full w-full overflow-hidden bg-[#c6e6ffff]">
-            <USChoropleth
-              features={features}
-              valuesByStateId={valuesByStateId}
-              colorScale={colorScale}
-              hoveredStateId={hovered?.stateId ?? null}
-              pinnedStateId={pinnedStateId}
-              onHover={(stateId, position) => {
-                if (!stateId || !position) {
-                  setHovered(null);
-                  return;
-                }
-                setHovered({ stateId, ...position });
-              }}
-              onClick={(stateId) => handleStateClick(stateId)}
-              selectedYear={selectedYear}
-            />
+            {colorScale ? (
+              <USChoropleth
+                features={features}
+                valuesByStateId={valuesByStateId}
+                colorScale={colorScale}
+                hoveredStateId={hovered?.stateId ?? null}
+                pinnedStateId={pinnedStateId}
+                onHover={(stateId, position) => {
+                  if (!stateId || !position) {
+                    setHovered(null);
+                    return;
+                  }
+                  setHovered({ stateId, ...position });
+                }}
+                onClick={(stateId) => handleStateClick(stateId)}
+                selectedYear={selectedYear}
+              />
+            ) : null}
 
             {tooltipContent ? (
               <div
@@ -305,23 +329,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 </button>
                 {isLegendOpen ? (
                   <div className="absolute left-0 top-full z-10 mt-2 w-full rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
-                    <Legend
-                      {...(legend.mode === "quantize"
-                        ? {
-                            mode: "quantize" as const,
-                            buckets: legend.buckets,
-                            unit: selectedMetric?.unit ?? undefined,
-                            minValue: legend.buckets.length ? minValue : null,
-                            maxValue: legend.buckets.length ? maxValue : null,
-                          }
-                        : {
-                            mode: "continuous" as const,
-                            minValue: legend.minValue,
-                            maxValue: legend.maxValue,
-                            gradient: legend.gradient,
-                            unit: selectedMetric?.unit ?? undefined,
-                          })}
-                    />
+                    {legend.mode === "quantize" ? (
+                      <Legend
+                        scaleType="quantize"
+                        unitLabel={selectedMetric?.unit ?? undefined}
+                        buckets={legend.buckets}
+                        domain={colorDomain}
+                      />
+                    ) : (
+                      <Legend
+                        scaleType="continuous"
+                        unitLabel={selectedMetric?.unit ?? undefined}
+                        gradient={legend.gradient}
+                        domain={colorDomain}
+                      />
+                    )}
                   </div>
                 ) : null}
               </div>
