@@ -329,28 +329,27 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       </div>
 
       <section className="relative w-full bg-[#e3f2fd]">
-        <div className="absolute inset-0 overflow-hidden bg-[#c6e6ffff] p-0">
-          <div className="h-[55vh] md:h-full w-full overflow-hidden bg-[#c6e6ffff]">
-            {colorScale ? (
-              <USChoropleth
-                features={features}
-                valuesByStateId={valuesByStateId}
-                colorScale={colorScale}
-                hoveredStateId={hovered?.stateId ?? null}
-                pinnedStateId={pinnedStateId}
-                onHover={(stateId, position) => {
-                  if (!stateId || !position) {
-                    setHovered(null);
-                    return;
-                  }
-                  setHovered({ stateId, ...position });
-                }}
-                onClick={(stateId) => handleStateClick(stateId)}
-                selectedYear={selectedYear}
-              />
-            ) : null}
+        <div className="relative w-full h-[55vh] md:h-full overflow-hidden bg-[#c6e6ffff] p-0">
+          {colorScale ? (
+            <USChoropleth
+              features={features}
+              valuesByStateId={valuesByStateId}
+              colorScale={colorScale}
+              hoveredStateId={hovered?.stateId ?? null}
+              pinnedStateId={pinnedStateId}
+              onHover={(stateId, position) => {
+                if (!stateId || !position) {
+                  setHovered(null);
+                  return;
+                }
+                setHovered({ stateId, ...position });
+              }}
+              onClick={(stateId) => handleStateClick(stateId)}
+              selectedYear={selectedYear}
+            />
+          ) : null}
 
-            {tooltipContent ? (
+          {tooltipContent ? (
               <div
                 className="pointer-events-none absolute z-20 w-60 rounded-lg border border-slate-200 bg-white/95 p-3 text-sm shadow-lg"
                 style={{
@@ -368,9 +367,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   <p className="text-xs text-slate-500">No data</p>
                 )}
               </div>
-            ) : null}
+          ) : null}
 
-            {/* Legend */}
+          {/* Legend */}
             <div
               className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
               style={{ left: legendPosition.x, top: legendPosition.y }}
@@ -399,7 +398,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               </div>
             </div>
 
-            {/* Pinned */}
+          {/* Pinned */}
             <div className="pointer-events-auto absolute bottom-4 right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
                 <div className="flex w-64 flex-col gap-2 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-md backdrop-blur">
@@ -441,7 +440,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               )}
             </div>
           </div>
-        </div>
 
         {/* Mobile inline data table */}
         <section className="sm:hidden mt-4 w-full px-3 pb-8">
