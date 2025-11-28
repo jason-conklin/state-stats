@@ -49,7 +49,7 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
               <p className="text-xs text-slate-500">Accessible table of state values</p>
             </div>
           </div>
-          <div className="max-h-none overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto">
             <table className="min-w-full text-left text-sm">
               <caption className="sr-only">State values for {year}</caption>
               <thead className="bg-slate-50 text-slate-600">
