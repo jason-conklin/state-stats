@@ -212,7 +212,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full h-[65vh] md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
+    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
       {/* Top-center control pill */}
       <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 px-3 w-full md:top-4">
         <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-2 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
@@ -265,9 +265,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         </p>
       </div>
 
-      <section className="relative h-full w-full bg-[#e3f2fd]">
+      <section className="relative w-full bg-[#e3f2fd]">
         <div className="absolute inset-0 overflow-hidden bg-[#c6e6ffff] p-0">
-          <div className="h-full w-full overflow-hidden bg-[#c6e6ffff]">
+          <div className="h-[55vh] md:h-full w-full overflow-hidden bg-[#c6e6ffff]">
             {colorScale ? (
               <USChoropleth
                 features={features}

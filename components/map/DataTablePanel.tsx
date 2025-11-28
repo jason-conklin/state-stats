@@ -39,9 +39,9 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
 
   return (
     <>
-      {/* Mobile: always docked bottom sheet */}
-      <div className="fixed inset-x-0 bottom-0 z-30 md:hidden">
-        <div className="mx-3 mb-2 rounded-t-3xl bg-white shadow-xl ring-1 ring-slate-200">
+      {/* Mobile: inline section below the map */}
+      <div className="md:hidden w-full px-4 pb-6 pt-2">
+        <div className="w-full rounded-3xl bg-white shadow-md ring-1 ring-slate-200">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
@@ -49,7 +49,7 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
               <p className="text-xs text-slate-500">Accessible table of state values</p>
             </div>
           </div>
-          <div className="max-h-[40vh] overflow-y-auto">
+          <div className="max-h-[45vh] overflow-y-auto">
             <table className="min-w-full text-left text-sm">
               <caption className="sr-only">State values for {year}</caption>
               <thead className="bg-slate-50 text-slate-600">
