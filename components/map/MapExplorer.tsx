@@ -64,7 +64,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 120 });
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 240 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
@@ -218,7 +218,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   return (
     <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-16 md:pb-0" ref={mapContainerRef}>
       {/* Mobile controls */}
-      <div className="md:hidden px-3 pt-4 sm:px-6 sm:pt-6">
+      <div className="md:hidden px-3 pt-2 sm:px-6 sm:pt-6">
         <div className="pointer-events-auto w-full rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
           <div className="flex flex-col gap-2">
             <div className="flex flex-1 min-w-0 items-center gap-2">
@@ -322,7 +322,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         </p>
       </div>
 
-      <section className="relative w-full bg-[#e3f2fd]">
+      <section className="relative w-full bg-[#e3f2fd] mt-2 sm:mt-4">
         <div className="relative w-full h-[55vh] md:h-full overflow-hidden bg-[#c6e6ffff] p-0">
           {colorScale ? (
             <USChoropleth
