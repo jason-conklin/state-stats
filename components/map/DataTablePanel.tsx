@@ -38,75 +38,118 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
   }, [isOpen, selectedStateId]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex flex-col items-center md:inset-y-4 md:right-4 md:left-auto md:items-end md:bottom-auto md:justify-start">
-      {!isOpen ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={isOpen}
-          className="pointer-events-auto fixed bottom-4 right-4 mb-0 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-lg ring-1 ring-slate-200 hover:bg-slate-50 cursor-pointer md:static md:mb-2 md:bottom-auto md:right-auto"
-        >
-          Data table ▸
-        </button>
-      ) : null}
-
-      {isOpen ? (
-        <div className="pointer-events-auto w-full max-h-[65vh] md:w-[360px] md:max-h-[calc(100vh-32px)]">
-          <div className="fixed inset-x-0 bottom-0 h-full max-h-[65vh] rounded-t-3xl bg-white shadow-xl ring-1 ring-slate-200 md:static md:h-auto md:max-h-[calc(100vh-32px)] md:rounded-2xl md:shadow-xl">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 md:px-4 md:py-3">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
-                <h2
-                  ref={headingRef}
-                  tabIndex={-1}
-                  className="text-lg font-semibold text-slate-900 focus:outline-none"
-                >
-                  Values for {year}
-                </h2>
-                <p className="text-xs text-slate-500">Accessible table of state values</p>
-              </div>
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-label="Close data table"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-            <div className="max-h-[55vh] overflow-y-auto md:max-h-none">
-              <table className="min-w-full text-left text-sm">
-                <caption className="sr-only">State values for {year}</caption>
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="px-3 py-2">Rank</th>
-                    <th className="px-3 py-2">State</th>
-                    <th className="px-3 py-2">Value</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {sortedRows.map((row) => {
-                    const isSelected = row.stateId === selectedStateId;
-                    return (
-                      <tr
-                        key={row.stateId}
-                        ref={(el) => {
-                          rowRefs.current[row.stateId] = el;
-                        }}
-                        className={`hover:bg-slate-50 ${isSelected ? "bg-[color:var(--ss-green-light)]" : ""}`}
-                      >
-                        <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
-                        <td className="px-3 py-2 text-slate-900">{row.stateName}</td>
-                        <td className="px-3 py-2 text-slate-700">{row.displayValue}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+    <>
+      {/* Mobile: always docked bottom sheet */}
+      <div className="fixed inset-x-0 bottom-0 z-30 md:hidden">
+        <div className="mx-3 mb-2 rounded-t-3xl bg-white shadow-xl ring-1 ring-slate-200">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
+              <h2 className="text-base font-semibold text-slate-900">Values for {year}</h2>
+              <p className="text-xs text-slate-500">Accessible table of state values</p>
             </div>
           </div>
+          <div className="max-h-[40vh] overflow-y-auto">
+            <table className="min-w-full text-left text-sm">
+              <caption className="sr-only">State values for {year}</caption>
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="px-3 py-2">Rank</th>
+                  <th className="px-3 py-2">State</th>
+                  <th className="px-3 py-2">Value</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sortedRows.map((row) => {
+                  const isSelected = row.stateId === selectedStateId;
+                  return (
+                    <tr
+                      key={row.stateId}
+                      className={`hover:bg-slate-50 ${isSelected ? "bg-[color:var(--ss-green-light)]" : ""}`}
+                    >
+                      <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
+                      <td className="px-3 py-2 text-slate-900">{row.stateName}</td>
+                      <td className="px-3 py-2 text-slate-700">{row.displayValue}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      ) : null}
-    </div>
+      </div>
+
+      {/* Desktop overlay behavior remains */}
+      <div className="pointer-events-none hidden md:fixed md:inset-y-4 md:right-4 md:left-auto md:z-30 md:flex md:flex-col md:items-end md:justify-start">
+        {!isOpen ? (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={isOpen}
+            className="pointer-events-auto mb-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-lg ring-1 ring-slate-200 hover:bg-slate-50 cursor-pointer"
+          >
+            Data table ▸
+          </button>
+        ) : null}
+
+        {isOpen ? (
+          <div className="pointer-events-auto w-[360px] max-h-[calc(100vh-32px)]">
+            <div className="flex h-full max-h-[calc(100vh-32px)] flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
+                  <h2
+                    ref={headingRef}
+                    tabIndex={-1}
+                    className="text-lg font-semibold text-slate-900 focus:outline-none"
+                  >
+                    Values for {year}
+                  </h2>
+                  <p className="text-xs text-slate-500">Accessible table of state values</p>
+                </div>
+              <button
+                type="button"
+                onClick={onToggle}
+                aria-label="Close data table"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+              <div className="max-h-[calc(100vh-120px)] overflow-y-auto">
+                <table className="min-w-full text-left text-sm">
+                  <caption className="sr-only">State values for {year}</caption>
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-3 py-2">Rank</th>
+                      <th className="px-3 py-2">State</th>
+                      <th className="px-3 py-2">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sortedRows.map((row) => {
+                      const isSelected = row.stateId === selectedStateId;
+                      return (
+                        <tr
+                          key={row.stateId}
+                          ref={(el) => {
+                            rowRefs.current[row.stateId] = el;
+                          }}
+                          className={`hover:bg-slate-50 ${isSelected ? "bg-[color:var(--ss-green-light)]" : ""}`}
+                        >
+                          <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
+                          <td className="px-3 py-2 text-slate-900">{row.stateName}</td>
+                          <td className="px-3 py-2 text-slate-700">{row.displayValue}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }
