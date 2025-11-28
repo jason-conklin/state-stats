@@ -16,11 +16,9 @@ type Props = {
   statusText: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  mobileOpen: boolean;
-  onCloseMobile: () => void;
 };
 
-export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: Props) {
+export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -113,7 +111,6 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                           ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
                           : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                       }`}
-                      onClick={onCloseMobile}
                       aria-current={active ? "page" : undefined}
                       title={link.label}
                     >
@@ -137,7 +134,6 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                         ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     } justify-start`}
-                    onClick={onCloseMobile}
                     aria-current={active ? "page" : undefined}
                   >
                     <IconComp
@@ -170,20 +166,6 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
   return (
     <>
       <div className="relative hidden h-full md:block">{content}</div>
-      <div
-        className={`fixed inset-0 z-40 md:hidden ${mobileOpen ? "pointer-events-auto" : "pointer-events-none"}`}
-        aria-hidden={!mobileOpen}
-      >
-        <div
-          className={`absolute inset-0 bg-black/30 transition-opacity ${mobileOpen ? "opacity-100" : "opacity-0"}`}
-          onClick={onCloseMobile}
-        />
-        <div
-          className={`absolute left-0 top-0 h-full ${mobileOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-200`}
-        >
-          {content}
-        </div>
-      </div>
     </>
   );
 }

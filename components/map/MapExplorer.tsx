@@ -217,18 +217,10 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
   return (
     <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-16 md:pb-0" ref={mapContainerRef}>
-      {/* Mobile top row: hamburger + controls */}
-      <div className="flex items-start gap-2 px-3 pt-3 sm:px-6 sm:pt-6 md:hidden">
-        <button
-          type="button"
-          aria-label="Open navigation"
-          onClick={() => window.dispatchEvent(new CustomEvent("statestats:open-nav"))}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow"
-        >
-          ☰
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="pointer-events-auto flex flex-col gap-2 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
+      {/* Mobile controls */}
+      <div className="md:hidden px-3 pt-4 sm:px-6 sm:pt-6">
+        <div className="pointer-events-auto w-full rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-1 min-w-0 items-center gap-2">
               <label className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
                 Metric

@@ -3,6 +3,7 @@
 import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { useEffect } from "react";
+import { MobileTopNav } from "./MobileTopNav";
 
 type NavLink = { href: string; label: string };
 
@@ -14,19 +15,11 @@ type Props = {
 
 export function AppShell({ children, navLinks, statusText }: Props) {
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Emit sidebar toggle events after state commits to avoid cross-render setState warnings.
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("statestats:sidebar-toggle", { detail: { collapsed } }));
   }, [collapsed]);
-
-  // Allow child components to request opening the mobile nav via a custom event.
-  useEffect(() => {
-    const handler = () => setMobileOpen(true);
-    window.addEventListener("statestats:open-nav", handler);
-    return () => window.removeEventListener("statestats:open-nav", handler);
-  }, []);
 
   useEffect(() => {
     const handleTableToggle = (event: Event) => {
@@ -42,24 +35,15 @@ export function AppShell({ children, navLinks, statusText }: Props) {
 
   return (
     <div className="flex h-screen bg-[var(--background)] text-slate-900">
+      <MobileTopNav navLinks={navLinks} />
       <Sidebar
         navLinks={navLinks}
         statusText={statusText}
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((v) => !v)}
-        mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
       />
 
-      <main className="relative flex-1 overflow-hidden">
-        <button
-          type="button"
-          className="absolute left-3 top-3 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow md:hidden"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open navigation"
-        >
-          ☰
-        </button>
+      <main className="relative flex-1 overflow-hidden pt-12 sm:pt-0">
         <div className="h-full w-full overflow-hidden">{children}</div>
       </main>
     </div>
