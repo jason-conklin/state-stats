@@ -180,7 +180,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   };
 
   return (
-    <div className="relative h-full w-full" ref={mapContainerRef}>
+    <div className="relative h-full w-full bg-[#e3f2fd]" ref={mapContainerRef}>
       {/* Top-center control pill */}
       <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 px-4 w-full">
         <div className="pointer-events-auto mx-auto flex max-w-[min(90vw,1000px)] flex-wrap items-center justify-center gap-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-slate-200">
@@ -247,9 +247,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         </div>
       </div>
 
-      <section className="relative h-full w-full">
-        <div className="absolute inset-0 overflow-hidden bg-transparent">
-          <div className="absolute inset-0 overflow-hidden rounded-none bg-white shadow-lg ring-1 ring-slate-100">
+      <section className="relative h-full w-full bg-[#e3f2fd]">
+        <div className="absolute inset-0 overflow-hidden bg-[#c6e6ffff] p-0">
+          <div className="h-full w-full overflow-hidden bg-[#c6e6ffff]">
             <USChoropleth
               features={features}
               valuesByStateId={valuesByStateId}

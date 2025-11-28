@@ -45,7 +45,7 @@ export function USChoropleth({
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-xl bg-slate-50">
+    <div className="relative w-full h-full overflow-hidden">
       <svg
         viewBox="0 0 960 560"
         role="img"
@@ -53,7 +53,13 @@ export function USChoropleth({
         className="h-full w-full"
         preserveAspectRatio="xMidYMid meet"
       >
-        <rect width="100%" height="100%" fill="#f8fafc" />
+        <defs>
+          <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#c6e6ffff" />
+            <stop offset="100%" stopColor="#c6e6ffff" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#waterGradient)" />
         {features.map((feat) => {
           const stateId = (feat.id as string) ?? feat.properties?.stateId ?? "";
           const value = valuesByStateId[stateId] ?? null;
