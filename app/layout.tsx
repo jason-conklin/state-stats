@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   description: "Explore U.S. state-level metrics with maps, charts, and data downloads.",
 };
 
+// Disable static prerendering so database lookups occur only at runtime.
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{

@@ -2,12 +2,13 @@
 
 import { Feature, Geometry } from "geojson";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Legend } from "./Legend";
 import { USChoropleth } from "./USChoropleth";
 import { createContinuousColorScale, createQuantizeColorScale, QuantizeBucket } from "@/lib/mapScales";
 import { formatMetricValue } from "@/lib/format";
 import { StateInfo } from "@/lib/types";
+import { DataTablePanel } from "./DataTablePanel";
 
 type MetricData = {
   id: string;
@@ -53,6 +54,16 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [scaleMode, setScaleMode] = useState<"quantize" | "continuous">("quantize");
   const [hovered, setHovered] = useState<TooltipState | null>(null);
   const [pinnedStateId, setPinnedStateId] = useState<string | null>(null);
+  const [isTableOpen, setIsTableOpen] = useState(false);
+  const [isLegendOpen, setIsLegendOpen] = useState(true);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 16, y: 300 });
+  const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
+    isDragging: false,
+    didDrag: false,
+    offsetX: 0,
+    offsetY: 0,
+  });
 
   const selectedMetric = metricMap.get(selectedMetricId) ?? metrics[0];
 
@@ -121,8 +132,55 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       });
   }, [states, valuesByStateId, rankByStateId]);
 
+  const handleStateClick = (stateId: string) => {
+    setPinnedStateId(stateId);
+    if (stateId) setIsTableOpen(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!dragRef.current.isDragging || !mapContainerRef.current) return;
+      const rect = mapContainerRef.current.getBoundingClientRect();
+      const x = event.clientX - rect.left - dragRef.current.offsetX;
+      const y = event.clientY - rect.top - dragRef.current.offsetY;
+      const clampedX = Math.min(Math.max(0, x), rect.width - 180);
+      const clampedY = Math.min(Math.max(0, y), rect.height - 100);
+      dragRef.current.didDrag = true;
+      setLegendPosition({ x: clampedX, y: clampedY });
+    };
+
+    const handleMouseUp = () => {
+      dragRef.current.isDragging = false;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  const startDrag = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!mapContainerRef.current) return;
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    dragRef.current.isDragging = true;
+    dragRef.current.didDrag = false;
+    dragRef.current.offsetX = event.clientX - rect.left - legendPosition.x;
+    dragRef.current.offsetY = event.clientY - rect.top - legendPosition.y;
+  };
+
+  const handleLegendToggle = () => {
+    if (dragRef.current.isDragging || dragRef.current.didDrag) {
+      // Prevent toggling when the user just dragged.
+      dragRef.current.didDrag = false;
+      return;
+    }
+    setIsLegendOpen((prev) => !prev);
+  };
+
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" ref={mapContainerRef}>
       {/* Top-center control pill */}
       <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 px-4 w-full">
         <div className="pointer-events-auto mx-auto flex max-w-[min(90vw,1000px)] flex-wrap items-center justify-center gap-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-slate-200">
@@ -203,7 +261,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 }
                 setHovered({ stateId, ...position });
               }}
-              onClick={(stateId) => setPinnedStateId(stateId)}
+              onClick={(stateId) => handleStateClick(stateId)}
               selectedYear={selectedYear}
             />
 
@@ -228,19 +286,36 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             ) : null}
 
             {/* Legend */}
-            <div className="pointer-events-auto absolute bottom-4 left-4 z-10 w-52 max-w-full sm:w-60">
-              <div className="rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
-                <Legend
-                  {...(legend.mode === "quantize"
-                    ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
-                    : {
-                        mode: "continuous" as const,
-                        minValue: legend.minValue,
-                        maxValue: legend.maxValue,
-                        gradient: legend.gradient,
-                        unit: selectedMetric?.unit ?? undefined,
-                      })}
-                />
+            <div
+              className="pointer-events-auto absolute z-10 max-w-full sm:w-60"
+              style={{ left: legendPosition.x, top: legendPosition.y }}
+            >
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleLegendToggle}
+                  onMouseDown={startDrag}
+                  aria-expanded={isLegendOpen}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 cursor-grab active:cursor-grabbing"
+                >
+                  <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
+                  Legend {isLegendOpen ? "▾" : "▸"}
+                </button>
+                {isLegendOpen ? (
+                  <div className="absolute left-0 top-full z-10 mt-2 w-full rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
+                    <Legend
+                      {...(legend.mode === "quantize"
+                        ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
+                        : {
+                            mode: "continuous" as const,
+                            minValue: legend.minValue,
+                            maxValue: legend.maxValue,
+                            gradient: legend.gradient,
+                            unit: selectedMetric?.unit ?? undefined,
+                          })}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -277,41 +352,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </div>
           </div>
         </div>
-      </section>
 
-      <div className="pointer-events-auto absolute bottom-2 left-1/2 z-20 w-full max-w-5xl -translate-x-1/2 px-4">
-        <div className="max-h-[40vh] overflow-y-auto rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Data table</p>
-              <h2 className="text-lg font-semibold text-slate-900">Values for {selectedYear}</h2>
-            </div>
-            <p className="text-xs text-slate-500">Accessible table of state values</p>
-          </div>
-          <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-3 py-2">Rank</th>
-                  <th className="px-3 py-2">State</th>
-                  <th className="px-3 py-2">Value</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {tableRows.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
-                    <td className="px-3 py-2 text-slate-900">{row.name}</td>
-                    <td className="px-3 py-2 text-slate-700">
-                      {formatMetricValue(row.value, selectedMetric?.unit ?? undefined)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        <DataTablePanel
+          year={selectedYear}
+          rows={tableRows.map((row) => ({
+            rank: row.rank ?? null,
+            stateId: row.id,
+            stateName: row.name,
+            value: row.value,
+            displayValue: formatMetricValue(row.value, selectedMetric?.unit ?? undefined),
+          }))}
+          selectedStateId={pinnedStateId}
+          isOpen={isTableOpen}
+          onToggle={() => setIsTableOpen((prev) => !prev)}
+        />
+      </section>
     </div>
   );
 }
