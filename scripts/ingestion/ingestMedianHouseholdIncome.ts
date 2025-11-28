@@ -8,26 +8,26 @@
 import { PrismaClient } from "@prisma/client";
 import { ensureDataSource, ensureMetric, ensureStates } from "./utils";
 import { DEFAULT_YEAR_RANGE } from "./config";
+import { noiseFromSeed, stateBaseFactor, stateGrowthRate, macroShock } from "./syntheticUtils";
 
 const METRIC_ID = "median_household_income";
 const DATA_SOURCE_ID = "census_acs_median_household_income";
 
-function hashString(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-}
-
 function syntheticIncome(stateId: string, year: number, startYear: number) {
-  const base = 45_000;
-  const stateEffect = (hashString(stateId) % 40_000) + 5_000;
-  const yearTrend = (year - startYear) * 900;
-  const cycle = Math.sin((year % 6) * 0.6) * 1_200;
-  const value = base + stateEffect + yearTrend + cycle;
-  return Math.max(30_000, Math.round(value));
+  const base = stateBaseFactor(METRIC_ID, stateId, 30_000, 70_000);
+  const growthRate = stateGrowthRate(METRIC_ID, stateId, 0.01, 0.03);
+  const yearsSince = year - startYear;
+  const growthFactor = Math.pow(1 + growthRate, yearsSince);
+  const macro = 1 + macroShock(METRIC_ID, year, {
+    2008: -0.03,
+    2009: -0.05,
+    2010: -0.03,
+    2020: -0.02,
+    2021: -0.01,
+  });
+  const noise = 1 + noiseFromSeed(`${METRIC_ID}:${stateId}:${year}`, 0.02);
+  const value = base * growthFactor * macro * noise;
+  return Math.max(25_000, Math.round(value));
 }
 
 export async function runMedianHouseholdIncomeIngestion() {

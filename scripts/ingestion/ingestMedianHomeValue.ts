@@ -1,33 +1,36 @@
 /**
  * Ingests median_home_value values (synthetic demo).
  * Year range: DEFAULT_YEAR_RANGE (shared across metrics).
- * Source: Synthetic ACS-like home values.
+ * Source: Synthetic ACS-like home values with bubble/crash/recovery.
  *
  * Runs when executed directly via tsx/npm script, but does nothing on import.
  */
 import { PrismaClient } from "@prisma/client";
 import { ensureDataSource, ensureMetric, ensureStates } from "./utils";
 import { DEFAULT_YEAR_RANGE } from "./config";
+import { noiseFromSeed, stateBaseFactor } from "./syntheticUtils";
 
 const METRIC_ID = "median_home_value";
 const DATA_SOURCE_ID = "census_acs_home_value";
 
-function hashString(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
+function macroHomeFactor(year: number) {
+  if (year >= 2005 && year <= 2007) return 1.08; // bubble
+  if (year >= 2008 && year <= 2012) return 0.85; // crash
+  if (year >= 2013 && year <= 2016) return 1.06; // recovery
+  if (year >= 2017) return 1.04; // strong growth
+  return 1;
 }
 
 function syntheticHomeValue(stateId: string, year: number, startYear: number) {
-  const base = 140_000;
-  const stateEffect = (hashString(stateId) % 80_000) + 20_000;
-  const yearGrowth = (year - startYear) * 8_000;
-  const cycle = Math.sin((year % 12) * 0.5) * 10_000;
-  const value = base + stateEffect + yearGrowth + cycle;
-  return Math.max(80_000, Math.round(value));
+  const base = stateBaseFactor(METRIC_ID, stateId, 80_000, 500_000);
+  const slope = stateBaseFactor(`${METRIC_ID}:slope`, stateId, 0.01, 0.05);
+  const volatility = stateBaseFactor(`${METRIC_ID}:vol`, stateId, 0.9, 1.2);
+  const yearsSince = year - startYear;
+  const growth = Math.pow(1 + slope, yearsSince);
+  const macro = macroHomeFactor(year);
+  const noise = 1 + noiseFromSeed(`${METRIC_ID}:${stateId}:${year}`, 0.04);
+  const value = base * growth * macro * volatility * noise;
+  return Math.max(70_000, Math.round(value));
 }
 
 export async function runMedianHomeValueIngestion() {
@@ -44,7 +47,7 @@ export async function runMedianHomeValueIngestion() {
       homepageUrl: "https://www.census.gov/programs-surveys/acs",
       apiDocsUrl: "https://www.census.gov/data/developers/data-sets/acs-1year.html",
     });
-    const metric = await ensureMetric(client, METRIC_ID);
+    await ensureMetric(client, METRIC_ID);
 
     const states = await client.state.findMany();
     console.log(`[ingestMedianHomeValue] Found ${states.length} states in the database.`);
@@ -60,13 +63,13 @@ export async function runMedianHomeValueIngestion() {
           where: {
             stateId_metricId_year: {
               stateId: state.id,
-              metricId: metric.id,
+              metricId: METRIC_ID,
               year,
             },
           },
           create: {
             stateId: state.id,
-            metricId: metric.id,
+            metricId: METRIC_ID,
             year,
             value,
           },

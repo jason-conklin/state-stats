@@ -8,27 +8,27 @@
 import { PrismaClient } from "@prisma/client";
 import { ensureDataSource, ensureMetric, ensureStates } from "./utils";
 import { DEFAULT_YEAR_RANGE } from "./config";
+import { noiseFromSeed, stateBaseFactor } from "./syntheticUtils";
 
 const METRIC_ID = "unemployment_rate";
 const DATA_SOURCE_ID = "bls_unemployment_rate";
 
-function hashString(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
+function macroCycle(year: number) {
+  if (year >= 2001 && year <= 2003) return 1.25;
+  if (year >= 2008 && year <= 2012) return 1.6;
+  if (year >= 2020 && year <= 2021) return 1.8;
+  if (year >= 2014 && year <= 2019) return 0.8;
+  return 1;
 }
 
 function syntheticUnemploymentValue(stateId: string, year: number, startYear: number): number {
-  const base = 3.5;
-  const stateEffect = (hashString(stateId) % 300) / 100; // up to +3.0
-  const yearTrend = (year - startYear) * 0.02;
-  const cycle = Math.sin((year % 10) * 0.6) * 0.6;
-  const recessionBump = year >= 2008 && year <= 2010 ? 2.0 : 0;
-  const value = base + stateEffect + yearTrend + cycle + recessionBump;
-  return Number(Math.max(2.5, Math.min(14, value)).toFixed(2));
+  const base = stateBaseFactor(METRIC_ID, stateId, 3, 8);
+  const volMultiplier = stateBaseFactor(`${METRIC_ID}:vol`, stateId, 0.7, 1.6);
+  const trend = 1 + (year - startYear) * noiseFromSeed(`${METRIC_ID}:trend:${stateId}`, 0.002);
+  const cycle = macroCycle(year) * volMultiplier;
+  const noise = 1 + noiseFromSeed(`${METRIC_ID}:${stateId}:${year}`, 0.05);
+  const value = base * trend * cycle * noise;
+  return Number(Math.max(1.5, Math.min(15, value)).toFixed(2));
 }
 
 export async function runUnemploymentRateIngestion() {

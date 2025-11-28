@@ -8,24 +8,30 @@
 import { PrismaClient } from "@prisma/client";
 import { ensureDataSource, ensureMetric, ensureStates } from "./utils";
 import { DEFAULT_YEAR_RANGE } from "./config";
+import { hashString, stateBaseFactor } from "./syntheticUtils";
 
 const METRIC_ID = "population_total";
 const DATA_SOURCE_ID = "census_acs_population_total";
 
-function hashString(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-}
-
 function syntheticPopulation(stateId: string, year: number, startYear: number) {
-  const base = 500_000;
-  const stateOffset = hashString(stateId) % 5_000_000;
-  const yearOffset = (year - startYear) * 5_000;
-  return Math.max(80_000, Math.round(base + stateOffset + yearOffset));
+  const base = stateBaseFactor(METRIC_ID, stateId, 500_000, 40_000_000);
+  const fastGrowers = ["06", "12", "04", "48", "37"]; // CA, FL, AZ, TX, NC
+  const slowGrowers = ["26", "38", "46", "31", "55", "27", "29", "39", "42"]; // sample rust-belt/flat
+  let growthRate = 0.006;
+  if (fastGrowers.includes(stateId)) growthRate = 0.015;
+  if (slowGrowers.includes(stateId)) growthRate = 0.001;
+
+  // Tiny states or DC get a mild uplift to growth
+  if (base < 1_000_000) growthRate += 0.003;
+
+  // Slightly higher growth in 2010–2020 decade
+  const decadeBoost = year >= 2010 && year <= 2020 ? 1.05 : 1;
+  const yearsSince = year - startYear;
+  const value = base * Math.pow(1 + growthRate, yearsSince) * decadeBoost;
+
+  // Add tiny deterministic noise to avoid flat lines
+  const noise = 1 + (hashString(`${stateId}:${year}`) % 5000) / 500_000; // +/- ~1%
+  return Math.max(80_000, Math.round(value * noise));
 }
 
 export async function runPopulationTotalIngestion() {

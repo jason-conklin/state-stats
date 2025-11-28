@@ -8,25 +8,18 @@
 import { PrismaClient } from "@prisma/client";
 import { ensureDataSource, ensureMetric, ensureStates } from "./utils";
 import { DEFAULT_YEAR_RANGE } from "./config";
+import { noiseFromSeed, stateBaseFactor } from "./syntheticUtils";
 
 const METRIC_ID = "median_age";
 const DATA_SOURCE_ID = "census_acs_median_age";
 
-function hashString(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-}
-
 function syntheticMedianAge(stateId: string, year: number, startYear: number) {
-  const base = 32;
-  const stateEffect = (hashString(stateId) % 150) / 10; // up to +15
-  const drift = (year - startYear) * 0.05;
-  const noise = ((hashString(`${stateId}-${year}`) % 10) - 5) * 0.08;
-  return Number((base + stateEffect + drift + noise).toFixed(2));
+  const base = stateBaseFactor(METRIC_ID, stateId, 30, 42);
+  const driftPerYear = stateBaseFactor(`${METRIC_ID}:drift`, stateId, 0.02, 0.08);
+  const yearsSince = year - startYear;
+  const noise = noiseFromSeed(`${METRIC_ID}:${stateId}:${year}`, 0.2);
+  const value = base + driftPerYear * yearsSince + noise;
+  return Number(value.toFixed(2));
 }
 
 export async function runMedianAgeIngestion() {
@@ -43,7 +36,7 @@ export async function runMedianAgeIngestion() {
       homepageUrl: "https://www.census.gov/programs-surveys/acs",
       apiDocsUrl: "https://www.census.gov/data/developers/data-sets/acs-1year.html",
     });
-    const metric = await ensureMetric(client, METRIC_ID);
+    await ensureMetric(client, METRIC_ID);
 
     const states = await client.state.findMany();
     console.log(`[ingestMedianAge] Found ${states.length} states in the database.`);
@@ -59,13 +52,13 @@ export async function runMedianAgeIngestion() {
           where: {
             stateId_metricId_year: {
               stateId: state.id,
-              metricId: metric.id,
+              metricId: METRIC_ID,
               year,
             },
           },
           create: {
             stateId: state.id,
-            metricId: metric.id,
+            metricId: METRIC_ID,
             year,
             value,
           },

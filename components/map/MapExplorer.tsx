@@ -64,7 +64,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 16, y: 300 });
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 16, y: 600 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
@@ -313,7 +313,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                       unitLabel={selectedMetric?.unit ?? undefined}
                       gradient={gradient}
                       domain={colorDomain}
-                      buckets={[]}
                     />
                   </div>
                 ) : null}

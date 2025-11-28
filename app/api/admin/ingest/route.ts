@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runMedianHouseholdIncomeIngestion } from "@/scripts/ingestMedianHouseholdIncome";
+import { runMedianHouseholdIncomeIngestion } from "@/scripts/ingestion/ingestMedianHouseholdIncome";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
