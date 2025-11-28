@@ -158,7 +158,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   };
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
+    const handlePointerMove = (event: PointerEvent) => {
       if (!dragRef.current.isDragging || !mapContainerRef.current) return;
       const rect = mapContainerRef.current.getBoundingClientRect();
       const x = event.clientX - rect.left - dragRef.current.offsetX;
@@ -169,25 +169,29 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       setLegendPosition({ x: clampedX, y: clampedY });
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = () => {
       dragRef.current.isDragging = false;
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
     };
   }, []);
 
-  const startDrag = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const startDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     if (!mapContainerRef.current) return;
     const rect = mapContainerRef.current.getBoundingClientRect();
     dragRef.current.isDragging = true;
     dragRef.current.didDrag = false;
     dragRef.current.offsetX = event.clientX - rect.left - legendPosition.x;
     dragRef.current.offsetY = event.clientY - rect.top - legendPosition.y;
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
   };
 
   const handleLegendToggle = () => {
@@ -316,9 +320,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 <button
                   type="button"
                   onClick={handleLegendToggle}
-                  onMouseDown={startDrag}
+                  onPointerDown={startDrag}
                   aria-expanded={isLegendOpen}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 cursor-grab active:cursor-grabbing"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 cursor-grab active:cursor-grabbing touch-none"
                 >
                   <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
                   Legend {isLegendOpen ? "▾" : "▸"}
