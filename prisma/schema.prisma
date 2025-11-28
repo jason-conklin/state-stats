@@ -7,22 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum IngestionStatus {
-  in_progress
-  success
-  failed
-  partial
-}
-
 model State {
-  id            String        @id @db.Char(2)
-  name          String
-  abbreviation  String        @db.Char(2)
-  observations  Observation[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@unique([abbreviation])
+  id           String        @id @db.Char(2)
+  name         String
+  abbreviation String        @unique @db.Char(2)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  observations Observation[]
 }
 
 model DataSource {
@@ -31,10 +22,10 @@ model DataSource {
   description   String?
   homepageUrl   String?
   apiDocsUrl    String?
-  metrics       Metric[]
-  ingestionRuns IngestionRun[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  ingestionRuns IngestionRun[]
+  metrics       Metric[]
 }
 
 model Metric {
@@ -45,10 +36,10 @@ model Metric {
   category     String
   isDefault    Boolean       @default(false)
   sourceId     String
-  source       DataSource    @relation(fields: [sourceId], references: [id])
-  observations Observation[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  source       DataSource    @relation(fields: [sourceId], references: [id])
+  observations Observation[]
 
   @@index([sourceId])
 }
@@ -59,10 +50,10 @@ model Observation {
   metricId  String
   year      Int
   value     Float
-  state     State    @relation(fields: [stateId], references: [id])
-  metric    Metric   @relation(fields: [metricId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  metric    Metric   @relation(fields: [metricId], references: [id])
+  state     State    @relation(fields: [stateId], references: [id])
 
   @@unique([stateId, metricId, year])
   @@index([metricId, year])
@@ -70,13 +61,20 @@ model Observation {
 }
 
 model IngestionRun {
-  id           String           @id @default(uuid())
+  id           String          @id @default(uuid())
   dataSourceId String
-  dataSource   DataSource       @relation(fields: [dataSourceId], references: [id])
-  startedAt    DateTime         @default(now())
+  startedAt    DateTime        @default(now())
   completedAt  DateTime?
-  status       IngestionStatus  @default(in_progress)
+  status       IngestionStatus @default(in_progress)
   details      Json?
+  dataSource   DataSource      @relation(fields: [dataSourceId], references: [id])
 
   @@index([dataSourceId])
+}
+
+enum IngestionStatus {
+  in_progress
+  success
+  failed
+  partial
 }

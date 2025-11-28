@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: "StateStats - Graph",
 };
 
+export const runtime = "nodejs";
+
 function normalizeStateIds(param: string | string[] | undefined) {
   const values = Array.isArray(param) ? param.join(",") : param ?? "";
   const codes = values

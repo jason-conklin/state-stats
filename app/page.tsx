@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   title: "StateStats - Map",
 };
 
+export const runtime = "nodejs";
+
 async function loadMapData() {
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const maxRetries = 2;

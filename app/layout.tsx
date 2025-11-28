@@ -36,22 +36,27 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const latestIngestion = await getLatestSuccessfulIngestion();
-  const lastUpdatedLabel = latestIngestion?.completedAt
-    ? formatDateTime(latestIngestion.completedAt)
-    : "—";
-  const defaultMetric =
-    (await prisma.metric.findFirst({ where: { isDefault: true } })) ??
-    (await prisma.metric.findFirst({ orderBy: { name: "asc" } }));
-  let maxObservationYear: number | null = null;
-  if (defaultMetric) {
-    const agg = await prisma.observation.aggregate({
-      where: { metricId: defaultMetric.id },
-      _max: { year: true },
-    });
-    maxObservationYear = agg._max.year ?? null;
+  let statusText = "Live data auto-ingestion: status unavailable — database unreachable.";
+  try {
+    const latestIngestion = await getLatestSuccessfulIngestion();
+    const lastUpdatedLabel = latestIngestion?.completedAt
+      ? formatDateTime(latestIngestion.completedAt)
+      : "—";
+    const defaultMetric =
+      (await prisma.metric.findFirst({ where: { isDefault: true } })) ??
+      (await prisma.metric.findFirst({ orderBy: { name: "asc" } }));
+    let maxObservationYear: number | null = null;
+    if (defaultMetric) {
+      const agg = await prisma.observation.aggregate({
+        where: { metricId: defaultMetric.id },
+        _max: { year: true },
+      });
+      maxObservationYear = agg._max.year ?? null;
+    }
+    statusText = `Live data auto-ingestion: Active — last updated: ${lastUpdatedLabel} — data through ${maxObservationYear ?? "—"} for ${defaultMetric?.name ?? "default metric"}`;
+  } catch (error) {
+    console.error("RootLayout: Database unavailable; rendering with fallback status.", error);
   }
-  const statusText = `Live data auto-ingestion: Active — last updated: ${lastUpdatedLabel} — data through ${maxObservationYear ?? "—"} for ${defaultMetric?.name ?? "default metric"}`;
 
   return (
     <html lang="en">
