@@ -399,24 +399,24 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </div>
 
           {/* Pinned */}
-            <div className="pointer-events-auto absolute bottom-4 right-4 z-10 max-w-full">
+            <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
-                <div className="flex w-64 flex-col gap-2 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-md backdrop-blur">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="flex w-52 sm:w-64 flex-col gap-1.5 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2.5 sm:p-3 shadow-md backdrop-blur text-xs">
+                  <div className="flex items-start justify-between gap-1.5">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
                     <button
                       type="button"
                       aria-label="Unpin state"
                       onClick={() => setPinnedStateId(null)}
-                      className="text-slate-500 hover:text-slate-700 text-sm"
+                      className="text-slate-500 hover:text-slate-700 text-sm leading-none"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-1.5">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{pinnedCard.state.name}</p>
-                      <p className="text-sm text-slate-700">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
+                      <p className="text-[12px] text-slate-700">
                         {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
                       </p>
                       {pinnedCard.rank ? (
@@ -427,7 +427,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                     </div>
                     <Link
                       href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                      className="rounded-md border border-[color:var(--ss-green)] px-3 py-1 text-[11px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
+                      className="rounded-md border border-[color:var(--ss-green)] px-2.5 py-1 text-[10px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
                     >
                       Add to compare
                     </Link>
