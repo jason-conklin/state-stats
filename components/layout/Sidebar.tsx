@@ -34,7 +34,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
   const content = (
     <aside
       className={`relative flex h-full flex-col border-r border-slate-200 bg-white shadow-sm transition-all duration-200 ${
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Floating toggle tab */}
@@ -65,28 +65,35 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
             type="button"
             aria-label="StateStats home"
             onClick={() => router.push("/")}
-            className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--ss-green-light)]"
+            className="mb-4 flex h-10 w-14 items-center justify-center rounded-2xl bg-[color:var(--ss-green-light)] cursor-pointer"
           >
             <Image
               src="/statestats_logo.png"
               alt="StateStats logo"
-              width={24}
-              height={24}
-              className="h-6 w-6"
+              width={48}
+              height={48}
+              className="h-14 w-14"
               priority
             />
           </button>
         ) : (
           <div className="flex items-center gap-2 px-3 pb-4">
-            <Image
-              src="/statestats_logo.png"
-              alt="StateStats logo"
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-lg shadow shrink-0"
-              priority
-            />
-            <span className="text-base font-semibold text-slate-900">StateStats</span>
+            <button
+              type="button"
+              aria-label="StateStats home"
+              onClick={() => router.push("/")}
+              className="flex h-12 w-14 items-center justify-center rounded-2xl bg-[color:var(--ss-green-light)] cursor-pointer"
+            >
+              <Image
+                src="/statestats_logo.png"
+                alt="StateStats logo"
+                width={36}
+                height={36}
+                className="h-14 w-14"
+                priority
+              />
+            </button>
+            <span className="text-xl font-semibold text-slate-900">StateStats</span>
           </div>
         )}
 
@@ -101,7 +108,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className={`flex h-10 w-10 items-center justify-center rounded-2xl transition ${
+                      className={`flex h-14 w-14 items-center justify-center rounded-2xl transition ${
                         active
                           ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
                           : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
@@ -111,7 +118,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                       title={link.label}
                     >
                       <IconComp
-                        className={`h-5 w-5 ${
+                        className={`h-9 w-9 ${
                           active
                             ? "text-[color:var(--ss-green-dark)]"
                             : "text-slate-400 group-hover:text-[color:var(--ss-green-dark)]"
@@ -125,7 +132,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 transition ${
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition ${
                       active
                         ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -134,11 +141,11 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
                     aria-current={active ? "page" : undefined}
                   >
                     <IconComp
-                      className={`h-5 w-5 ${
+                      className={`h-9 w-9 ${
                         active ? "text-[color:var(--ss-green-dark)]" : "text-slate-400 group-hover:text-[color:var(--ss-green-dark)]"
                       }`}
                     />
-                    <span className="truncate">{link.label}</span>
+                    <span className="truncate text-base">{link.label}</span>
                   </Link>
                 </li>
               );

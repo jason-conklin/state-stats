@@ -7,10 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "ingest:median-income": "tsx scripts/ingestMedianHouseholdIncome.ts",
-    "ingest:all": "pnpm run ingest:median-income"
+    "ingest:income": "tsx scripts/ingestion/ingestMedianHouseholdIncome.ts",
+    "ingest:unemployment": "tsx scripts/ingestion/ingestUnemploymentRate.ts",
+    "ingest:population": "tsx scripts/ingestion/ingestPopulationTotal.ts",
+    "ingest:home-value": "tsx scripts/ingestion/ingestMedianHomeValue.ts",
+    "ingest:median-age": "tsx scripts/ingestion/ingestMedianAge.ts",
+    "ingest:median-income": "npm run ingest:income",
+    "ingest:all": "tsx scripts/ingestAllMetrics.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",

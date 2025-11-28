@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Legend } from "./Legend";
 import { USChoropleth } from "./USChoropleth";
-import { createContinuousColorScale, createQuantizeColorScale, QuantizeBucket } from "@/lib/mapScales";
+import { createContinuousColorScale, createQuantizeColorScale } from "@/lib/mapScales";
 import { formatMetricValue } from "@/lib/format";
 import { StateInfo } from "@/lib/types";
 import { DataTablePanel } from "./DataTablePanel";
@@ -19,6 +19,8 @@ type MetricData = {
   category?: string | null;
   isDefault?: boolean | null;
   years: number[];
+  minYear: number | null;
+  maxYear: number | null;
   dataByYear: Record<number, Record<string, number | null>>;
   minValue: number | null;
   maxValue: number | null;
@@ -37,10 +39,6 @@ type TooltipState = {
   x: number;
   y: number;
 };
-
-type LegendState =
-  | { mode: "quantize"; buckets: QuantizeBucket[] }
-  | { mode: "continuous"; minValue: number | null; maxValue: number | null; gradient: string };
 
 function getYearDomain(valuesForYear: Record<string, number | null> | undefined): [number, number] | null {
   if (!valuesForYear) return null;
@@ -61,7 +59,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
   const [selectedMetricId, setSelectedMetricId] = useState<string>(defaultMetricId);
   const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
-  const [scaleMode, setScaleMode] = useState<"quantize" | "continuous">("quantize");
   const [hovered, setHovered] = useState<TooltipState | null>(null);
   const [pinnedStateId, setPinnedStateId] = useState<string | null>(null);
   const [isTableOpen, setIsTableOpen] = useState(false);
@@ -76,6 +73,11 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   });
 
   const selectedMetric = metricMap.get(selectedMetricId) ?? metrics[0];
+  const yearMin = selectedMetric?.minYear ?? selectedMetric?.years[0] ?? selectedYear ?? 0;
+  const yearMax =
+    selectedMetric?.maxYear ?? selectedMetric?.years[selectedMetric.years.length - 1] ?? selectedYear ?? 0;
+  const sliderValue =
+    selectedMetric && selectedMetric.years.length ? Math.min(Math.max(selectedYear, yearMin), yearMax) : yearMax;
 
   const valuesByStateId = useMemo(() => selectedMetric?.dataByYear[selectedYear] ?? {}, [selectedMetric, selectedYear]);
 
@@ -93,30 +95,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
   const globalMin = selectedMetric?.minValue ?? null;
   const globalMax = selectedMetric?.maxValue ?? null;
-  const yearDomain = useMemo(() => getYearDomain(valuesByStateId), [valuesByStateId]);
+  const yearDomain = useMemo(() => getYearDomain(selectedMetric?.dataByYear[selectedYear]), [selectedMetric, selectedYear]);
   const colorDomain = useMemo(() => {
     if (yearDomain) return yearDomain;
     if (globalMin !== null && globalMax !== null && globalMin !== globalMax) return [globalMin, globalMax] as [number, number];
     return null;
   }, [yearDomain, globalMin, globalMax]);
 
-  const { colorScale, legend } = useMemo<{
-    colorScale: ((value: number | null) => string) | null;
-    legend: LegendState;
-  }>(() => {
+  const { colorScale, gradient } = useMemo(() => {
     if (!colorDomain) {
-      return {
-        colorScale: null,
-        legend: { mode: "quantize", buckets: [] },
-      };
+      return { colorScale: null, gradient: "" };
     }
-    if (scaleMode === "quantize") {
-      const { colorScale, buckets } = createQuantizeColorScale(colorDomain[0], colorDomain[1]);
-      return { colorScale, legend: { mode: "quantize", buckets } };
-    }
-    const { colorScale, gradient } = createContinuousColorScale(colorDomain[0], colorDomain[1]);
-    return { colorScale, legend: { mode: "continuous", minValue: colorDomain[0], maxValue: colorDomain[1], gradient } };
-  }, [scaleMode, colorDomain]);
+    const { colorScale } = createQuantizeColorScale(colorDomain[0], colorDomain[1]);
+    const { gradient } = createContinuousColorScale(colorDomain[0], colorDomain[1]);
+    return { colorScale, gradient };
+  }, [colorDomain]);
 
   const tooltipContent = useMemo(() => {
     if (!hovered) return null;
@@ -212,7 +205,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </label>
             <select
               id="metric-select"
-              className="min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none"
+              className="min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
               value={selectedMetric?.id}
               onChange={(e) => {
                 const nextMetricId = e.target.value;
@@ -224,30 +217,10 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             >
               {metrics.map((metric) => (
                 <option key={metric.id} value={metric.id}>
-                  {metric.name} {metric.unit ? `(${metric.unit})` : ""}
+                  {metric.name} {metric.unit ? `(${metric.unit})` : ""} {metric.category ? `• ${metric.category}` : ""}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="hidden h-6 w-px bg-slate-200 sm:block" />
-
-          <div className="flex items-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600">Scale</p>
-            <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-xs" role="group" aria-label="Select scale mode">
-              {(["quantize", "continuous"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setScaleMode(mode)}
-                  className={`rounded-full px-3 py-1 font-semibold transition ${
-                    scaleMode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-800"
-                  }`}
-                  type="button"
-                >
-                  {mode === "quantize" ? "Quantize" : "Continuous"}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="hidden h-6 w-px bg-slate-200 sm:block" />
@@ -256,17 +229,23 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
             <input
               type="range"
-              min={selectedMetric?.years[0] ?? 0}
-              max={selectedMetric?.years[selectedMetric.years.length - 1] ?? 0}
-              value={selectedYear}
+              min={yearMin}
+              max={yearMax}
+              value={sliderValue}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="flex-1 accent-[color:var(--ss-green)]"
+              className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
               step={1}
               aria-label="Select year"
+              disabled={!selectedMetric?.years.length}
             />
-            <span className="text-sm font-semibold text-slate-900">{selectedYear}</span>
+            <span className="text-sm font-semibold text-slate-900">
+              {selectedMetric?.years.length ? selectedYear : "—"}
+            </span>
           </div>
         </div>
+        <p className="pointer-events-none mx-auto mt-2 max-w-[min(90vw,1000px)] text-center text-xs text-slate-600">
+          Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+        </p>
       </div>
 
       <section className="relative h-full w-full bg-[#e3f2fd]">
@@ -329,21 +308,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 </button>
                 {isLegendOpen ? (
                   <div className="absolute left-0 top-full z-10 mt-2 w-full rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
-                    {legend.mode === "quantize" ? (
-                      <Legend
-                        scaleType="quantize"
-                        unitLabel={selectedMetric?.unit ?? undefined}
-                        buckets={legend.buckets}
-                        domain={colorDomain}
-                      />
-                    ) : (
-                      <Legend
-                        scaleType="continuous"
-                        unitLabel={selectedMetric?.unit ?? undefined}
-                        gradient={legend.gradient}
-                        domain={colorDomain}
-                      />
-                    )}
+                    <Legend
+                      scaleType="continuous"
+                      unitLabel={selectedMetric?.unit ?? undefined}
+                      gradient={gradient}
+                      domain={colorDomain}
+                      buckets={[]}
+                    />
                   </div>
                 ) : null}
               </div>

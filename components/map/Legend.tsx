@@ -11,7 +11,7 @@ type LegendProps =
       domain: [number, number] | null;
     }
   | {
-    scaleType: "continuous";
+      scaleType: "continuous";
       unitLabel?: string | null;
       domain: [number, number] | null;
       gradient: string;

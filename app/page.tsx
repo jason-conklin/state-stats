@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getUSStateFeatures } from "@/lib/mapData";
 import { states as stateList } from "@/lib/states";
+import { ensureCatalog } from "@/lib/metrics";
 
 type MetricData = {
   id: string;
@@ -13,6 +14,8 @@ type MetricData = {
   category?: string | null;
   isDefault?: boolean | null;
   years: number[];
+  minYear: number | null;
+  maxYear: number | null;
   dataByYear: Record<number, Record<string, number | null>>;
   minValue: number | null;
   maxValue: number | null;
@@ -27,6 +30,8 @@ async function loadMapData() {
   const maxRetries = 2;
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
+      await ensureCatalog(prisma);
+
       const metrics = await prisma.metric.findMany({
         include: { source: true },
         orderBy: { name: "asc" },
@@ -49,6 +54,8 @@ async function loadMapData() {
           category: metric.category,
           isDefault: metric.isDefault,
           years: [],
+          minYear: null,
+          maxYear: null,
           dataByYear: {},
           minValue: null,
           maxValue: null,
@@ -77,6 +84,8 @@ async function loadMapData() {
           .map((year) => Number(year))
           .sort((a, b) => a - b);
         metric.years = years;
+        metric.minYear = years.length ? years[0] : null;
+        metric.maxYear = years.length ? years[years.length - 1] : null;
       });
 
       const defaultMetricId =

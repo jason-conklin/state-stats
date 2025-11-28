@@ -2,6 +2,7 @@ import { GraphExplorer } from "@/components/graph/GraphExplorer";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { states as stateList } from "@/lib/states";
+import { ensureCatalog } from "@/lib/metrics";
 
 type QueryParams = { [key: string]: string | string[] | undefined };
 
@@ -85,6 +86,9 @@ export const dynamic = "force-dynamic";
 export default async function GraphPage(props: GraphPageProps) {
   try {
     const params: QueryParams = (await Promise.resolve(props.searchParams)) ?? {};
+
+    // Ensure cataloged metrics exist before querying.
+    await ensureCatalog(prisma);
 
     const metrics = await prisma.metric.findMany({ orderBy: { name: "asc" } });
     const fallbackMetricId =

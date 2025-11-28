@@ -20,6 +20,7 @@ export type MetricDefinition = {
   sourceId: string;
   category: string;
   isDefault?: boolean;
+  sourceHint?: string;
 };
 
 export type ObservationRecord = {

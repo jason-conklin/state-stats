@@ -15,9 +15,15 @@ export function formatMetricValue(value: number | null | undefined, unit?: strin
     return `${value.toFixed(1)}%`;
   }
 
-  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}${
-    unit ? ` ${unit}` : ""
-  }`;
+  if (unit?.toLowerCase() === "people") {
+    return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)} people`;
+  }
+
+  if (unit?.toLowerCase() === "years" || unit?.toLowerCase() === "year") {
+    return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)} years`;
+  }
+
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}${unit ? ` ${unit}` : ""}`;
 }
 
 export function formatLegendValue(value: number) {
