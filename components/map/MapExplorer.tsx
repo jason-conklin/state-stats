@@ -353,20 +353,20 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
           {tooltipContent ? (
               <div
-                className="pointer-events-none absolute z-20 w-44 sm:w-60 rounded-lg border border-slate-200 bg-white/95 p-2.5 text-xs sm:text-sm shadow-lg"
+                className="pointer-events-none absolute z-20 w-40 sm:w-56 rounded-lg border border-slate-200 bg-white/95 p-2 text-[11px] sm:text-sm shadow-lg"
                 style={{
-                  left: tooltipContent.position.x + 10,
-                  top: tooltipContent.position.y + 10,
+                  left: tooltipContent.position.x + 8,
+                  top: tooltipContent.position.y + 8,
                 }}
               >
                 <p className="text-sm font-semibold text-slate-900">{tooltipContent.stateName}</p>
-                <p className="text-slate-700 text-[12px] sm:text-sm">
+                <p className="text-slate-700 text-[11px] sm:text-sm">
                   {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
                 </p>
                 {tooltipContent.rank ? (
-                  <p className="text-[11px] text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
                 ) : (
-                  <p className="text-[11px] text-slate-500">No data</p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500">No data</p>
                 )}
               </div>
           ) : null}
@@ -403,8 +403,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           {/* Pinned */}
             <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
-                <div className="flex w-48 sm:w-64 flex-col gap-1.5 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2 sm:p-3 shadow-md backdrop-blur text-[11px] sm:text-xs">
-                  <div className="flex items-start justify-between gap-1.5">
+                <div className="flex w-44 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2 sm:p-3 shadow-md backdrop-blur text-[10px] sm:text-xs">
+                  <div className="flex items-start justify-between gap-1">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
                     <button
                       type="button"
@@ -415,21 +415,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                       ✕
                     </button>
                   </div>
-                  <div className="flex items-center justify-between gap-1.5">
+                  <div className="flex items-center justify-between gap-1">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
-                      <p className="text-[12px] text-slate-700">
+                      <p className="text-[12px] sm:text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
+                      <p className="text-[11px] text-slate-700">
                         {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
                       </p>
                       {pinnedCard.rank ? (
-                        <p className="text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
+                        <p className="text-[10px] sm:text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
                       ) : (
-                        <p className="text-[11px] text-slate-500">No data</p>
+                        <p className="text-[10px] sm:text-[11px] text-slate-500">No data</p>
                       )}
                     </div>
                     <Link
                       href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                      className="rounded-md border border-[color:var(--ss-green)] px-2.5 py-1 text-[10px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
+                      className="rounded-md border border-[color:var(--ss-green)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
                     >
                       Add to compare
                     </Link>
