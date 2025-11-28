@@ -41,7 +41,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse, mob
       <button
         type="button"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className={`absolute top-5 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-transform duration-200 hover:bg-slate-50 hover:text-slate-900 ${
+        className={`absolute top-5 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-transform duration-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer ${
           collapsed ? "right-[-16px]" : "right-[-12px]"
         }`}
         onClick={onToggleCollapse}

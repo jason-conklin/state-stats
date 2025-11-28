@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "StateStats - About",
+};
+
 export default function AboutPage() {
   return (
     <div className="h-full w-full overflow-y-auto p-6">

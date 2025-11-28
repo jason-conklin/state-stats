@@ -1,10 +1,15 @@
 import { GraphExplorer } from "@/components/graph/GraphExplorer";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { states as stateList } from "@/lib/states";
 
 type QueryParams = { [key: string]: string | string[] | undefined };
 
 const DEFAULT_STATE_ABBRS = ["CA", "TX", "NY", "FL"];
+
+export const metadata: Metadata = {
+  title: "StateStats - Graph",
+};
 
 function normalizeStateIds(param: string | string[] | undefined) {
   const values = Array.isArray(param) ? param.join(",") : param ?? "";

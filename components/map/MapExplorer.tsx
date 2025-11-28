@@ -254,6 +254,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               features={features}
               valuesByStateId={valuesByStateId}
               colorScale={colorScale}
+              hoveredStateId={hovered?.stateId ?? null}
+              pinnedStateId={pinnedStateId}
               onHover={(stateId, position) => {
                 if (!stateId || !position) {
                   setHovered(null);
@@ -305,7 +307,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   <div className="absolute left-0 top-full z-10 mt-2 w-full rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
                     <Legend
                       {...(legend.mode === "quantize"
-                        ? { mode: "quantize" as const, buckets: legend.buckets, unit: selectedMetric?.unit ?? undefined }
+                        ? {
+                            mode: "quantize" as const,
+                            buckets: legend.buckets,
+                            unit: selectedMetric?.unit ?? undefined,
+                            minValue: legend.buckets.length ? minValue : null,
+                            maxValue: legend.buckets.length ? maxValue : null,
+                          }
                         : {
                             mode: "continuous" as const,
                             minValue: legend.minValue,

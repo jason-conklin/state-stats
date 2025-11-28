@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/db";
+import type { Metadata } from "next";
 import { formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "StateStats - Data Sources",
+};
 
 export default async function DataSourcesPage() {
   const dataSources = await prisma.dataSource.findMany({

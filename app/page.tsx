@@ -1,4 +1,5 @@
 import { MapExplorer } from "@/components/map/MapExplorer";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getUSStateFeatures } from "@/lib/mapData";
 import { states as stateList } from "@/lib/states";
@@ -15,6 +16,10 @@ type MetricData = {
   dataByYear: Record<number, Record<string, number | null>>;
   minValue: number | null;
   maxValue: number | null;
+};
+
+export const metadata: Metadata = {
+  title: "StateStats - Map",
 };
 
 async function loadMapData() {
