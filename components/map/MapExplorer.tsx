@@ -64,7 +64,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 16, y: 600 });
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 120 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
@@ -214,9 +214,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   return (
     <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd]" ref={mapContainerRef}>
       {/* Top-center control pill */}
-      <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 px-3 w-full md:top-4">
-        <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-2 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
-          <div className="flex flex-wrap items-center gap-2 min-w-[200px] md:min-w-[220px]">
+      <div className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 px-3 w-full md:top-4">
+        <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
+          <div className="flex flex-wrap items-center gap-1 min-w-[200px] md:gap-2 md:min-w-[220px]">
             <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
               Metric
             </label>
@@ -242,7 +242,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
           <div className="hidden h-6 w-px bg-slate-200 sm:block" />
 
-          <div className="flex flex-1 min-w-[220px] items-center gap-2 md:gap-3">
+          <div className="flex flex-1 min-w-[220px] items-center gap-1 md:gap-3">
             <p className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
             <input
               type="range"
@@ -309,7 +309,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
             {/* Legend */}
             <div
-              className="pointer-events-auto absolute z-10 max-w-full sm:w-60"
+              className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
               style={{ left: legendPosition.x, top: legendPosition.y }}
             >
               <div className="relative">
@@ -340,7 +340,17 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             <div className="pointer-events-auto absolute bottom-4 right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
                 <div className="flex w-64 flex-col gap-2 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-3 shadow-md backdrop-blur">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
+                    <button
+                      type="button"
+                      aria-label="Unpin state"
+                      onClick={() => setPinnedStateId(null)}
+                      className="text-slate-500 hover:text-slate-700 text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{pinnedCard.state.name}</p>
