@@ -320,7 +320,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       </div>
 
       <section className="relative w-full bg-[#e3f2fd] mt-2 sm:mt-4">
-        <div className="relative w-full h-[30vh] sm:h-[55vh] md:h-full overflow-hidden bg-[#c6e6ffff] p-0">
+        <div className="relative w-full h-[30vh] sm:h-[60vh] md:h-[98vh] overflow-hidden bg-[#c6e6ffff] p-0">
           {colorScale ? (
             <USChoropleth
               features={features}
