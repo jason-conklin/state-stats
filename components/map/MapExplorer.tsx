@@ -264,9 +264,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               </div>
             </div>
           </div>
-          <p className="mt-1 text-xs text-slate-600">
-            Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
-          </p>
         </div>
       </div>
 
@@ -453,6 +450,11 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             />
           </div>
         </section>
+
+        {/* Mobile: data-through label below table */}
+        <div className="sm:hidden w-full px-3 pb-6 text-center text-xs text-slate-600">
+          Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+        </div>
 
         {/* Desktop overlay table */}
         <div className="hidden sm:block">
