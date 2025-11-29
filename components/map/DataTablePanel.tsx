@@ -13,12 +13,13 @@ type TableRow = {
 type Props = {
   year: number;
   rows: TableRow[];
+  metricName?: string;
   selectedStateId?: string | null;
   isOpen: boolean;
   onToggle: () => void;
 };
 
-export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }: Props) {
+export function DataTablePanel({ year, rows, metricName, selectedStateId, isOpen, onToggle }: Props) {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
@@ -45,7 +46,9 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
-              <h2 className="text-base font-semibold text-slate-900">Values for {year}</h2>
+              <h2 className="text-base font-semibold text-slate-900">
+                {metricName ? `${metricName} for ${year}` : `Values for ${year}`}
+              </h2>
               <p className="text-xs text-slate-500">Accessible table of state values</p>
             </div>
           </div>
@@ -96,17 +99,17 @@ export function DataTablePanel({ year, rows, selectedStateId, isOpen, onToggle }
           <div className="pointer-events-auto w-[360px] max-h-[calc(100vh-32px)]">
             <div className="flex h-full max-h-[calc(100vh-32px)] flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
               <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
-                  <h2
-                    ref={headingRef}
-                    tabIndex={-1}
-                    className="text-lg font-semibold text-slate-900 focus:outline-none"
-                  >
-                    Values for {year}
-                  </h2>
-                  <p className="text-xs text-slate-500">Accessible table of state values</p>
-                </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
+                <h2
+                  ref={headingRef}
+                  tabIndex={-1}
+                  className="text-lg font-semibold text-slate-900 focus:outline-none"
+                >
+                  {metricName ? `${metricName} for ${year}` : `Values for ${year}`}
+                </h2>
+                <p className="text-xs text-slate-500">Accessible table of state values</p>
+              </div>
               <button
                 type="button"
                 onClick={onToggle}

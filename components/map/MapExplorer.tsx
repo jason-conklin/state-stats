@@ -437,6 +437,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           <div className="w-full rounded-t-3xl bg-white shadow-sm">
             <DataTablePanel
               year={selectedYear}
+              metricName={selectedMetric?.name}
               rows={tableRows.map((row) => ({
                 rank: row.rank ?? null,
                 stateId: row.id,
@@ -460,6 +461,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         <div className="hidden sm:block">
           <DataTablePanel
             year={selectedYear}
+            metricName={selectedMetric?.name}
             rows={tableRows.map((row) => ({
               rank: row.rank ?? null,
               stateId: row.id,
