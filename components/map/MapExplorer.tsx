@@ -395,40 +395,40 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           {/* Pinned */}
             <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
               {pinnedCard && pinnedCard.state ? (
-                <div className="flex w-44 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-2 sm:p-3 shadow-md backdrop-blur text-[10px] sm:text-xs">
+                <div className="flex w-36 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-1.5 sm:p-3 shadow-md backdrop-blur text-[9px] sm:text-xs">
                   <div className="flex items-start justify-between gap-1">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
+                    <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
                     <button
                       type="button"
                       aria-label="Unpin state"
                       onClick={() => setPinnedStateId(null)}
-                      className="text-slate-500 hover:text-slate-700 text-sm leading-none"
+                      className="text-slate-500 hover:text-slate-700 text-xs leading-none"
                     >
                       ✕
                     </button>
                   </div>
                   <div className="flex items-center justify-between gap-1">
                     <div>
-                      <p className="text-[12px] sm:text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
-                      <p className="text-[11px] text-slate-700">
+                      <p className="text-[11px] sm:text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
+                      <p className="text-[10px] text-slate-700">
                         {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
                       </p>
                       {pinnedCard.rank ? (
-                        <p className="text-[10px] sm:text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
+                        <p className="text-[9px] sm:text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
                       ) : (
-                        <p className="text-[10px] sm:text-[11px] text-slate-500">No data</p>
+                        <p className="text-[9px] sm:text-[11px] text-slate-500">No data</p>
                       )}
                     </div>
                     <Link
                       href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                      className="rounded-md border border-[color:var(--ss-green)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
+                      className="rounded-md border border-[color:var(--ss-green)] px-2 py-0.5 text-[9px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
                     >
                       Add to compare
                     </Link>
                   </div>
                 </div>
               ) : (
-                <div className="w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-3 text-xs text-slate-600 shadow-sm backdrop-blur">
+                <div className="w-36 sm:w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-2 sm:p-3 text-[10px] sm:text-xs text-slate-600 shadow-sm backdrop-blur">
                   Click a state on the map to pin it.
                 </div>
               )}
