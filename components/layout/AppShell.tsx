@@ -43,8 +43,8 @@ export function AppShell({ children, navLinks, statusText }: Props) {
         onToggleCollapse={() => setCollapsed((v) => !v)}
       />
 
-      <main className="relative flex-1 overflow-hidden pt-12 sm:pt-0">
-        <div className="h-full w-full overflow-hidden">{children}</div>
+      <main className="relative flex-1 overflow-y-auto pt-12 sm:pt-0">
+        <div className="h-full w-full">{children}</div>
       </main>
     </div>
   );

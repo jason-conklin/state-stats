@@ -216,7 +216,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-16 md:pb-0" ref={mapContainerRef}>
+    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-24 md:pb-0" ref={mapContainerRef}>
       {/* Mobile controls */}
       <div className="md:hidden px-3 pt-2 sm:px-6 sm:pt-6">
         <div className="pointer-events-auto w-full rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
