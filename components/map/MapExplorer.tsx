@@ -428,7 +428,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   </div>
                 </div>
               ) : (
-                <div className="w-36 sm:w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-2 sm:p-3 text-[6px] sm:text-xs text-slate-600 shadow-sm backdrop-blur">
+                <div className="w-24 sm:w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-2 sm:p-3 text-[6px] sm:text-xs text-slate-600 shadow-sm backdrop-blur opacity-50">
                   Click a state on the map to pin it.
                 </div>
               )}
