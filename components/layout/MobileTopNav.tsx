@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MapIcon } from "../icons/MapIcon";
 import { GraphIcon } from "../icons/GraphIcon";
@@ -25,6 +26,13 @@ export function MobileTopNav({ navLinks }: Props) {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 flex h-11 items-center justify-between border-b border-slate-800 bg-slate-950/95 px-3 text-slate-50 backdrop-blur-sm sm:hidden">
+      <Link
+        href="/"
+        aria-label="StateStats home"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-white"
+      >
+        <Image src="/statestats_logo.png" alt="StateStats logo" width={32} height={32} className="h-8 w-8" priority />
+      </Link>
       <div className="flex items-center gap-3">
         {navLinks.map((link) => {
           const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
