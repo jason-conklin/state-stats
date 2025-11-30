@@ -48,96 +48,59 @@ export default function AboutPage() {
       </div>
 
       <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6 md:bg-slate-900 md:border-slate-800">
-        <div className="space-y-4">
-          <h2 className="text-xs font-semibold tracking-[0.2em] text-emerald-300">
-            ABOUT THE CREATORS
-          </h2>
-          <p className="text-sm text-slate-700 md:text-slate-300">
-            StateStats is built and maintained by two friends who enjoy turning public data into something approachable and useful.
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {/* Jason card */}
-          <div className="flex gap-4 rounded-3xl bg-slate-900/70 p-4 sm:p-5">
-            <div className="shrink-0">
-              <Image
-                src="/jason_conklin.png"
-                alt="Portrait of Jason Conklin, founder of StateStats"
-                width={80}
-                height={80}
-                className="h-20 w-20 rounded-full border border-slate-700 object-cover shadow-md"
-              />
-            </div>
-            <div className="space-y-1 text-sm">
-              <p className="text-base font-semibold text-slate-50">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex justify-center sm:justify-start">
+            <Image
+              src="/jason_conklin.png"
+              alt="Portrait of Jason Conklin, creator of StateStats"
+              width={112}
+              height={112}
+              className="h-28 w-28 rounded-full border border-slate-200 md:border-slate-700 object-cover shadow-md"
+              priority
+            />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xs font-semibold tracking-[0.2em] text-emerald-600 md:text-emerald-300">
+              ABOUT THE CREATOR
+            </h2>
+            <p className="text-sm uppercase tracking-[0.18em] text-slate-500 md:text-slate-300">
+              Built by
+            </p>
+            <div>
+              <p className="text-lg font-semibold text-slate-900 md:text-slate-50">
                 Jason Conklin
               </p>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-                Founder of StateStats
+              <p className="text-sm text-slate-700 md:text-slate-300">
+                Creator of StateStats
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-600 md:text-slate-400">
                 B.S. Computer Science, New Jersey Institute of Technology (NJIT)
-              </p>
-              <p className="mt-2 text-slate-200">
-                Jason created StateStats to make U.S. state-level data easier to explore, compare, and trust—without needing spreadsheets or complicated tools. He focuses on product design, data visualization, and the overall user experience.
-              </p>
-              <p className="mt-2 text-slate-200">
-                Learn more at{" "}
-                <a
-                  href="https://jasonconklin.dev"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-emerald-300 underline-offset-2 hover:underline"
-                >
-                  jasonconklin.dev
-                </a>
-                .
-              </p>
-            </div>
-          </div>
-
-          {/* Wesley card */}
-          <div className="flex gap-4 rounded-3xl bg-slate-900/70 p-4 sm:p-5">
-            <div className="shrink-0">
-              <Image
-                src="/wesley_wright.png"
-                alt="Portrait of Wesley Wright, co-founder of StateStats"
-                width={80}
-                height={80}
-                className="h-20 w-20 rounded-full border border-slate-700 object-cover shadow-md"
-              />
-            </div>
-            <div className="space-y-1 text-sm">
-              <p className="text-base font-semibold text-slate-50">
-                Wesley Wright
-              </p>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
-                Co-Founder of StateStats
-              </p>
-              <p className="text-xs text-slate-400">
-                B.S. Computer Science, University of North Carolina at Charlotte
-              </p>
-              <p className="mt-2 text-slate-200">
-                Wesley helps shape the data model, backend infrastructure, and long-term roadmap. He’s passionate about building reliable systems that make complex data feel simple and fast for everyday users.
-              </p>
-              <p className="mt-2 text-slate-200">
-                Learn more at{" "}
-                <a
-                  href="https://wesleywright.dev"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-emerald-300 underline-offset-2 hover:underline"
-                >
-                  wesleywright.dev
-                </a>
-                .
               </p>
             </div>
           </div>
         </div>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-slate-700 md:text-slate-200">
+          <p>
+            I created StateStats to make U.S. state-level data easier to explore, compare, and trust—without needing spreadsheets or complicated tools. I enjoy combining clean design with public data so that students, journalists, and policy-curious citizens can quickly see how states differ over time.
+          </p>
+          <p>
+            My goal is to keep this site clear, transparent, and genuinely useful as new metrics and years of data are added.
+          </p>
+          <p>
+            Learn more about Jason at{" "}
+            <a
+              href="https://jasonconklin.dev"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-emerald-600 md:text-emerald-300 underline-offset-2 hover:underline"
+            >
+              jasonconklin.dev
+            </a>
+            .
+          </p>
+        </div>
       </section>
-      </section>
-    </main>
+    </section>
+  </main>
   );
 }
