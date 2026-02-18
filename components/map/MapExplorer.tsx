@@ -233,26 +233,32 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       className="relative w-full min-h-screen bg-gradient-to-b from-[#e6f1f8] to-[#d9eaf5] pb-24 md:h-full md:pb-0"
       ref={mapContainerRef}
     >
-      {/* Mobile controls */}
-      <div className="px-3 pt-2 md:hidden sm:px-6 sm:pt-6">
-        <div className="pointer-events-auto mx-auto w-full max-w-[90vw] rounded-2xl border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="min-w-0 flex-[1.1]">
+      <section className="relative w-full">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-20 w-[min(720px,92vw)] -translate-x-1/2">
+          <div className="pointer-events-auto rounded-2xl border border-slate-200/90 bg-white/85 px-3 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.10)] backdrop-blur-sm">
+            <div className="flex items-center gap-2">
               <MetricSelect
                 metrics={metrics}
                 value={selectedMetric?.id ?? ""}
                 onChange={handleMetricSelect}
-                className="w-full"
+                className="min-w-0 flex-1"
               />
+              <button
+                type="button"
+                onClick={() => setTableOpen(!isTableOpen)}
+                className="hidden md:inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+              >
+                {isTableOpen ? "Hide table" : "Data table"}
+              </button>
             </div>
-            <div className="w-full rounded-xl border border-slate-200/90 bg-white/70 px-2.5 py-2">
+            <div className="mt-2 rounded-xl border border-slate-200/90 bg-white/70 px-2.5 py-2">
               <div className="mb-1 flex items-center justify-between">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
                 <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                   {selectedMetric?.years.length ? selectedYear : "—"}
                 </span>
               </div>
-              <div className="mx-auto w-full max-w-[240px]">
+              <div className="mx-auto w-full max-w-[420px]">
                 <input
                   type="range"
                   min={yearMin}
@@ -270,59 +276,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 </div>
               </div>
             </div>
+            <p className="mt-1 text-center text-[11px] text-slate-600">
+              Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Desktop control pill */}
-      <div className="hidden w-full px-3 pointer-events-none md:absolute md:left-1/2 md:top-4 md:z-20 md:block md:-translate-x-1/2 md:px-0">
-        <div className="pointer-events-auto mx-auto flex w-full max-w-[90vw] items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 px-4 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
-          <div className="min-w-[260px]">
-            <MetricSelect
-              metrics={metrics}
-              value={selectedMetric?.id ?? ""}
-              onChange={handleMetricSelect}
-              className="w-full"
-            />
-          </div>
-
-          <div className="h-6 w-px bg-slate-200" />
-
-          <div className="ml-auto flex w-full max-w-[460px] items-center">
-            <div className="w-full">
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
-                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
-                  {selectedMetric?.years.length ? selectedYear : "—"}
-                </span>
-              </div>
-              <div className="w-full max-w-[420px]">
-                <input
-                  type="range"
-                  min={yearMin}
-                  max={yearMax}
-                  value={sliderValue}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="ss-year-slider w-full"
-                  step={1}
-                  aria-label="Select year"
-                  disabled={!selectedMetric?.years.length}
-                />
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                  <span className="tabular-nums">{yearMin}</span>
-                  <span className="tabular-nums">{yearMax}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p className="pointer-events-none mx-auto mt-1 md:mt-2 max-w-[min(90vw,1000px)] text-center text-xs text-slate-600">
-          Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
-        </p>
-      </div>
-
-      <section className="relative mt-2 w-full sm:mt-4">
-        <div className="relative h-[30vh] w-full overflow-hidden rounded-2xl bg-white/20 p-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] sm:h-[60vh] md:h-[98vh]">
+        <div className="relative h-[34vh] w-full bg-gradient-to-b from-[#e6f1f8] to-[#d9eaf5] sm:h-[62vh] md:h-[calc(100vh-2.5rem)]">
           {colorScale ? (
             <USChoropleth
               features={features}
@@ -455,11 +415,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
         </section>
 
-        {/* Mobile: data-through label below table */}
-        <div className="sm:hidden w-full px-3 pb-6 text-center text-xs text-slate-600">
-          Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
-        </div>
-
         {/* Desktop overlay table */}
         <div className="hidden sm:block">
           <DataTablePanel
@@ -475,6 +430,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             selectedStateId={pinnedStateId}
             isOpen={isTableOpen}
             onToggle={() => setTableOpen(!isTableOpen)}
+            showLauncher={false}
           />
         </div>
       </section>

@@ -17,9 +17,18 @@ type Props = {
   selectedStateId?: string | null;
   isOpen: boolean;
   onToggle: () => void;
+  showLauncher?: boolean;
 };
 
-export function DataTablePanel({ year, rows, metricName, selectedStateId, isOpen, onToggle }: Props) {
+export function DataTablePanel({
+  year,
+  rows,
+  metricName,
+  selectedStateId,
+  isOpen,
+  onToggle,
+  showLauncher = true,
+}: Props) {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
@@ -84,7 +93,7 @@ export function DataTablePanel({ year, rows, metricName, selectedStateId, isOpen
 
       {/* Desktop overlay behavior remains */}
       <div className="pointer-events-none hidden md:fixed md:inset-y-4 md:right-4 md:left-auto md:z-30 md:flex md:flex-col md:items-end md:justify-start">
-        {!isOpen ? (
+        {!isOpen && showLauncher ? (
           <button
             type="button"
             onClick={onToggle}

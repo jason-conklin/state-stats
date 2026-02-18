@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Banknote,
   BarChart3,
@@ -10,7 +10,6 @@ import {
   Home,
   UserRound,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 
 type MetricOption = {
@@ -27,20 +26,20 @@ type Props = {
   className?: string;
 };
 
-export function getMetricIcon(metricId: string): LucideIcon {
+export function getMetricIcon(metricId: string, className = "h-4 w-4"): ReactNode {
   switch (metricId) {
     case "median_household_income":
-      return Banknote;
+      return <Banknote className={className} aria-hidden />;
     case "median_home_value":
-      return Home;
+      return <Home className={className} aria-hidden />;
     case "population_total":
-      return Users;
+      return <Users className={className} aria-hidden />;
     case "unemployment_rate":
-      return Briefcase;
+      return <Briefcase className={className} aria-hidden />;
     case "median_age":
-      return UserRound;
+      return <UserRound className={className} aria-hidden />;
     default:
-      return BarChart3;
+      return <BarChart3 className={className} aria-hidden />;
   }
 }
 
@@ -154,6 +153,9 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
           <span className="min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">Metric</span>
             <span className="mt-0.5 flex min-w-0 items-center gap-2">
+              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                {getMetricIcon(selectedMetric?.id ?? "")}
+              </span>
               <span className="truncate text-sm font-medium text-slate-900">{selectedMetric?.name ?? "Select metric"}</span>
               {selectedMetric?.category ? (
                 <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:inline-flex">
@@ -217,7 +219,6 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
               className="max-h-[320px] overflow-auto rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur-sm focus:outline-none"
             >
               {metrics.map((metric, index) => {
-                const Icon = getMetricIcon(metric.id);
                 const isSelected = metric.id === value;
                 const isActive = index === activeIndex;
                 return (
@@ -240,7 +241,7 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
                     }`}
                   >
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                      <Icon className="h-4 w-4" aria-hidden />
+                      {getMetricIcon(metric.id)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{metric.name}</span>

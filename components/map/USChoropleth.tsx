@@ -1,7 +1,7 @@
 'use client';
 
 import { geoAlbersUsa, geoPath, GeoPermissibleObjects } from "d3-geo";
-import { Feature, Geometry } from "geojson";
+import { Feature, FeatureCollection, Geometry } from "geojson";
 import { useMemo } from "react";
 import { NEUTRAL_COLOR } from "@/lib/mapScales";
 
@@ -27,10 +27,23 @@ export function USChoropleth({
   pinnedStateId,
 }: Props) {
   const { path, projection } = useMemo(() => {
-    const projection = geoAlbersUsa().scale(1200).translate([480, 280]);
+    const projection = geoAlbersUsa();
+    const fallbackProjection = () => projection.scale(1200).translate([480, 280]);
+
+    if (!features.length) {
+      fallbackProjection();
+    } else {
+      try {
+        const collection = { type: "FeatureCollection", features } as FeatureCollection<Geometry>;
+        projection.fitExtent([[18, 18], [942, 542]], collection as unknown as GeoPermissibleObjects);
+      } catch {
+        fallbackProjection();
+      }
+    }
+
     const path = geoPath(projection);
     return { path, projection };
-  }, []);
+  }, [features]);
 
   // If the projection failed to initialize, don't render.
   if (!projection) {
@@ -49,7 +62,7 @@ export function USChoropleth({
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative h-full w-full">
       <svg
         viewBox="0 0 960 560"
         role="img"
@@ -59,8 +72,8 @@ export function USChoropleth({
       >
         <defs>
           <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#c6e6ff" />
-            <stop offset="100%" stopColor="#c6e6ff" />
+            <stop offset="0%" stopColor="#e6f1f8" />
+            <stop offset="100%" stopColor="#d9eaf5" />
           </linearGradient>
         </defs>
         <rect width="100%" height="100%" fill="url(#waterGradient)" />
