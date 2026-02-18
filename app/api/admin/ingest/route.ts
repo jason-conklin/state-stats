@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runAllMetricIngestions } from "@/scripts/ingestAllMetrics";
+import { runAllMetricIngestions } from "@/scripts/ingestion/runAllMetrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

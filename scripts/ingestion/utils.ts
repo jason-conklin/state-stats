@@ -316,27 +316,51 @@ export async function getMetricYearBounds(client: PrismaClient, metricId: string
   };
 }
 
-export async function startIngestionRun(client: PrismaClient, dataSourceId: string): Promise<IngestionRun> {
+export async function startIngestionRun(
+  client: PrismaClient,
+  dataSourceId: string,
+  options?: { isSynthetic?: boolean; note?: string | null },
+): Promise<IngestionRun> {
   const source = await client.dataSource.findUnique({ where: { id: dataSourceId } });
   if (!source) {
     throw new Error(
       `startIngestionRun: data source ${dataSourceId} does not exist. Call ensureDataSource before starting the run.`,
     );
   }
-  return client.ingestionRun.create({
+  const run = await client.ingestionRun.create({
     data: {
       dataSourceId,
       status: IngestionStatus.in_progress,
       startedAt: new Date(),
     },
   });
+
+  if (typeof options?.isSynthetic === "boolean" || typeof options?.note !== "undefined") {
+    await client.$executeRaw`
+      UPDATE "IngestionRun"
+      SET "isSynthetic" = ${Boolean(options?.isSynthetic)},
+          "note" = ${options?.note ?? null}
+      WHERE "id" = ${run.id}
+    `.catch((error) => {
+      console.warn(
+        `[startIngestionRun] Could not persist synthetic metadata for run ${run.id}. Did you apply latest migrations?`,
+        error,
+      );
+    });
+  }
+
+  return run;
 }
 
 export async function completeIngestionRun(
   client: PrismaClient,
   runId: string,
   status: IngestionStatus,
-  details?: Prisma.InputJsonValue | Prisma.NullTypes.JsonNull | Prisma.NullTypes.DbNull,
+  options?: {
+    details?: Prisma.InputJsonValue | Prisma.NullTypes.JsonNull | Prisma.NullTypes.DbNull;
+    isSynthetic?: boolean;
+    note?: string | null;
+  },
 ) {
   await client.ingestionRun
     .update({
@@ -344,7 +368,7 @@ export async function completeIngestionRun(
       data: {
         status,
         completedAt: new Date(),
-        details,
+        details: options?.details,
       },
     })
     .catch((err) => {
@@ -352,4 +376,18 @@ export async function completeIngestionRun(
       console.error(`[completeIngestionRun] Failed to update run ${runId}:`, err);
       throw err;
     });
+
+  if (typeof options?.isSynthetic === "boolean" || typeof options?.note !== "undefined") {
+    await client.$executeRaw`
+      UPDATE "IngestionRun"
+      SET "isSynthetic" = ${Boolean(options?.isSynthetic)},
+          "note" = ${options?.note ?? null}
+      WHERE "id" = ${runId}
+    `.catch((error) => {
+      console.warn(
+        `[completeIngestionRun] Could not persist synthetic metadata for run ${runId}. Did you apply latest migrations?`,
+        error,
+      );
+    });
+  }
 }

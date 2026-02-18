@@ -31,7 +31,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
 
   const content = (
     <aside
-      className={`relative flex h-full flex-col border-r border-slate-200 bg-white shadow-sm transition-all duration-200 ${
+      className={`relative flex h-full flex-col border-r border-blue-900 bg-blue-950 shadow-sm transition-all duration-200 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
@@ -39,7 +39,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
       <button
         type="button"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className={`absolute top-5 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-transform duration-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer ${
+        className={`absolute top-5 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-blue-700 bg-blue-900 text-blue-100 shadow-md transition-transform duration-200 hover:bg-blue-800 hover:text-white cursor-pointer ${
           collapsed ? "right-[-16px]" : "right-[-12px]"
         }`}
         onClick={onToggleCollapse}
@@ -91,12 +91,12 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
                 priority
               />
             </button>
-            <span className="text-xl font-semibold text-slate-900">StateStats</span>
+            <span className="text-xl font-semibold text-white">StateStats</span>
           </div>
         )}
 
         {/* Nav list */}
-        <nav className={`${collapsed ? "mt-2 flex-1" : "flex-1 px-2 py-2"} text-sm font-medium text-slate-700`}>
+        <nav className={`${collapsed ? "mt-2 flex-1" : "flex-1 px-2 py-2"} text-sm font-medium text-blue-100`}>
           <ul className={collapsed ? "flex flex-col items-center gap-2" : "space-y-1"}>
             {navLinks.map((link) => {
               const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
@@ -108,8 +108,8 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
                       href={link.href}
                       className={`flex h-14 w-14 items-center justify-center rounded-2xl transition ${
                         active
-                          ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
-                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                          ? "bg-blue-800 text-white"
+                          : "text-blue-200 hover:bg-blue-900 hover:text-white"
                       }`}
                       aria-current={active ? "page" : undefined}
                       title={link.label}
@@ -117,8 +117,8 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
                       <IconComp
                         className={`h-9 w-9 ${
                           active
-                            ? "text-[color:var(--ss-green-dark)]"
-                            : "text-slate-400 group-hover:text-[color:var(--ss-green-dark)]"
+                            ? "text-white"
+                            : "text-blue-200 group-hover:text-white"
                         }`}
                       />
                     </Link>
@@ -128,21 +128,21 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
               return (
                 <li key={link.href}>
                   <Link
-                    href={link.href}
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition ${
-                      active
-                        ? "bg-[color:var(--ss-green-light)] text-[color:var(--ss-green-dark)]"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    } justify-start`}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <IconComp
-                      className={`h-9 w-9 ${
-                        active ? "text-[color:var(--ss-green-dark)]" : "text-slate-400 group-hover:text-[color:var(--ss-green-dark)]"
-                      }`}
-                    />
-                    <span className="truncate text-base">{link.label}</span>
-                  </Link>
+                  href={link.href}
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition ${
+                    active
+                      ? "bg-blue-800 text-white"
+                      : "text-blue-100 hover:bg-blue-900 hover:text-white"
+                  } justify-start`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <IconComp
+                    className={`h-9 w-9 ${
+                      active ? "text-white" : "text-blue-200 group-hover:text-white"
+                    }`}
+                  />
+                  <span className="truncate text-base">{link.label}</span>
+                </Link>
                 </li>
               );
             })}
@@ -151,9 +151,9 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
 
         {/* Live data badge */}
         <div className={`${collapsed ? "mb-4 mt-auto" : "px-3 pb-4"}`}>
-          <div className="rounded-lg border border-[color:var(--ss-green-mid)]/40 bg-[color:var(--ss-green-light)] px-3 py-2 text-xs text-[color:var(--ss-green-dark)] shadow-sm">
+          <div className="rounded-lg border border-blue-700 bg-blue-900/70 px-3 py-2 text-xs text-white shadow-sm">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
+              <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green)]" aria-hidden />
               {!collapsed && <span className="font-semibold">Live data</span>}
             </div>
             {!collapsed && <p className="mt-1 leading-snug">{statusText}</p>}

@@ -10,13 +10,16 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "ingest:income": "tsx scripts/ingestion/ingestMedianHouseholdIncome.ts",
-    "ingest:unemployment": "tsx scripts/ingestion/ingestUnemploymentRate.ts",
-    "ingest:population": "tsx scripts/ingestion/ingestPopulationTotal.ts",
+    "ingest:income": "tsx scripts/cli/ingestIncome.ts",
+    "ingest:unemployment": "tsx scripts/cli/ingestUnemployment.ts",
+    "ingest:population": "tsx scripts/cli/ingestPopulation.ts",
+    "ingest:home": "tsx scripts/cli/ingestHome.ts",
     "ingest:home-value": "tsx scripts/ingestion/ingestMedianHomeValue.ts",
+    "ingest:age": "tsx scripts/cli/ingestAge.ts",
     "ingest:median-age": "tsx scripts/ingestion/ingestMedianAge.ts",
     "ingest:median-income": "npm run ingest:income",
-    "ingest:all": "tsx scripts/ingestAllMetrics.ts"
+    "ingest:all": "tsx scripts/ingestAllMetrics.ts",
+    "ingest:verify": "tsx scripts/verifyIngestion.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",

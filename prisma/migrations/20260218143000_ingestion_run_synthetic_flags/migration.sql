@@ -1,0 +1,3 @@
+ALTER TABLE "IngestionRun"
+ADD COLUMN "isSynthetic" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "note" TEXT;

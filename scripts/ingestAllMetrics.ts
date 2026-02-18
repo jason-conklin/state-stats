@@ -1,39 +1,78 @@
-import type { IngestionSummary } from "../lib/types";
-import { runMedianAgeIngestion } from "./ingestion/ingestMedianAge";
-import { runMedianHomeValueIngestion } from "./ingestion/ingestMedianHomeValue";
-import { runMedianHouseholdIncomeIngestion } from "./ingestion/ingestMedianHouseholdIncome";
-import { runPopulationTotalIngestion } from "./ingestion/ingestPopulationTotal";
-import { runUnemploymentRateIngestion } from "./ingestion/ingestUnemploymentRate";
+import { runAllMetricIngestions } from "./ingestion/runAllMetrics";
 import { loadIngestionEnv } from "./ingestion/utils";
 
-export async function runAllMetricIngestions(): Promise<IngestionSummary[]> {
-  loadIngestionEnv();
-  console.log("[ingestAllMetrics] Starting all ingestions...");
-
-  const summaries: IngestionSummary[] = [];
-
-  console.log("[ingestAllMetrics] Running median_household_income...");
-  summaries.push(await runMedianHouseholdIncomeIngestion());
-
-  console.log("[ingestAllMetrics] Running population_total...");
-  summaries.push(await runPopulationTotalIngestion());
-
-  console.log("[ingestAllMetrics] Running unemployment_rate...");
-  summaries.push(await runUnemploymentRateIngestion());
-
-  console.log("[ingestAllMetrics] Running median_home_value...");
-  summaries.push(await runMedianHomeValueIngestion());
-
-  console.log("[ingestAllMetrics] Running median_age...");
-  summaries.push(await runMedianAgeIngestion());
-
-  console.log("[ingestAllMetrics] Completed all ingestions.");
-  return summaries;
+function describeSecret(secret: string | undefined) {
+  const trimmed = secret?.trim();
+  if (!trimmed) return "missing";
+  return `present (${trimmed.slice(0, 4)}...)`;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runAllMetricIngestions().catch((err) => {
-    console.error("[ingestAllMetrics] Failed:", err);
+function describeDatabaseUrl(rawUrl: string | undefined) {
+  if (!rawUrl?.trim()) {
+    return "missing";
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+    const host = parsed.hostname || "unknown-host";
+    const port = parsed.port || "5432";
+    return `${host}:${port}`;
+  } catch {
+    return "invalid";
+  }
+}
+
+function logPreflight() {
+  const censusKey = process.env.CENSUS_API_KEY;
+  const blsKey = process.env.BLS_API_KEY;
+  const databaseUrl = process.env.DATABASE_URL;
+
+  console.log("🔎 [ingestAllMetrics] Preflight");
+  console.log(`  Node: ${process.version}`);
+  console.log(`  DATABASE_URL: ${describeDatabaseUrl(databaseUrl)}`);
+  console.log(`  CENSUS_API_KEY: ${describeSecret(censusKey)}`);
+  console.log(`  BLS_API_KEY: ${describeSecret(blsKey)}`);
+
+  if (!censusKey?.trim() && !blsKey?.trim()) {
+    console.warn(
+      "⚠️ [ingestAllMetrics] Neither CENSUS_API_KEY nor BLS_API_KEY is set. Ingestion will use synthetic fallback data.",
+    );
+  }
+}
+
+function installGlobalErrorHandlers() {
+  process.on("unhandledRejection", (reason) => {
+    console.error("❌ [ingestAllMetrics] Unhandled rejection:", reason);
+    process.exitCode = 1;
+  });
+
+  process.on("uncaughtException", (error) => {
+    console.error("❌ [ingestAllMetrics] Uncaught exception:", error);
     process.exitCode = 1;
   });
 }
+
+async function main() {
+  loadIngestionEnv();
+  installGlobalErrorHandlers();
+
+  const startedAt = Date.now();
+  console.log("🚀 [ingestAllMetrics] Starting...");
+  logPreflight();
+
+  const summaries = await runAllMetricIngestions();
+  const failed = summaries.filter((summary) => summary.status === "failed");
+  if (failed.length > 0) {
+    throw new Error(
+      `One or more metric ingestions failed: ${failed.map((summary) => summary.runId).join(", ")}`,
+    );
+  }
+
+  const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+  console.log(`✅ [ingestAllMetrics] Finished in ${durationSeconds}s.`);
+}
+
+main().catch((error) => {
+  console.error("❌ [ingestAllMetrics] Failed:", error);
+  process.exitCode = 1;
+});

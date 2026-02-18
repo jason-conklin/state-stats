@@ -32,8 +32,10 @@ pnpm db:generate          # generates the Prisma client
 - `npm run ingest:population` – total population (Census ACS `B01003_001E`)
 - `npm run ingest:median-age` – median age (Census ACS `B01002_001E`)
 - `npm run ingest:home-value` – median home value (Census ACS `B25077_001E`)
+- `npm run ingest:age` – alias for median age ingestion
 - `npm run ingest:unemployment` – unemployment rate annual average (BLS LAUS)
 - `npm run ingest:all` – run all ingestions sequentially
+- `npm run ingest:verify` – print latest run metadata and metric coverage summary
 
 Real API ingestion is used when keys are set:
 
@@ -43,6 +45,7 @@ Real API ingestion is used when keys are set:
 If either key is missing, that metric falls back to deterministic synthetic data and is labeled with a synthetic fallback data source in the database.
 
 Each ingestion writes an `IngestionRun` row with status, counts, and warning/error details.
+`ingest:all` logs a preflight summary (Node version, DB host/port, and API key presence) before running.
 
 Admin trigger endpoint:
 
@@ -85,6 +88,7 @@ Open http://localhost:3000 to view the app.
 - `pnpm ingest:income` – run the median household income importer
 - `pnpm ingest:unemployment` – run the unemployment rate importer
 - `pnpm ingest:all` – run all metrics ingestion
+- `pnpm ingest:verify` – verify latest run + coverage
 
 ## Deployment (Vercel)
 - Ensure `DATABASE_URL` is set in Vercel project settings (server-side).

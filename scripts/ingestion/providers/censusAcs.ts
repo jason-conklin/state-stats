@@ -6,6 +6,7 @@ const ACS_DATASET = "acs/acs1";
 const REQUEST_TIMEOUT_MS = 20_000;
 const MAX_RETRIES = 4;
 const INITIAL_BACKOFF_MS = 500;
+const KNOWN_EXPECTED_GAP_YEARS = new Set([2020]);
 
 type FetchRetryOptions = {
   logPrefix: string;
@@ -21,11 +22,13 @@ export type FetchCensusAcsSeriesOptions = {
   apiKey: string;
   metricId: string;
   variableCode: string;
-  expectedLabelIncludes: string[];
+  expectedLabelIncludes?: string[];
   expectedConceptIncludes?: string[];
   startYear: number;
   endYear: number;
   lookbackYears?: number | null;
+  skipMetadataValidation?: boolean;
+  logPerYear?: boolean;
   logPrefix: string;
 };
 
@@ -35,8 +38,21 @@ export type CensusAcsSeriesResult = {
   latestAvailableYear: number;
   coverageByYear: Record<number, number>;
   warnings: string[];
+  failedYears: number[];
   hadPartialFailures: boolean;
 };
+
+class AcsRequestError extends Error {
+  year: number;
+  status: number;
+
+  constructor(message: string, year: number, status: number) {
+    super(message);
+    this.name = "AcsRequestError";
+    this.year = year;
+    this.status = status;
+  }
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -117,7 +133,7 @@ async function discoverLatestAcsYear(
 
 function assertMetadataHasExpectedFragments(
   metadata: Record<string, unknown>,
-  expectedLabelIncludes: string[],
+  expectedLabelIncludes: string[] | undefined,
   expectedConceptIncludes: string[] | undefined,
   variableCode: string,
   logPrefix: string,
@@ -132,25 +148,25 @@ function assertMetadataHasExpectedFragments(
     );
   }
 
-  const labelLower = metadataLabel.toLowerCase();
-  for (const fragment of expectedLabelIncludes) {
-    if (!labelLower.includes(fragment.toLowerCase())) {
-      throw new Error(
-        `${logPrefix} ACS variable ${variableCode} label did not include "${fragment}". Actual label: ${metadataLabel}`,
-      );
+  if (expectedLabelIncludes?.length) {
+    const labelLower = metadataLabel.toLowerCase();
+    for (const fragment of expectedLabelIncludes) {
+      if (!labelLower.includes(fragment.toLowerCase())) {
+        throw new Error(
+          `${logPrefix} ACS variable ${variableCode} label did not include "${fragment}". Actual label: ${metadataLabel}`,
+        );
+      }
     }
   }
 
-  if (!expectedConceptIncludes?.length) {
-    return;
-  }
-
-  const conceptLower = metadataConcept.toLowerCase();
-  for (const fragment of expectedConceptIncludes) {
-    if (!conceptLower.includes(fragment.toLowerCase())) {
-      throw new Error(
-        `${logPrefix} ACS variable ${variableCode} concept did not include "${fragment}". Actual concept: ${metadataConcept}`,
-      );
+  if (expectedConceptIncludes?.length) {
+    const conceptLower = metadataConcept.toLowerCase();
+    for (const fragment of expectedConceptIncludes) {
+      if (!conceptLower.includes(fragment.toLowerCase())) {
+        throw new Error(
+          `${logPrefix} ACS variable ${variableCode} concept did not include "${fragment}". Actual concept: ${metadataConcept}`,
+        );
+      }
     }
   }
 }
@@ -159,7 +175,7 @@ async function validateVariableMetadata(
   apiKey: string,
   variableCode: string,
   year: number,
-  expectedLabelIncludes: string[],
+  expectedLabelIncludes: string[] | undefined,
   expectedConceptIncludes: string[] | undefined,
   logPrefix: string,
 ) {
@@ -222,7 +238,11 @@ async function fetchAcsStateValuesForYear(
   const response = await fetchWithRetry(url, { method: "GET" }, { logPrefix });
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(`${logPrefix} ACS request failed for ${year} (${response.status}): ${body}`);
+    throw new AcsRequestError(
+      `${logPrefix} ACS request failed for ${year} (${response.status}): ${body}`,
+      year,
+      response.status,
+    );
   }
 
   const payload = (await response.json()) as unknown;
@@ -295,22 +315,28 @@ export async function fetchCensusAcsSeries(options: FetchCensusAcsSeriesOptions)
     options.logPrefix,
   );
 
-  await validateVariableMetadata(
-    options.apiKey,
-    options.variableCode,
-    latestAvailableYear,
-    options.expectedLabelIncludes,
-    options.expectedConceptIncludes,
-    options.logPrefix,
-  );
+  if (!options.skipMetadataValidation) {
+    await validateVariableMetadata(
+      options.apiKey,
+      options.variableCode,
+      latestAvailableYear,
+      options.expectedLabelIncludes,
+      options.expectedConceptIncludes,
+      options.logPrefix,
+    );
+  }
 
   const targetYears = resolveYearsToIngest(latestAvailableYear, minYear, options.lookbackYears);
   const observations: NormalizedProviderObservation[] = [];
   const warnings: string[] = [];
   const coverageByYear: Record<number, number> = {};
-  let failedYearCount = 0;
+  const failedYears = new Set<number>();
 
   for (const year of targetYears) {
+    if (options.logPerYear) {
+      console.log(`${options.logPrefix} Fetching year ${year}...`);
+    }
+
     try {
       const yearResult = await fetchAcsStateValuesForYear(
         options.apiKey,
@@ -321,11 +347,28 @@ export async function fetchCensusAcsSeries(options: FetchCensusAcsSeriesOptions)
       observations.push(...yearResult.observations);
       coverageByYear[year] = yearResult.observations.length;
       warnings.push(...yearResult.warnings);
+      if (options.logPerYear) {
+        console.log(
+          `${options.logPrefix} Year ${year} success: ${yearResult.observations.length} state values.`,
+        );
+      }
     } catch (error) {
-      failedYearCount += 1;
+      if (error instanceof AcsRequestError && error.status === 404 && KNOWN_EXPECTED_GAP_YEARS.has(year)) {
+        failedYears.add(year);
+        warnings.push(`${options.logPrefix} Year ${year}: expected ACS 1-year gap (404). Continuing.`);
+        if (options.logPerYear) {
+          console.warn(`${options.logPrefix} Year ${year} expected gap (404).`);
+        }
+        continue;
+      }
+
+      failedYears.add(year);
       warnings.push(
         `${options.logPrefix} Year ${year}: failed to fetch ACS data (${error instanceof Error ? error.message : String(error)}).`,
       );
+      if (options.logPerYear) {
+        console.warn(`${options.logPrefix} Year ${year} failed.`);
+      }
     }
   }
 
@@ -339,6 +382,7 @@ export async function fetchCensusAcsSeries(options: FetchCensusAcsSeriesOptions)
     latestAvailableYear,
     coverageByYear,
     warnings,
-    hadPartialFailures: failedYearCount > 0,
+    failedYears: Array.from(failedYears).sort((a, b) => a - b),
+    hadPartialFailures: failedYears.size > 0,
   };
 }

@@ -1,6 +1,11 @@
 import { IngestionStatus, PrismaClient } from "@prisma/client";
 import type { IngestionSummary } from "../../lib/types";
 import { DEFAULT_YEAR_RANGE, INGEST_LOOKBACK_YEARS } from "./config";
+import {
+  ACS_ONE_YEAR_REAL_WINDOW_CONFIG,
+  type AcsExpectedWindowConfig,
+  resolveAcsExpectedWindow,
+} from "./acsWindow";
 import { fetchCensusAcsSeries } from "./providers/censusAcs";
 import {
   buildCoverageWarnings,
@@ -22,11 +27,27 @@ type RunAcsMetricIngestionOptions = {
   metricId: string;
   logPrefix: string;
   variableCode: string;
-  expectedLabelIncludes: string[];
+  expectedLabelIncludes?: string[];
   expectedConceptIncludes?: string[];
+  skipMetadataValidation?: boolean;
+  logPerYear?: boolean;
   isDefault?: boolean;
+  expectedWindowConfig?: AcsExpectedWindowConfig;
   syntheticGenerator: SyntheticGenerator;
 };
+
+function getYearBounds(rows: Array<{ year: number }>) {
+  if (!rows.length) {
+    return { minYear: null as number | null, maxYear: null as number | null };
+  }
+  let minYear = Number.POSITIVE_INFINITY;
+  let maxYear = Number.NEGATIVE_INFINITY;
+  for (const row of rows) {
+    minYear = Math.min(minYear, row.year);
+    maxYear = Math.max(maxYear, row.year);
+  }
+  return { minYear, maxYear };
+}
 
 export async function runAcsMetricIngestion(
   options: RunAcsMetricIngestionOptions,
@@ -38,26 +59,94 @@ export async function runAcsMetricIngestion(
   const notices: string[] = [];
   let runId: string | null = null;
   let runStartedAtIso = new Date().toISOString();
+  let isSyntheticMode = false;
+  let fallbackReason: string | null = null;
+  let activeSourceId: string = DATA_SOURCE_CONFIGS.censusAcsReal.id;
 
   try {
     console.log(`${options.logPrefix} Starting ingestion...`);
+    console.log(`${options.logPrefix} metricId=${options.metricId}`);
+    const expectedWindowConfig = options.expectedWindowConfig ?? ACS_ONE_YEAR_REAL_WINDOW_CONFIG;
 
     await ensureStates(client);
     await normalizeLegacyDataSources(client);
     await ensureDataSource(client, DATA_SOURCE_CONFIGS.censusAcsReal);
 
-    const apiKey = process.env.CENSUS_API_KEY?.trim();
-    const useRealApi = Boolean(apiKey);
-    const activeSourceId = useRealApi
-      ? DATA_SOURCE_CONFIGS.censusAcsReal.id
-      : DATA_SOURCE_CONFIGS.censusAcsSynthetic.id;
+    const dbStates = await client.state.findMany({ select: { id: true } });
+    const stateIds = dbStates.map((state) => state.id);
+    const stateIdSet = new Set(stateIds);
 
-    if (!useRealApi) {
+    const apiKey = process.env.CENSUS_API_KEY?.trim();
+    const providerRows: Array<{ stateCode: string; year: number; value: number }> = [];
+    let providerCoverage: Record<number, number> = {};
+    let hadProviderPartialFailures = false;
+    let failedYears: number[] = [];
+    let excludedYears: number[] = [];
+    let plannedYearStart = DEFAULT_YEAR_RANGE.start;
+    let plannedYearEnd = DEFAULT_YEAR_RANGE.end;
+    let allowedYearsForCleanup: number[] = [];
+
+    if (!apiKey) {
+      isSyntheticMode = true;
+      fallbackReason = "Missing CENSUS_API_KEY";
+    } else {
+      try {
+        const providerResult = await fetchCensusAcsSeries({
+          apiKey,
+          metricId: options.metricId,
+          variableCode: options.variableCode,
+          expectedLabelIncludes: options.expectedLabelIncludes,
+          expectedConceptIncludes: options.expectedConceptIncludes,
+          skipMetadataValidation: options.skipMetadataValidation,
+          logPerYear: options.logPerYear,
+          startYear: expectedWindowConfig.startYear,
+          endYear: DEFAULT_YEAR_RANGE.end,
+          lookbackYears: null,
+          logPrefix: options.logPrefix,
+        });
+
+        providerRows.push(...providerResult.observations);
+        providerCoverage = providerResult.coverageByYear;
+        warnings.push(...providerResult.warnings);
+        hadProviderPartialFailures = providerResult.hadPartialFailures;
+        failedYears = providerResult.failedYears;
+        const resolvedWindow = resolveAcsExpectedWindow(
+          providerResult.latestAvailableYear,
+          expectedWindowConfig,
+        );
+        plannedYearStart = resolvedWindow.startYear;
+        plannedYearEnd = resolvedWindow.endYear;
+        excludedYears = resolvedWindow.excludedYears;
+        allowedYearsForCleanup = resolvedWindow.allowedYears;
+      } catch (error) {
+        isSyntheticMode = true;
+        fallbackReason = `Census ACS request failed: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(`${options.logPrefix} ${fallbackReason}`);
+        notices.push(`${options.logPrefix} Falling back to synthetic data after real API failure.`);
+      }
+    }
+
+    if (isSyntheticMode) {
       await ensureDataSource(client, DATA_SOURCE_CONFIGS.censusAcsSynthetic);
-      notices.push(
-        `${options.logPrefix} CENSUS_API_KEY missing; using synthetic fallback source ${DATA_SOURCE_CONFIGS.censusAcsSynthetic.id}.`,
-      );
-      console.warn(notices[notices.length - 1]);
+      activeSourceId = DATA_SOURCE_CONFIGS.censusAcsSynthetic.id;
+
+      if (!fallbackReason) {
+        fallbackReason = "Missing CENSUS_API_KEY";
+      }
+      notices.push(`${options.logPrefix} Synthetic fallback: ${fallbackReason}`);
+      console.warn(`${options.logPrefix} Synthetic fallback enabled: ${fallbackReason}`);
+
+      plannedYearStart = DEFAULT_YEAR_RANGE.start;
+      plannedYearEnd = DEFAULT_YEAR_RANGE.end;
+      for (const stateId of stateIds) {
+        for (let year = plannedYearStart; year <= plannedYearEnd; year += 1) {
+          providerRows.push({
+            stateCode: stateId,
+            year,
+            value: options.syntheticGenerator(stateId, year, plannedYearStart),
+          });
+        }
+      }
     }
 
     const metricOverrides: Partial<{ isDefault: boolean; sourceId: string }> = {
@@ -68,48 +157,22 @@ export async function runAcsMetricIngestion(
     }
     await ensureMetric(client, options.metricId, metricOverrides);
 
-    const run = await startIngestionRun(client, activeSourceId);
+    console.log(
+      `${options.logPrefix} sourceId=${activeSourceId} mode=${isSyntheticMode ? "synthetic_fallback" : "real_api"} years=${plannedYearStart}-${plannedYearEnd}`,
+    );
+
+    const filteredRows = providerRows.filter((row) => stateIdSet.has(row.stateCode));
+    if (!filteredRows.length) {
+      throw new Error(`${options.logPrefix} No rows available to write after filtering.`);
+    }
+
+    const run = await startIngestionRun(client, activeSourceId, {
+      isSynthetic: isSyntheticMode,
+      note: fallbackReason,
+    });
     runId = run.id;
     runStartedAtIso = run.startedAt.toISOString();
 
-    const dbStates = await client.state.findMany({ select: { id: true } });
-    const stateIds = dbStates.map((state) => state.id);
-    const stateIdSet = new Set(stateIds);
-
-    let providerCoverage: Record<number, number> = {};
-    let hadProviderPartialFailures = false;
-    const providerRows: Array<{ stateCode: string; year: number; value: number }> = [];
-
-    if (useRealApi) {
-      const providerResult = await fetchCensusAcsSeries({
-        apiKey: apiKey!,
-        metricId: options.metricId,
-        variableCode: options.variableCode,
-        expectedLabelIncludes: options.expectedLabelIncludes,
-        expectedConceptIncludes: options.expectedConceptIncludes,
-        startYear: DEFAULT_YEAR_RANGE.start,
-        endYear: DEFAULT_YEAR_RANGE.end,
-        lookbackYears: INGEST_LOOKBACK_YEARS,
-        logPrefix: options.logPrefix,
-      });
-
-      providerRows.push(...providerResult.observations);
-      providerCoverage = providerResult.coverageByYear;
-      warnings.push(...providerResult.warnings);
-      hadProviderPartialFailures = providerResult.hadPartialFailures;
-    } else {
-      for (const stateId of stateIds) {
-        for (let year = DEFAULT_YEAR_RANGE.start; year <= DEFAULT_YEAR_RANGE.end; year += 1) {
-          providerRows.push({
-            stateCode: stateId,
-            year,
-            value: options.syntheticGenerator(stateId, year, DEFAULT_YEAR_RANGE.start),
-          });
-        }
-      }
-    }
-
-    const filteredRows = providerRows.filter((row) => stateIdSet.has(row.stateCode));
     const upsertSummary = await upsertObservationsWithCounts(
       client,
       filteredRows.map((row) => ({
@@ -120,15 +183,38 @@ export async function runAcsMetricIngestion(
       })),
     );
 
-    warnings.push(...buildCoverageWarnings(providerCoverage, options.logPrefix, stateIds.length));
-    warnings.push(
-      ...buildCoverageWarnings(upsertSummary.coverageByYear, options.logPrefix, stateIds.length),
-    );
+    let cleanupDeletedCount = 0;
+    let remainingCount = upsertSummary.total;
+    if (!isSyntheticMode) {
+      if (!allowedYearsForCleanup.length) {
+        throw new Error(
+          `${options.logPrefix} Real ingestion cleanup could not determine allowed years.`,
+        );
+      }
 
+      const cleanupResult = await client.observation.deleteMany({
+        where: {
+          metricId: options.metricId,
+          year: { notIn: allowedYearsForCleanup },
+        },
+      });
+      cleanupDeletedCount = cleanupResult.count;
+      remainingCount = await client.observation.count({
+        where: { metricId: options.metricId },
+      });
+      console.log(
+        `${options.logPrefix} cleanup mode=real_api deleted=${cleanupDeletedCount} remaining=${remainingCount} allowedYears=${allowedYearsForCleanup[0]}-${allowedYearsForCleanup[allowedYearsForCleanup.length - 1]} excludedYears=${excludedYears.length ? excludedYears.join(",") : "none"}`,
+      );
+    }
+
+    warnings.push(...buildCoverageWarnings(providerCoverage, options.logPrefix, stateIds.length));
+    warnings.push(...buildCoverageWarnings(upsertSummary.coverageByYear, options.logPrefix, stateIds.length));
     for (const warning of warnings) {
       console.warn(warning);
     }
 
+    const uniqueStateCount = new Set(filteredRows.map((row) => row.stateCode)).size;
+    const writtenBounds = getYearBounds(filteredRows);
     const metricBounds = await getMetricYearBounds(client, options.metricId);
     const status =
       hadProviderPartialFailures || warnings.length > 0
@@ -136,27 +222,40 @@ export async function runAcsMetricIngestion(
         : IngestionStatus.success;
 
     await completeIngestionRun(client, run.id, status, {
-      metricId: options.metricId,
-      sourceId: activeSourceId,
-      mode: useRealApi ? "real_api" : "synthetic_fallback",
-      lookbackYears: INGEST_LOOKBACK_YEARS,
-      counts: {
-        expectedStates: stateIds.length,
-        observationsTotal: upsertSummary.total,
-        observationsInserted: upsertSummary.inserted,
-        observationsUpdated: upsertSummary.updated,
+      isSynthetic: isSyntheticMode,
+      note: fallbackReason,
+      details: {
+        metricId: options.metricId,
+        sourceId: activeSourceId,
+        mode: isSyntheticMode ? "synthetic_fallback" : "real_api",
+        lookbackYears: INGEST_LOOKBACK_YEARS,
+        counts: {
+          expectedStates: stateIds.length,
+          uniqueStatesWritten: uniqueStateCount,
+          observationsTotal: upsertSummary.total,
+          observationsInserted: upsertSummary.inserted,
+          observationsUpdated: upsertSummary.updated,
+          cleanupDeleted: cleanupDeletedCount,
+          observationsRemaining: remainingCount,
+        },
+        years: {
+          plannedStartYear: plannedYearStart,
+          plannedEndYear: plannedYearEnd,
+          minYear: metricBounds.minYear,
+          maxYear: metricBounds.maxYear,
+          excludedYears,
+        },
+        failedYears,
+        fallbackReason,
+        warnings,
+        notices,
       },
-      years: {
-        minYear: metricBounds.minYear,
-        maxYear: metricBounds.maxYear,
-      },
-      warnings,
-      notices,
     });
 
     console.log(
-      `${options.logPrefix} Completed with status=${status} inserted=${upsertSummary.inserted} updated=${upsertSummary.updated}.`,
+      `${options.logPrefix} summary sourceId=${activeSourceId} mode=${isSyntheticMode ? "synthetic_fallback" : "real_api"} years=${writtenBounds.minYear ?? "—"}-${writtenBounds.maxYear ?? "—"} failedYears=${failedYears.length ? failedYears.join(",") : "none"} observations=${upsertSummary.total} inserted=${upsertSummary.inserted} updated=${upsertSummary.updated} states=${uniqueStateCount}/${stateIds.length}`,
     );
+    console.log(`${options.logPrefix} Completed with status=${status}.`);
 
     const summaryYears = {
       start: metricBounds.minYear ?? DEFAULT_YEAR_RANGE.start,
@@ -182,10 +281,15 @@ export async function runAcsMetricIngestion(
 
     if (runId) {
       await completeIngestionRun(client, runId, IngestionStatus.failed, {
-        metricId: options.metricId,
-        error: errorMessage,
-        warnings,
-        notices,
+        isSynthetic: isSyntheticMode,
+        note: fallbackReason ?? errorMessage,
+        details: {
+          metricId: options.metricId,
+          fallbackReason,
+          error: errorMessage,
+          warnings,
+          notices,
+        },
       });
     }
 

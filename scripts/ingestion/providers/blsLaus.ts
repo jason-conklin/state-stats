@@ -1,4 +1,3 @@
-import { BLS_MAX_YEARS_PER_REQUEST } from "../config";
 import { states } from "../../../lib/states";
 
 const BLS_TIMESERIES_URL = "https://api.bls.gov/publicAPI/v2/timeseries/data/";
@@ -43,6 +42,7 @@ export type FetchBlsLausSeriesOptions = {
   endYear: number;
   lookbackYears?: number | null;
   logPrefix: string;
+  logPerYear?: boolean;
 };
 
 export type BlsLausSeriesResult = {
@@ -51,8 +51,24 @@ export type BlsLausSeriesResult = {
   latestAvailableYear: number;
   coverageByYear: Record<number, number>;
   warnings: string[];
+  failedYears: number[];
+  skippedYears: number[];
   hadPartialFailures: boolean;
 };
+
+export class BlsSyntheticFallbackError extends Error {
+  kind: "auth" | "all_years_failed";
+
+  constructor(kind: "auth" | "all_years_failed", message: string) {
+    super(message);
+    this.name = "BlsSyntheticFallbackError";
+    this.kind = kind;
+  }
+}
+
+export function isBlsSyntheticFallbackError(error: unknown): error is BlsSyntheticFallbackError {
+  return error instanceof BlsSyntheticFallbackError;
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -107,19 +123,6 @@ function chunk<T>(items: T[], size: number) {
   return output;
 }
 
-function buildYearWindows(startYear: number, endYear: number, maxWindowSize: number) {
-  const windows: Array<{ startYear: number; endYear: number }> = [];
-  let cursor = startYear;
-
-  while (cursor <= endYear) {
-    const windowEnd = Math.min(endYear, cursor + maxWindowSize - 1);
-    windows.push({ startYear: cursor, endYear: windowEnd });
-    cursor = windowEnd + 1;
-  }
-
-  return windows;
-}
-
 function isBlsSeriesArray(value: unknown): value is BlsSeriesResult[] {
   if (!Array.isArray(value)) return false;
   return value.every((entry) => {
@@ -140,6 +143,16 @@ function extractMessageStrings(message: unknown) {
   return [];
 }
 
+function looksLikeAuthFailure(messages: string[]) {
+  const normalized = messages.join(" ").toLowerCase();
+  return (
+    normalized.includes("invalid registration key") ||
+    normalized.includes("registration key") ||
+    normalized.includes("not authorized") ||
+    normalized.includes("unauthorized")
+  );
+}
+
 /**
  * LAUS series pattern from BLS LAUS docs (`la.txt`):
  * `series_id = LA + seasonal + area_code + measure_code`
@@ -156,15 +169,14 @@ export function buildLausStateUnemploymentRateSeriesId(stateCode: string) {
 
 async function requestBlsSeries(
   seriesIds: string[],
-  startYear: number,
-  endYear: number,
+  year: number,
   apiKey: string,
   logPrefix: string,
 ) {
   const payload = {
     seriesid: seriesIds,
-    startyear: String(startYear),
-    endyear: String(endYear),
+    startyear: String(year),
+    endyear: String(year),
     registrationkey: apiKey,
   };
 
@@ -180,6 +192,12 @@ async function requestBlsSeries(
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");
+    if (response.status === 401 || response.status === 403) {
+      throw new BlsSyntheticFallbackError(
+        "auth",
+        `${logPrefix} BLS authentication failed (${response.status}).`,
+      );
+    }
     throw new Error(`${logPrefix} BLS API request failed (${response.status}): ${text}`);
   }
 
@@ -187,6 +205,12 @@ async function requestBlsSeries(
   const messages = extractMessageStrings(json.message);
 
   if (json.status !== "REQUEST_SUCCEEDED") {
+    if (looksLikeAuthFailure(messages)) {
+      throw new BlsSyntheticFallbackError(
+        "auth",
+        `${logPrefix} BLS authentication error: ${messages.join(" | ")}`,
+      );
+    }
     throw new Error(
       `${logPrefix} BLS API returned status=${json.status ?? "unknown"} ${messages.join(" | ")}`,
     );
@@ -200,64 +224,44 @@ async function requestBlsSeries(
   return { series: seriesRaw, messages };
 }
 
-function parseAnnualAverageRows(series: BlsSeriesResult, logPrefix: string) {
-  const annualRows: Array<{ year: number; value: number }> = [];
-  for (const row of series.data) {
-    if (!row || typeof row !== "object") continue;
-
-    if (row.period !== ANNUAL_AVERAGE_PERIOD) {
-      continue;
+function parseAnnualAverageValue(series: BlsSeriesResult, year: number) {
+  const rowsForYear = series.data.filter((row) => Number(row.year) === year);
+  const annualRow = rowsForYear.find((row) => row.period === ANNUAL_AVERAGE_PERIOD);
+  if (annualRow) {
+    const annualValue = Number(annualRow.value);
+    if (Number.isFinite(annualValue)) {
+      return annualValue;
     }
-
-    const year = Number(row.year);
-    const value = Number(row.value);
-    if (!Number.isInteger(year) || !Number.isFinite(value)) {
-      console.warn(`${logPrefix} Skipping malformed BLS annual row for ${series.seriesID}.`);
-      continue;
-    }
-
-    annualRows.push({ year, value });
   }
 
-  return annualRows;
+  // Some LAUS series return monthly points only; derive annual average from M01-M12.
+  const monthlyValues = rowsForYear
+    .filter((row) => /^M(0[1-9]|1[0-2])$/.test(row.period))
+    .map((row) => Number(row.value))
+    .filter((value) => Number.isFinite(value));
+
+  if (!monthlyValues.length) {
+    return null;
+  }
+
+  const total = monthlyValues.reduce((sum, value) => sum + value, 0);
+  return Number((total / monthlyValues.length).toFixed(3));
 }
 
-async function discoverLatestAnnualYear(
-  sampleSeriesId: string,
-  apiKey: string,
+function resolveYearsToAttempt(
   startYear: number,
   endYear: number,
-  logPrefix: string,
-) {
-  const result = await requestBlsSeries([sampleSeriesId], startYear, endYear, apiKey, logPrefix);
-  const firstSeries = result.series[0];
-  if (!firstSeries) {
-    throw new Error(`${logPrefix} BLS discovery request returned no series results.`);
-  }
-  const rows = parseAnnualAverageRows(firstSeries, logPrefix);
-  const latestYear = rows.reduce((max, row) => Math.max(max, row.year), Number.NEGATIVE_INFINITY);
-
-  if (!Number.isFinite(latestYear)) {
-    throw new Error(
-      `${logPrefix} Could not discover latest annual-average LAUS year between ${startYear} and ${endYear}.`,
-    );
-  }
-
-  return latestYear;
-}
-
-function resolveYearsToIngest(
-  latestAvailableYear: number,
-  startYear: number,
   lookbackYears?: number | null,
 ) {
-  const lowerBound =
+  const lower = Math.min(startYear, endYear);
+  const upper = Math.max(startYear, endYear);
+  const effectiveLower =
     lookbackYears && lookbackYears > 0
-      ? Math.max(startYear, latestAvailableYear - lookbackYears + 1)
-      : startYear;
+      ? Math.max(lower, upper - lookbackYears + 1)
+      : lower;
 
   const years: number[] = [];
-  for (let year = lowerBound; year <= latestAvailableYear; year += 1) {
+  for (let year = effectiveLower; year <= upper; year += 1) {
     years.push(year);
   }
   return years;
@@ -266,10 +270,12 @@ function resolveYearsToIngest(
 export async function fetchBlsLausAnnualUnemployment(
   options: FetchBlsLausSeriesOptions,
 ): Promise<BlsLausSeriesResult> {
-  const startYear = Math.min(options.startYear, options.endYear);
-  const endYear = Math.max(options.startYear, options.endYear);
+  const yearsToAttempt = resolveYearsToAttempt(
+    options.startYear,
+    options.endYear,
+    options.lookbackYears,
+  );
   const stateCodes = states.map((state) => state.id);
-
   const seriesByState = new Map<string, string>();
   const stateBySeries = new Map<string, string>();
   for (const stateCode of stateCodes) {
@@ -278,92 +284,87 @@ export async function fetchBlsLausAnnualUnemployment(
     stateBySeries.set(seriesId, stateCode);
   }
 
-  const sampleSeriesId = seriesByState.get("06") ?? seriesByState.get("01");
-  if (!sampleSeriesId) {
-    throw new Error(`${options.logPrefix} Unable to build sample LAUS series ID.`);
-  }
-
-  const latestAvailableYear = await discoverLatestAnnualYear(
-    sampleSeriesId,
-    options.apiKey,
-    startYear,
-    endYear,
-    options.logPrefix,
-  );
-
-  const yearsToIngest = resolveYearsToIngest(
-    latestAvailableYear,
-    startYear,
-    options.lookbackYears,
-  );
-  const effectiveStartYear = yearsToIngest[0];
-  const effectiveEndYear = yearsToIngest[yearsToIngest.length - 1];
-  const yearWindows = buildYearWindows(
-    effectiveStartYear,
-    effectiveEndYear,
-    BLS_MAX_YEARS_PER_REQUEST,
-  );
   const seriesIdBatches = chunk(Array.from(seriesByState.values()), MAX_SERIES_PER_REQUEST);
-
   const valueByStateYear = new Map<string, BlsLausObservation>();
-  const coverageSetsByYear = new Map<number, Set<string>>();
+  const coverageByYear: Record<number, number> = {};
   const warnings: string[] = [];
-  let failedBatchCount = 0;
+  const failedYears = new Set<number>();
+  const skippedYears = new Set<number>();
+  let allYearsHttpOrNetworkFailures = true;
 
-  for (const window of yearWindows) {
-    for (const seriesBatch of seriesIdBatches) {
+  for (const year of yearsToAttempt) {
+    if (options.logPerYear) {
+      console.log(`${options.logPrefix} Fetching year ${year}...`);
+    }
+
+    const coverageSet = new Set<string>();
+    let yearBatchFailures = 0;
+    let yearAnyResponse = false;
+
+    for (const batch of seriesIdBatches) {
       try {
-        const batchResult = await requestBlsSeries(
-          seriesBatch,
-          window.startYear,
-          window.endYear,
-          options.apiKey,
-          options.logPrefix,
-        );
+        const batchResult = await requestBlsSeries(batch, year, options.apiKey, options.logPrefix);
+        yearAnyResponse = true;
 
         if (batchResult.messages.length > 0) {
           warnings.push(
-            `${options.logPrefix} BLS API messages for ${window.startYear}-${window.endYear}: ${batchResult.messages.join(" | ")}`,
+            `${options.logPrefix} BLS API messages for ${year}: ${batchResult.messages.join(" | ")}`,
           );
         }
 
         for (const series of batchResult.series) {
           const stateCode = stateBySeries.get(series.seriesID);
-          if (!stateCode) {
-            warnings.push(
-              `${options.logPrefix} Received unknown BLS series ID: ${series.seriesID}.`,
-            );
-            continue;
-          }
-
-          const annualRows = parseAnnualAverageRows(series, options.logPrefix);
-          if (!annualRows.length) {
-            warnings.push(
-              `${options.logPrefix} No annual-average rows (M13) for series ${series.seriesID} in ${window.startYear}-${window.endYear}.`,
-            );
-            continue;
-          }
-
-          for (const row of annualRows) {
-            if (row.year < effectiveStartYear || row.year > effectiveEndYear) continue;
-            const key = `${stateCode}:${row.year}`;
-            valueByStateYear.set(key, {
-              stateCode,
-              year: row.year,
-              value: row.value,
-            });
-
-            const coverageSet = coverageSetsByYear.get(row.year) ?? new Set<string>();
-            coverageSet.add(stateCode);
-            coverageSetsByYear.set(row.year, coverageSet);
-          }
+          if (!stateCode) continue;
+          const annualValue = parseAnnualAverageValue(series, year);
+          if (annualValue === null) continue;
+          const key = `${stateCode}:${year}`;
+          valueByStateYear.set(key, {
+            stateCode,
+            year,
+            value: annualValue,
+          });
+          coverageSet.add(stateCode);
         }
       } catch (error) {
-        failedBatchCount += 1;
+        if (isBlsSyntheticFallbackError(error)) {
+          throw error;
+        }
+        yearBatchFailures += 1;
         warnings.push(
-          `${options.logPrefix} Failed BLS request for ${window.startYear}-${window.endYear}: ${error instanceof Error ? error.message : String(error)}.`,
+          `${options.logPrefix} Year ${year}: request failure (${error instanceof Error ? error.message : String(error)}).`,
         );
       }
+    }
+
+    if (coverageSet.size > 0) {
+      coverageByYear[year] = coverageSet.size;
+      allYearsHttpOrNetworkFailures = false;
+      if (options.logPerYear) {
+        console.log(
+          `${options.logPrefix} Year ${year} success: ${coverageSet.size} state values.`,
+        );
+      }
+      if (yearBatchFailures > 0) {
+        failedYears.add(year);
+      }
+      continue;
+    }
+
+    if (yearBatchFailures === seriesIdBatches.length) {
+      failedYears.add(year);
+      if (options.logPerYear) {
+        console.warn(`${options.logPrefix} Year ${year} failed: all requests failed.`);
+      }
+    } else {
+      skippedYears.add(year);
+      allYearsHttpOrNetworkFailures = false;
+      if (options.logPerYear) {
+        console.warn(`${options.logPrefix} Year ${year} has no annual-average LAUS data; skipping.`);
+      }
+    }
+
+    if (yearAnyResponse) {
+      allYearsHttpOrNetworkFailures = false;
     }
   }
 
@@ -373,20 +374,28 @@ export async function fetchBlsLausAnnualUnemployment(
   });
 
   if (!observations.length) {
-    throw new Error(`${options.logPrefix} BLS provider returned no observations.`);
+    if (allYearsHttpOrNetworkFailures) {
+      throw new BlsSyntheticFallbackError(
+        "all_years_failed",
+        `${options.logPrefix} BLS requests failed for all attempted years.`,
+      );
+    }
+    throw new Error(`${options.logPrefix} BLS provider returned no annual-average observations.`);
   }
 
-  const coverageByYear: Record<number, number> = {};
-  for (const year of yearsToIngest) {
-    coverageByYear[year] = coverageSetsByYear.get(year)?.size ?? 0;
-  }
+  const yearsWithData = Object.keys(coverageByYear)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const latestAvailableYear = yearsWithData[yearsWithData.length - 1]!;
 
   return {
     observations,
-    years: yearsToIngest,
+    years: yearsWithData,
     latestAvailableYear,
     coverageByYear,
     warnings,
-    hadPartialFailures: failedBatchCount > 0,
+    failedYears: Array.from(failedYears).sort((a, b) => a - b),
+    skippedYears: Array.from(skippedYears).sort((a, b) => a - b),
+    hadPartialFailures: failedYears.size > 0 || skippedYears.size > 0,
   };
 }

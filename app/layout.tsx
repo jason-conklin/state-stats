@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { getLatestSuccessfulIngestion } from "@/lib/ingestion";
 import { formatDateTime } from "@/lib/format";
 import { prisma } from "@/lib/db";
 import { AppShell } from "@/components/layout/AppShell";
@@ -30,6 +29,35 @@ export const metadata: Metadata = {
 
 // Disable static prerendering so database lookups occur only at runtime.
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+type IngestionRunView = {
+  dataSourceId: string;
+  details: unknown;
+  isSynthetic?: boolean;
+  note?: string | null;
+};
+
+function getRunSyntheticMetadata(run: IngestionRunView) {
+  const details =
+    run.details && typeof run.details === "object" && !Array.isArray(run.details)
+      ? (run.details as Record<string, unknown>)
+      : null;
+  const mode = typeof details?.mode === "string" ? details.mode : null;
+  const detailsFallbackReason =
+    typeof details?.fallbackReason === "string" ? details.fallbackReason.trim() : null;
+  const note = typeof run.note === "string" && run.note.trim().length > 0 ? run.note.trim() : null;
+
+  const isSynthetic =
+    typeof run.isSynthetic === "boolean"
+      ? run.isSynthetic
+      : mode === "synthetic_fallback" || run.dataSourceId.toLowerCase().includes("synthetic");
+
+  return {
+    isSynthetic,
+    fallbackReason: note ?? detailsFallbackReason,
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -38,22 +66,30 @@ export default async function RootLayout({
 }>) {
   let statusText = "Live data auto-ingestion: status unavailable — database unreachable.";
   try {
-    const latestIngestion = await getLatestSuccessfulIngestion();
-    const lastUpdatedLabel = latestIngestion?.completedAt
-      ? formatDateTime(latestIngestion.completedAt)
-      : "—";
-    const defaultMetric =
-      (await prisma.metric.findFirst({ where: { isDefault: true } })) ??
-      (await prisma.metric.findFirst({ orderBy: { name: "asc" } }));
-    let maxObservationYear: number | null = null;
-    if (defaultMetric) {
-      const agg = await prisma.observation.aggregate({
-        where: { metricId: defaultMetric.id },
-        _max: { year: true },
-      });
-      maxObservationYear = agg._max.year ?? null;
+    const latestIngestion = await prisma.ingestionRun.findFirst({
+      where: { status: "success" },
+      include: { dataSource: true },
+      orderBy: [{ completedAt: "desc" }, { startedAt: "desc" }],
+    });
+
+    if (!latestIngestion) {
+      statusText = "Live data auto-ingestion: No ingestions yet.";
+    } else {
+      const maxYearAgg = await prisma.observation.aggregate({ _max: { year: true } });
+      const maxObservationYear = maxYearAgg._max.year ?? null;
+      const lastUpdatedAt = latestIngestion.completedAt ?? latestIngestion.startedAt;
+      const lastUpdatedLabel = formatDateTime(lastUpdatedAt);
+      const runView = latestIngestion as unknown as IngestionRunView;
+      const syntheticMeta = getRunSyntheticMetadata(runView);
+
+      if (syntheticMeta.isSynthetic) {
+        statusText = `Live data auto-ingestion: Synthetic fallback — last run: ${lastUpdatedLabel} — data through ${maxObservationYear ?? "—"}${
+          syntheticMeta.fallbackReason ? ` — ${syntheticMeta.fallbackReason}` : ""
+        }`;
+      } else {
+        statusText = `Live data auto-ingestion: Live data — last updated: ${lastUpdatedLabel} — data through ${maxObservationYear ?? "—"}`;
+      }
     }
-    statusText = `Live data auto-ingestion: Active — last updated: ${lastUpdatedLabel} — data through ${maxObservationYear ?? "—"} for ${defaultMetric?.name ?? "default metric"}`;
   } catch (error) {
     console.error("RootLayout: Database unavailable; rendering with fallback status.", error);
   }
