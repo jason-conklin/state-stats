@@ -229,37 +229,34 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full min-h-screen bg-[#f6fbff] pb-24 md:h-full md:pb-0">
-      <section className="relative w-full">
-        <div className="mx-auto mt-3 flex w-[min(1100px,96vw)] flex-col overflow-hidden rounded-3xl border border-slate-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ss-water ss-water--animate md:h-[calc(100vh-2.5rem)]">
-          <div className="min-w-0 overflow-x-hidden border-b border-white/35 bg-white/55 px-3 py-2 backdrop-blur-md">
-            <div className="mx-auto max-w-[980px] min-w-0">
-              <div className="min-w-0 flex flex-wrap items-center gap-3">
-              <MetricSelect
-                metrics={metrics}
-                value={selectedMetric?.id ?? ""}
-                onChange={handleMetricSelect}
-                className="min-w-0 w-[min(360px,48vw)] flex-none"
-              />
-              <div className="min-w-0 flex flex-none items-center gap-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
-                <div className="min-w-0 w-44 sm:w-56 lg:w-64">
-                  <input
-                    type="range"
-                    min={yearMin}
-                    max={yearMax}
-                    value={sliderValue}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="ss-year-slider w-full"
-                    step={1}
-                    aria-label="Select year"
-                    disabled={!selectedMetric?.years.length}
-                  />
-                  <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-600">
-                    <span className="tabular-nums">{yearMin}</span>
-                    <span className="tabular-nums">{yearMax}</span>
-                  </div>
-                </div>
+    <div className="w-full bg-slate-50">
+      <section className="relative w-full pb-24 md:pb-0">
+        <div className="mx-auto mt-3 flex w-[min(1180px,96vw)] flex-col overflow-hidden rounded-3xl border border-slate-200/70 shadow-[0_12px_28px_rgba(0,0,0,0.10)] ss-water ss-water--animate">
+          <div className="min-w-0 overflow-x-hidden flex items-center justify-center border-b border-white/35 bg-white/55 px-3 py-2 backdrop-blur-md">
+            <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-x-hidden">
+              <div className="min-w-0 w-[min(380px,46vw)]">
+                <MetricSelect
+                  metrics={metrics}
+                  value={selectedMetric?.id ?? ""}
+                  onChange={handleMetricSelect}
+                  className="w-full min-w-0"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
+                <span className="hidden text-[10px] tabular-nums text-slate-600 sm:inline">{yearMin}</span>
+                <input
+                  type="range"
+                  min={yearMin}
+                  max={yearMax}
+                  value={sliderValue}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="ss-year-slider w-[clamp(160px,26vw,320px)]"
+                  step={1}
+                  aria-label="Select year"
+                  disabled={!selectedMetric?.years.length}
+                />
+                <span className="hidden text-[10px] tabular-nums text-slate-600 sm:inline">{yearMax}</span>
                 <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                   {selectedMetric?.years.length ? selectedYear : "—"}
                 </span>
@@ -267,22 +264,20 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               <button
                 type="button"
                 onClick={() => setTableOpen(!isTableOpen)}
-                className="inline-flex flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white"
+                className="hidden flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white md:inline-flex"
               >
-                <span className="hidden md:inline">{isTableOpen ? "Hide table" : "Data table"}</span>
-                <span className="md:hidden">{isTableOpen ? "Hide" : "Table"}</span>
+                {isTableOpen ? "Hide table" : "Data table"}
               </button>
-              </div>
             </div>
-            <p className="mt-1 text-center text-[11px] text-slate-600">
+          </div>
+
+          <div className="flex items-center justify-end border-b border-white/20 px-3 py-1">
+            <p className="truncate text-right text-[10px] text-slate-600">
               Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
             </p>
           </div>
 
-          <div
-            className="relative h-[34vh] w-full flex-1 bg-transparent sm:h-[62vh] md:h-auto"
-            ref={mapContainerRef}
-          >
+          <div className="relative h-[clamp(520px,72vh,860px)] w-full bg-transparent" ref={mapContainerRef}>
             {colorScale ? (
               <div className="relative h-full">
                 <USChoropleth

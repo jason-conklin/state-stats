@@ -82,10 +82,10 @@ body {
   position: relative;
   isolation: isolate;
   background-image:
-    radial-gradient(130% 95% at 12% -16%, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 50%),
-    radial-gradient(140% 120% at 88% -8%, rgba(152, 199, 232, 0.38) 0%, rgba(152, 199, 232, 0) 58%),
-    radial-gradient(140% 120% at 50% 110%, rgba(112, 170, 214, 0.24) 0%, rgba(112, 170, 214, 0) 64%),
-    linear-gradient(180deg, #c7e6fb 0%, #a8d2f0 45%, #91bfe3 100%);
+    radial-gradient(145% 100% at 10% -18%, rgba(255, 255, 255, 0.54) 0%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(150% 124% at 90% -10%, rgba(170, 210, 239, 0.34) 0%, rgba(170, 210, 239, 0) 62%),
+    radial-gradient(145% 125% at 50% 116%, rgba(121, 180, 221, 0.22) 0%, rgba(121, 180, 221, 0) 68%),
+    linear-gradient(180deg, #cdeafb 0%, #b9ddf5 36%, #a6cde9 68%, #98c0e2 100%);
 }
 
 .ss-water::before,
@@ -98,12 +98,12 @@ body {
 }
 
 .ss-water::before {
-  opacity: 0.2;
+  opacity: 0.17;
   background-image:
-    radial-gradient(70% 44% at 18% 22%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(68% 48% at 84% 16%, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0) 76%),
-    radial-gradient(72% 52% at 52% 82%, rgba(255, 255, 255, 0.23) 0%, rgba(255, 255, 255, 0) 74%),
-    linear-gradient(125deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 48%);
+    radial-gradient(72% 46% at 18% 22%, rgba(255, 255, 255, 0.64) 0%, rgba(255, 255, 255, 0) 76%),
+    radial-gradient(70% 50% at 84% 14%, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0) 78%),
+    radial-gradient(74% 54% at 52% 82%, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0) 76%),
+    linear-gradient(124deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 50%);
   background-size:
     180% 180%,
     188% 188%,
@@ -118,7 +118,7 @@ body {
 }
 
 .ss-water::after {
-  opacity: 0.08;
+  opacity: 0.07;
   background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.22) 0.8px, transparent 0.9px);
   background-size: 3px 3px;
   mix-blend-mode: overlay;
