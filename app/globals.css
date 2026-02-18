@@ -94,16 +94,16 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
 }
 
 .ss-water::before {
-  opacity: 0.17;
+  z-index: 0;
+  opacity: 0.28;
   background-image:
-    radial-gradient(72% 46% at 18% 22%, rgba(255, 255, 255, 0.64) 0%, rgba(255, 255, 255, 0) 76%),
-    radial-gradient(70% 50% at 84% 14%, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0) 78%),
-    radial-gradient(74% 54% at 52% 82%, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0) 76%),
-    linear-gradient(124deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 50%);
+    radial-gradient(74% 48% at 18% 24%, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 76%),
+    radial-gradient(72% 52% at 84% 14%, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 78%),
+    radial-gradient(78% 58% at 52% 82%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 76%),
+    linear-gradient(124deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 52%);
   background-size:
     180% 180%,
     188% 188%,
@@ -114,27 +114,28 @@ body {
     112% 0%,
     50% 112%,
     0 0;
+  filter: contrast(1.1) saturate(1.05);
   mix-blend-mode: soft-light;
 }
 
 .ss-water::after {
-  opacity: 0.07;
-  background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.22) 0.8px, transparent 0.9px);
-  background-size: 3px 3px;
+  z-index: 1;
+  opacity: 0.09;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.2) 0.75px, transparent 0.85px),
+    radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.12) 0.55px, transparent 0.7px);
+  background-size:
+    3px 3px,
+    5px 5px;
   mix-blend-mode: overlay;
 }
 
-.ss-water > * {
-  position: relative;
-  z-index: 1;
-}
-
 .ss-water--animate::before {
-  animation: ss-water-caustics 30s linear infinite;
+  animation: ss-water-caustics 84s linear infinite;
 }
 
 .ss-water--animate::after {
-  animation: ss-water-grain 42s linear infinite;
+  animation: ss-water-grain 112s linear infinite;
 }
 
 @keyframes ss-water-caustics {

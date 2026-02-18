@@ -229,11 +229,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="w-full bg-slate-50">
-      <section className="relative w-full pb-24 md:pb-0">
-        <div className="mx-auto mt-3 flex w-[min(1180px,96vw)] flex-col overflow-hidden rounded-3xl border border-slate-200/70 shadow-[0_12px_28px_rgba(0,0,0,0.10)] ss-water ss-water--animate">
-          <div className="min-w-0 overflow-x-hidden flex items-center justify-center border-b border-white/35 bg-white/55 px-3 py-2 backdrop-blur-md">
-            <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-x-hidden">
+    <div className="w-full h-[calc(100vh-0px)] bg-slate-50">
+      <section className="relative w-full h-full">
+        <div className="relative w-full h-[calc(100vh-0px)] ss-water ss-water--animate overflow-hidden flex flex-col">
+          <div className="relative z-20 w-full">
+            <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
+              <div className="rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
+                <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-x-hidden">
               <div className="min-w-0 w-[min(380px,46vw)]">
                 <MetricSelect
                   metrics={metrics}
@@ -261,23 +263,22 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   {selectedMetric?.years.length ? selectedYear : "—"}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setTableOpen(!isTableOpen)}
-                className="hidden flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white md:inline-flex"
-              >
-                {isTableOpen ? "Hide table" : "Data table"}
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setTableOpen(!isTableOpen)}
+                    className="hidden flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white md:inline-flex"
+                  >
+                    {isTableOpen ? "Hide table" : "Data table"}
+                  </button>
+                </div>
+                <p className="mt-1 truncate text-right text-[10px] text-slate-600">
+                  Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end border-b border-white/20 px-3 py-1">
-            <p className="truncate text-right text-[10px] text-slate-600">
-              Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
-            </p>
-          </div>
-
-          <div className="relative h-[clamp(520px,72vh,860px)] w-full bg-transparent" ref={mapContainerRef}>
+          <div className="relative z-10 w-full flex-1 min-h-0 bg-transparent" ref={mapContainerRef}>
             {colorScale ? (
               <div className="relative h-full">
                 <USChoropleth
