@@ -21,14 +21,14 @@ export function Legend(props: LegendProps) {
   const domainMin = props.domain?.[0] ?? null;
   const domainMax = props.domain?.[1] ?? null;
   return (
-    <div className="w-full max-w-[480px] sm:max-w-full rounded-lg border border-[color:var(--ss-green-mid)]/40 bg-white p-2 shadow-sm">
+    <div className="w-full max-w-[480px] rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_8px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm sm:max-w-full">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] sm:text-[12px] font-semibold text-[color:var(--ss-green-dark)]">Legend</p>
-        {props.unitLabel ? <span className="text-[9px] sm:text-[10px] text-slate-500">{props.unitLabel}</span> : null}
+        <p className="text-xs font-semibold text-[color:var(--ss-green-dark)]">Legend</p>
+        {props.unitLabel ? <span className="text-xs text-slate-500">{props.unitLabel}</span> : null}
       </div>
       {props.scaleType === "quantize" ? (
         <div className="mt-2 space-y-2">
-          <div className="flex flex-col gap-1 text-[9px] sm:text-[10px] text-slate-700">
+          <div className="flex flex-col gap-1 text-xs text-slate-700">
             {props.buckets.map((bucket, index) => (
               <div key={`${bucket.color}-${index}`} className="flex items-center gap-2">
                 <span
@@ -39,7 +39,7 @@ export function Legend(props: LegendProps) {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-[9px] sm:text-[10px] text-slate-600">
+          <div className="flex items-center justify-between text-xs text-slate-600">
             <span>{domainMin !== null ? formatMetricValue(domainMin, props.unitLabel ?? undefined) : "–"}</span>
             <span>{domainMax !== null ? formatMetricValue(domainMax, props.unitLabel ?? undefined) : "–"}</span>
           </div>
@@ -47,10 +47,10 @@ export function Legend(props: LegendProps) {
       ) : (
         <div className="mt-2 space-y-2">
           <div
-            className="h-2 sm:h-3 rounded-md border border-[color:var(--ss-green-mid)]/50"
+            className="h-2 rounded-md border border-[color:var(--ss-green-mid)]/50 shadow-inner"
             style={{ backgroundImage: props.gradient }}
           />
-          <div className="flex justify-between text-[9px] sm:text-[10px] text-slate-600">
+          <div className="flex items-center justify-between text-xs text-slate-600">
             <span>{domainMin !== null ? formatMetricValue(domainMin, props.unitLabel ?? undefined) : "–"}</span>
             <span>{domainMax !== null ? formatMetricValue(domainMax, props.unitLabel ?? undefined) : "–"}</span>
           </div>

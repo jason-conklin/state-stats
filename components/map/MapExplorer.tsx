@@ -216,18 +216,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full min-h-screen md:h-full bg-[#e3f2fd] pb-24 md:pb-0" ref={mapContainerRef}>
+    <div
+      className="relative w-full min-h-screen bg-gradient-to-b from-[#e6f1f8] to-[#d9eaf5] pb-24 md:h-full md:pb-0"
+      ref={mapContainerRef}
+    >
       {/* Mobile controls */}
-      <div className="md:hidden px-3 pt-2 sm:px-6 sm:pt-6">
-        <div className="pointer-events-auto w-full rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-1 min-w-0 items-center gap-2">
+      <div className="px-3 pt-2 md:hidden sm:px-6 sm:pt-6">
+        <div className="pointer-events-auto mx-auto w-full max-w-[90vw] rounded-2xl border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-[1.1] items-center gap-2">
               <label className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
                 Metric
               </label>
               <select
                 id="metric-select"
-                className="w-full min-w-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer truncate"
+                className="w-full min-w-0 truncate rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
                 value={selectedMetric?.id}
                 onChange={(e) => {
                   const nextMetricId = e.target.value;
@@ -244,39 +247,37 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 ))}
               </select>
             </div>
-            <div className="flex flex-col min-w-0 gap-1">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Year</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min={yearMin}
-                  max={yearMax}
-                  value={sliderValue}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
-                  step={1}
-                  aria-label="Select year"
-                  disabled={!selectedMetric?.years.length}
-                />
-                <span className="text-sm font-semibold text-slate-900">
-                  {selectedMetric?.years.length ? selectedYear : "—"}
-                </span>
-              </div>
+              <input
+                type="range"
+                min={yearMin}
+                max={yearMax}
+                value={sliderValue}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="h-4 flex-1 cursor-pointer accent-[color:var(--ss-green)]"
+                step={1}
+                aria-label="Select year"
+                disabled={!selectedMetric?.years.length}
+              />
+              <span className="text-sm font-semibold text-slate-900">
+                {selectedMetric?.years.length ? selectedYear : "—"}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Desktop control pill */}
-      <div className="hidden pointer-events-none md:absolute md:left-1/2 md:top-4 md:z-20 md:block md:-translate-x-1/2 md:px-0 w-full px-3">
-        <div className="pointer-events-auto mx-auto flex max-w-[min(95vw,1000px)] flex-wrap items-center justify-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg ring-1 ring-slate-200 md:gap-3 md:px-4">
-          <div className="flex flex-wrap items-center gap-1 min-w-[200px] md:gap-2 md:min-w-[220px]">
+      <div className="hidden w-full px-3 pointer-events-none md:absolute md:left-1/2 md:top-4 md:z-20 md:block md:-translate-x-1/2 md:px-0">
+        <div className="pointer-events-auto mx-auto flex w-full max-w-[90vw] items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 px-4 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+          <div className="flex min-w-[220px] items-center gap-2">
             <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
               Metric
             </label>
             <select
               id="metric-select"
-              className="min-w-[170px] md:min-w-[180px] rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
+              className="min-w-[180px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
               value={selectedMetric?.id}
               onChange={(e) => {
                 const nextMetricId = e.target.value;
@@ -294,9 +295,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </select>
           </div>
 
-          <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+          <div className="h-6 w-px bg-slate-200" />
 
-          <div className="flex flex-1 min-w-[220px] items-center gap-1 md:gap-3">
+          <div className="flex min-w-[260px] flex-1 items-center gap-2">
             <p className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
             <input
               type="range"
@@ -304,7 +305,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               max={yearMax}
               value={sliderValue}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="flex-1 accent-[color:var(--ss-green)] cursor-pointer"
+              className="h-4 flex-1 cursor-pointer accent-[color:var(--ss-green)]"
               step={1}
               aria-label="Select year"
               disabled={!selectedMetric?.years.length}
@@ -319,8 +320,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         </p>
       </div>
 
-      <section className="relative w-full bg-[#e3f2fd] mt-2 sm:mt-4">
-        <div className="relative w-full h-[30vh] sm:h-[60vh] md:h-[98vh] overflow-hidden bg-[#c6e6ffff] p-0">
+      <section className="relative mt-2 w-full sm:mt-4">
+        <div className="relative h-[30vh] w-full overflow-hidden rounded-2xl bg-white/20 p-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] sm:h-[60vh] md:h-[98vh]">
           {colorScale ? (
             <USChoropleth
               features={features}
@@ -341,53 +342,54 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           ) : null}
 
           {tooltipContent ? (
-              <div
-                className="pointer-events-none absolute z-20 w-40 sm:w-56 rounded-lg border border-slate-200 bg-white/95 p-2 text-[11px] sm:text-sm shadow-lg"
-                style={{
-                  left: tooltipContent.position.x + 8,
-                  top: tooltipContent.position.y + 8,
-                }}
-              >
-                <p className="text-sm font-semibold text-slate-900">{tooltipContent.stateName}</p>
-                <p className="text-slate-700 text-[11px] sm:text-sm">
-                  {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
-                </p>
-                {tooltipContent.rank ? (
-                  <p className="text-[10px] sm:text-[11px] text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
-                ) : (
-                  <p className="text-[10px] sm:text-[11px] text-slate-500">No data</p>
-                )}
-              </div>
+            <div
+              className="pointer-events-none absolute z-20 w-44 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-150 ease-out sm:w-56"
+              style={{
+                left: tooltipContent.position.x + 8,
+                top: tooltipContent.position.y + 8,
+              }}
+            >
+              <p className="text-base font-semibold text-slate-900">{tooltipContent.stateName}</p>
+              <p className="mt-1 text-lg font-bold text-emerald-700">
+                {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
+              </p>
+              <div className="my-2 h-px bg-slate-200" />
+              {tooltipContent.rank ? (
+                <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
+              ) : (
+                <p className="text-xs text-slate-500">No data</p>
+              )}
+            </div>
           ) : null}
 
           {/* Legend */}
-            <div
-              className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
-              style={{ left: legendPosition.x, top: legendPosition.y }}
-            >
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={handleLegendToggle}
-                  onPointerDown={startDrag}
-                  aria-expanded={isLegendOpen}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 cursor-grab active:cursor-grabbing touch-none"
-                >
-                  <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
-                  Legend {isLegendOpen ? "▾" : "▸"}
-                </button>
-                {isLegendOpen ? (
-                  <div className="absolute left-0 top-full z-10 mt-2 w-full rounded-xl border border-[color:var(--ss-green-mid)]/40 bg-white p-3 shadow-sm">
-                    <Legend
-                      scaleType="continuous"
-                      unitLabel={selectedMetric?.unit ?? undefined}
-                      gradient={gradient}
-                      domain={colorDomain}
-                    />
-                  </div>
-                ) : null}
-              </div>
+          <div
+            className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
+            style={{ left: legendPosition.x, top: legendPosition.y }}
+          >
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleLegendToggle}
+                onPointerDown={startDrag}
+                aria-expanded={isLegendOpen}
+                className="inline-flex cursor-grab touch-none items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm hover:bg-white active:cursor-grabbing"
+              >
+                <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
+                Legend {isLegendOpen ? "▾" : "▸"}
+              </button>
+              {isLegendOpen ? (
+                <div className="absolute left-0 top-full z-10 mt-2 w-full">
+                  <Legend
+                    scaleType="continuous"
+                    unitLabel={selectedMetric?.unit ?? undefined}
+                    gradient={gradient}
+                    domain={colorDomain}
+                  />
+                </div>
+              ) : null}
             </div>
+          </div>
 
           {/* Pinned */}
             <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
