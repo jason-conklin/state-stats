@@ -84,10 +84,9 @@ export function USChoropleth({
               onClick={() => onClick(stateId)}
               className="cursor-pointer transition-[fill] duration-200 ease-out"
               tabIndex={0}
+              role="button"
               aria-label={`${feat.properties?.name ?? stateId}: ${value ?? "No data"}`}
-            >
-              <title>{feat.properties?.name ?? stateId}</title>
-            </path>
+            />
           );
         })}
         <path

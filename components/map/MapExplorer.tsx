@@ -9,6 +9,7 @@ import { createContinuousColorScale, createQuantizeColorScale } from "@/lib/mapS
 import { formatMetricValue } from "@/lib/format";
 import { StateInfo } from "@/lib/types";
 import { DataTablePanel } from "./DataTablePanel";
+import { MetricSelect } from "@/components/controls/MetricSelect";
 
 type MetricData = {
   id: string;
@@ -152,6 +153,18 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     window.dispatchEvent(new CustomEvent("statestats:table-toggle", { detail: { open: next } }));
   }, []);
 
+  const handleMetricSelect = useCallback(
+    (nextMetricId: string) => {
+      setSelectedMetricId(nextMetricId);
+      const nextMetric = metrics.find((metric) => metric.id === nextMetricId);
+      const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
+      if (typeof latestYearValue === "number") {
+        setSelectedYear(latestYearValue);
+      }
+    },
+    [metrics],
+  );
+
   const handleStateClick = (stateId: string) => {
     setPinnedStateId(stateId);
     if (stateId) setTableOpen(true);
@@ -223,46 +236,39 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       {/* Mobile controls */}
       <div className="px-3 pt-2 md:hidden sm:px-6 sm:pt-6">
         <div className="pointer-events-auto mx-auto w-full max-w-[90vw] rounded-2xl border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-[1.1] items-center gap-2">
-              <label className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
-                Metric
-              </label>
-              <select
-                id="metric-select"
-                className="w-full min-w-0 truncate rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
-                value={selectedMetric?.id}
-                onChange={(e) => {
-                  const nextMetricId = e.target.value;
-                  setSelectedMetricId(nextMetricId);
-                  const nextMetric = metrics.find((m) => m.id === nextMetricId);
-                  const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
-                  if (latestYearValue) setSelectedYear(latestYearValue);
-                }}
-              >
-                {metrics.map((metric) => (
-                  <option key={metric.id} value={metric.id}>
-                    {metric.name} {metric.unit ? `(${metric.unit})` : ""} {metric.category ? `• ${metric.category}` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Year</p>
-              <input
-                type="range"
-                min={yearMin}
-                max={yearMax}
-                value={sliderValue}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="h-4 flex-1 cursor-pointer accent-[color:var(--ss-green)]"
-                step={1}
-                aria-label="Select year"
-                disabled={!selectedMetric?.years.length}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0 flex-[1.1]">
+              <MetricSelect
+                metrics={metrics}
+                value={selectedMetric?.id ?? ""}
+                onChange={handleMetricSelect}
+                className="w-full"
               />
-              <span className="text-sm font-semibold text-slate-900">
-                {selectedMetric?.years.length ? selectedYear : "—"}
-              </span>
+            </div>
+            <div className="w-full rounded-xl border border-slate-200/90 bg-white/70 px-2.5 py-2">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
+                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                  {selectedMetric?.years.length ? selectedYear : "—"}
+                </span>
+              </div>
+              <div className="mx-auto w-full max-w-[240px]">
+                <input
+                  type="range"
+                  min={yearMin}
+                  max={yearMax}
+                  value={sliderValue}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="ss-year-slider w-full"
+                  step={1}
+                  aria-label="Select year"
+                  disabled={!selectedMetric?.years.length}
+                />
+                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                  <span className="tabular-nums">{yearMin}</span>
+                  <span className="tabular-nums">{yearMax}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -271,48 +277,43 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       {/* Desktop control pill */}
       <div className="hidden w-full px-3 pointer-events-none md:absolute md:left-1/2 md:top-4 md:z-20 md:block md:-translate-x-1/2 md:px-0">
         <div className="pointer-events-auto mx-auto flex w-full max-w-[90vw] items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 px-4 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm">
-          <div className="flex min-w-[220px] items-center gap-2">
-            <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.25em] text-[color:var(--ss-green-dark)]" htmlFor="metric-select">
-              Metric
-            </label>
-            <select
-              id="metric-select"
-              className="min-w-[180px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-inner focus:border-slate-400 focus:outline-none cursor-pointer"
-              value={selectedMetric?.id}
-              onChange={(e) => {
-                const nextMetricId = e.target.value;
-                setSelectedMetricId(nextMetricId);
-                const nextMetric = metrics.find((m) => m.id === nextMetricId);
-                const latestYearValue = nextMetric?.years[nextMetric.years.length - 1];
-                if (latestYearValue) setSelectedYear(latestYearValue);
-              }}
-            >
-              {metrics.map((metric) => (
-                <option key={metric.id} value={metric.id}>
-                  {metric.name} {metric.unit ? `(${metric.unit})` : ""} {metric.category ? `• ${metric.category}` : ""}
-                </option>
-              ))}
-            </select>
+          <div className="min-w-[260px]">
+            <MetricSelect
+              metrics={metrics}
+              value={selectedMetric?.id ?? ""}
+              onChange={handleMetricSelect}
+              className="w-full"
+            />
           </div>
 
           <div className="h-6 w-px bg-slate-200" />
 
-          <div className="flex min-w-[260px] flex-1 items-center gap-2">
-            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-slate-500">Year</p>
-            <input
-              type="range"
-              min={yearMin}
-              max={yearMax}
-              value={sliderValue}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="h-4 flex-1 cursor-pointer accent-[color:var(--ss-green)]"
-              step={1}
-              aria-label="Select year"
-              disabled={!selectedMetric?.years.length}
-            />
-            <span className="text-sm font-semibold text-slate-900">
-              {selectedMetric?.years.length ? selectedYear : "—"}
-            </span>
+          <div className="ml-auto flex w-full max-w-[460px] items-center">
+            <div className="w-full">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
+                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                  {selectedMetric?.years.length ? selectedYear : "—"}
+                </span>
+              </div>
+              <div className="w-full max-w-[420px]">
+                <input
+                  type="range"
+                  min={yearMin}
+                  max={yearMax}
+                  value={sliderValue}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="ss-year-slider w-full"
+                  step={1}
+                  aria-label="Select year"
+                  disabled={!selectedMetric?.years.length}
+                />
+                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                  <span className="tabular-nums">{yearMin}</span>
+                  <span className="tabular-nums">{yearMax}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <p className="pointer-events-none mx-auto mt-1 md:mt-2 max-w-[min(90vw,1000px)] text-center text-xs text-slate-600">
