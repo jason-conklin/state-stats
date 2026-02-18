@@ -229,23 +229,20 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div
-      className="relative w-full min-h-screen bg-gradient-to-b from-[#d7ecfb] via-[#cfe7fb] to-[#c7e0f6] pb-24 md:h-full md:pb-0"
-      ref={mapContainerRef}
-    >
+    <div className="relative w-full min-h-screen bg-gradient-to-b from-[#d7ecfb] via-[#cfe7fb] to-[#c7e0f6] pb-24 md:h-full md:pb-0">
       <section className="relative w-full">
-        <div className="mx-auto mt-3 w-[min(760px,92vw)]">
-          <div className="rounded-2xl border border-slate-200/90 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-md">
-            <div className="flex items-center gap-3 overflow-x-auto">
+        <div className="mx-auto mt-3 w-[min(1100px,96vw)] overflow-hidden rounded-3xl border border-slate-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ss-water ss-water--animate">
+          <div className="min-w-0 overflow-x-hidden border-b border-white/40 bg-white/60 px-3 py-2 backdrop-blur-md">
+            <div className="min-w-0 flex flex-wrap items-center gap-3">
               <MetricSelect
                 metrics={metrics}
                 value={selectedMetric?.id ?? ""}
                 onChange={handleMetricSelect}
-                className="w-[min(360px,45vw)] min-w-[220px] shrink-0"
+                className="min-w-0 w-[min(360px,48vw)] flex-none"
               />
-              <div className="flex shrink-0 items-center gap-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
-                <div className="w-52 sm:w-64 lg:w-72">
+              <div className="min-w-0 flex flex-none items-center gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
+                <div className="min-w-0 w-40 sm:w-52 lg:w-60">
                   <input
                     type="range"
                     min={yearMin}
@@ -257,19 +254,19 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                     aria-label="Select year"
                     disabled={!selectedMetric?.years.length}
                   />
-                  <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-500">
+                  <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-600">
                     <span className="tabular-nums">{yearMin}</span>
                     <span className="tabular-nums">{yearMax}</span>
                   </div>
                 </div>
-                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                   {selectedMetric?.years.length ? selectedYear : "—"}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setTableOpen(!isTableOpen)}
-                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                className="inline-flex flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white"
               >
                 <span className="hidden md:inline">{isTableOpen ? "Hide table" : "Data table"}</span>
                 <span className="md:hidden">{isTableOpen ? "Hide" : "Table"}</span>
@@ -279,123 +276,126 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
             </p>
           </div>
-        </div>
 
-        <div className="relative mt-3 h-[34vh] w-full ss-water ss-water--animate sm:h-[62vh] md:h-[calc(100vh-2.5rem)]">
-          <div aria-hidden className="pointer-events-none absolute inset-0 ss-water-texture" />
-          {colorScale ? (
-            <div className="relative z-[1] h-full">
-              <USChoropleth
-                features={features}
-                valuesByStateId={valuesByStateId}
-                colorScale={colorScale}
-                hoveredStateId={hovered?.stateId ?? null}
-                pinnedStateId={pinnedStateId}
-                onHover={(stateId, position) => {
-                  if (!stateId || !position) {
-                    setHovered(null);
-                    return;
-                  }
-                  setHovered({ stateId, ...position });
-                }}
-                onClick={(stateId) => handleStateClick(stateId)}
-                selectedYear={selectedYear}
-              />
-            </div>
-          ) : null}
-
-          {tooltipContent ? (
-            <div
-              className="pointer-events-none absolute z-20 w-44 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-150 ease-out sm:w-56"
-              style={{
-                left: tooltipContent.position.x + 8,
-                top: tooltipContent.position.y + 8,
-              }}
-            >
-              <p className="text-base font-semibold text-slate-900">{tooltipContent.stateName}</p>
-              <p className="mt-1 text-lg font-bold text-emerald-700">
-                {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
-              </p>
-              <div className="my-2 h-px bg-slate-200" />
-              {tooltipContent.rank ? (
-                <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
-              ) : (
-                <p className="text-xs text-slate-500">No data</p>
-              )}
-            </div>
-          ) : null}
-
-          {/* Legend */}
           <div
-            className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
-            style={{ left: legendPosition.x, top: legendPosition.y }}
+            className="relative h-[34vh] w-full sm:h-[62vh] md:h-[calc(100vh-2.5rem)]"
+            ref={mapContainerRef}
           >
-            <div className="relative">
-              <button
-                type="button"
-                onClick={handleLegendToggle}
-                onPointerDown={startDrag}
-                aria-expanded={isLegendOpen}
-                className="inline-flex cursor-grab touch-none items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm hover:bg-white active:cursor-grabbing"
-              >
-                <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
-                Legend {isLegendOpen ? "▾" : "▸"}
-              </button>
-              {isLegendOpen ? (
-                <div className="absolute left-0 top-full z-10 mt-2 w-full">
-                  <Legend
-                    scaleType="continuous"
-                    unitLabel={selectedMetric?.unit ?? undefined}
-                    gradient={gradient}
-                    domain={colorDomain}
-                  />
-                </div>
-              ) : null}
-            </div>
-          </div>
+            {colorScale ? (
+              <div className="relative z-[1] h-full">
+                <USChoropleth
+                  features={features}
+                  valuesByStateId={valuesByStateId}
+                  colorScale={colorScale}
+                  hoveredStateId={hovered?.stateId ?? null}
+                  pinnedStateId={pinnedStateId}
+                  onHover={(stateId, position) => {
+                    if (!stateId || !position) {
+                      setHovered(null);
+                      return;
+                    }
+                    setHovered({ stateId, ...position });
+                  }}
+                  onClick={(stateId) => handleStateClick(stateId)}
+                  selectedYear={selectedYear}
+                />
+              </div>
+            ) : null}
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-[2] ss-water-overlay" />
 
-          {/* Pinned */}
-            <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
-              {pinnedCard && pinnedCard.state ? (
-                <div className="flex w-36 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-1.5 sm:p-3 shadow-md backdrop-blur text-[9px] sm:text-xs">
-                  <div className="flex items-start justify-between gap-1">
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
-                    <button
-                      type="button"
-                      aria-label="Unpin state"
-                      onClick={() => setPinnedStateId(null)}
-                      className="text-slate-500 hover:text-slate-700 text-xs leading-none"
-                    >
-                      ✕
-                    </button>
+            {tooltipContent ? (
+              <div
+                className="pointer-events-none absolute z-20 w-44 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-150 ease-out sm:w-56"
+                style={{
+                  left: tooltipContent.position.x + 8,
+                  top: tooltipContent.position.y + 8,
+                }}
+              >
+                <p className="text-base font-semibold text-slate-900">{tooltipContent.stateName}</p>
+                <p className="mt-1 text-lg font-bold text-emerald-700">
+                  {formatMetricValue(tooltipContent.value, selectedMetric?.unit ?? undefined)}
+                </p>
+                <div className="my-2 h-px bg-slate-200" />
+                {tooltipContent.rank ? (
+                  <p className="text-xs text-slate-500">Rank {tooltipContent.rank} / {states.length}</p>
+                ) : (
+                  <p className="text-xs text-slate-500">No data</p>
+                )}
+              </div>
+            ) : null}
+
+            {/* Legend */}
+            <div
+              className="pointer-events-auto absolute z-10 max-w-[70%] sm:max-w-full sm:w-60"
+              style={{ left: legendPosition.x, top: legendPosition.y }}
+            >
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleLegendToggle}
+                  onPointerDown={startDrag}
+                  aria-expanded={isLegendOpen}
+                  className="inline-flex cursor-grab touch-none items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm hover:bg-white active:cursor-grabbing"
+                >
+                  <span className="h-2 w-2 rounded-full bg-[color:var(--ss-green-mid)]" aria-hidden />
+                  Legend {isLegendOpen ? "▾" : "▸"}
+                </button>
+                {isLegendOpen ? (
+                  <div className="absolute left-0 top-full z-10 mt-2 w-full">
+                    <Legend
+                      scaleType="continuous"
+                      unitLabel={selectedMetric?.unit ?? undefined}
+                      gradient={gradient}
+                      domain={colorDomain}
+                    />
                   </div>
-                  <div className="flex items-center justify-between gap-1">
-                    <div>
-                      <p className="text-[11px] sm:text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
-                      <p className="text-[10px] text-slate-700">
-                        {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
-                      </p>
-                      {pinnedCard.rank ? (
-                        <p className="text-[9px] sm:text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
-                      ) : (
-                        <p className="text-[9px] sm:text-[11px] text-slate-500">No data</p>
-                      )}
-                    </div>
-                    <Link
-                      href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
-                      className="rounded-md border border-[color:var(--ss-green)] px-2 py-0.5 text-[9px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
-                    >
-                      Add to compare
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <div className="hidden sm:block w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-3 text-xs text-slate-600 shadow-sm backdrop-blur opacity-70">
-                  Click a state on the map to pin it.
-                </div>
-              )}
+                ) : null}
+              </div>
             </div>
-          </div>
+
+            {/* Pinned */}
+              <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
+                {pinnedCard && pinnedCard.state ? (
+                  <div className="flex w-36 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-1.5 sm:p-3 shadow-md backdrop-blur text-[9px] sm:text-xs">
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500">Pinned</p>
+                      <button
+                        type="button"
+                        aria-label="Unpin state"
+                        onClick={() => setPinnedStateId(null)}
+                        className="text-slate-500 hover:text-slate-700 text-xs leading-none"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between gap-1">
+                      <div>
+                        <p className="text-[11px] sm:text-sm font-semibold text-slate-900 truncate">{pinnedCard.state.name}</p>
+                        <p className="text-[10px] text-slate-700">
+                          {formatMetricValue(pinnedCard.value, selectedMetric?.unit ?? undefined)}
+                        </p>
+                        {pinnedCard.rank ? (
+                          <p className="text-[9px] sm:text-[11px] text-slate-500">Rank {pinnedCard.rank} / {states.length}</p>
+                        ) : (
+                          <p className="text-[9px] sm:text-[11px] text-slate-500">No data</p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/graph?metric=${selectedMetric?.id ?? ""}&states=${pinnedCard.state.abbreviation ?? pinnedCard.state.id}&startYear=${selectedYear}&endYear=${selectedYear}`}
+                        className="rounded-md border border-[color:var(--ss-green)] px-2 py-0.5 text-[9px] font-medium text-[color:var(--ss-green)] hover:bg-[color:var(--ss-green-light)]"
+                      >
+                        Add to compare
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="hidden sm:block w-64 rounded-lg border border-dashed border-[color:var(--ss-green-mid)]/50 bg-white/90 p-3 text-xs text-slate-600 shadow-sm backdrop-blur opacity-70">
+                    Click a state on the map to pin it.
+                  </div>
+                )}
+              </div>
+            </div>
+        </div>
 
         {/* Mobile inline data table */}
         <section className="sm:hidden mt-4 w-full px-3 pb-16">

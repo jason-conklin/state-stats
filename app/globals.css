@@ -81,48 +81,65 @@ body {
 .ss-water {
   position: relative;
   background:
-    radial-gradient(120% 85% at 50% -10%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 56%),
-    linear-gradient(180deg, #d7ecfb 0%, #cfe7fb 55%, #c7e0f6 100%);
+    radial-gradient(120% 88% at 8% -12%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 44%),
+    radial-gradient(130% 110% at 92% 2%, rgba(157, 203, 236, 0.42) 0%, rgba(157, 203, 236, 0) 58%),
+    radial-gradient(120% 120% at 50% 100%, rgba(109, 166, 209, 0.18) 0%, rgba(109, 166, 209, 0) 62%),
+    linear-gradient(180deg, #bfe0f8 0%, #aad2ef 38%, #97c3e6 74%, #89b7de 100%);
 }
 
-.ss-water-texture {
-  opacity: 0.1;
+.ss-water-overlay {
+  opacity: 0.18;
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.2) 0.7px, transparent 0.8px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+    radial-gradient(65% 42% at 18% 18%, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(70% 48% at 82% 14%, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(60% 46% at 46% 78%, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.18) 0.75px, transparent 0.85px),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0) 44%);
   background-size:
+    170% 170%,
+    185% 185%,
+    160% 160%,
     3px 3px,
     100% 100%;
   background-position:
+    -12% -8%,
+    112% 0%,
+    50% 112%,
     0 0,
     0 0;
   mix-blend-mode: soft-light;
 }
 
-.ss-water--animate .ss-water-texture {
-  animation: ss-water-drift 24s linear infinite;
+.ss-water--animate .ss-water-overlay {
+  animation: ss-water-drift 26s linear infinite;
 }
 
 .ss-water svg > rect:first-of-type {
-  opacity: 0.36;
+  opacity: 0.54;
 }
 
 @keyframes ss-water-drift {
   from {
     background-position:
+      -12% -8%,
+      112% 0%,
+      50% 112%,
       0 0,
       0 0;
   }
 
   to {
     background-position:
-      120px 84px,
+      8% 4%,
+      102% 8%,
+      56% 104%,
+      128px 92px,
       0 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ss-water--animate .ss-water-texture {
+  .ss-water--animate .ss-water-overlay {
     animation: none;
   }
 }
