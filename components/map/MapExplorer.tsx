@@ -235,7 +235,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           <div className="relative z-20 w-full">
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
               <div className="rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
-                <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-x-hidden">
+                <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-visible">
               <div className="min-w-0 w-[min(380px,46vw)]">
                 <MetricSelect
                   metrics={metrics}
