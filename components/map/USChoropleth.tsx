@@ -2,7 +2,7 @@
 
 import { geoAlbersUsa, geoPath, GeoPermissibleObjects } from "d3-geo";
 import { Feature, FeatureCollection, Geometry } from "geojson";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NEUTRAL_COLOR } from "@/lib/mapScales";
 
 type Props = {
@@ -26,16 +26,45 @@ export function USChoropleth({
   hoveredStateId,
   pinnedStateId,
 }: Props) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [viewport, setViewport] = useState({ width: 960, height: 560 });
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const updateSize = () => {
+      const rect = svg.getBoundingClientRect();
+      const width = Math.max(1, Math.round(rect.width));
+      const height = Math.max(1, Math.round(rect.height));
+      setViewport((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, []);
+
   const { path, projection } = useMemo(() => {
     const projection = geoAlbersUsa();
-    const fallbackProjection = () => projection.scale(1200).translate([480, 280]);
+    const { width, height } = viewport;
+    const padding = Math.max(12, Math.min(24, Math.round(Math.min(width, height) * 0.03)));
+    const fallbackProjection = () =>
+      projection.scale(Math.min(width, height) * 2.15).translate([Math.round(width / 2), Math.round(height / 2)]);
 
     if (!features.length) {
       fallbackProjection();
     } else {
       try {
         const collection = { type: "FeatureCollection", features } as FeatureCollection<Geometry>;
-        projection.fitExtent([[18, 18], [942, 542]], collection as unknown as GeoPermissibleObjects);
+        projection.fitExtent(
+          [
+            [padding, padding],
+            [Math.max(padding + 1, width - padding), Math.max(padding + 1, height - padding)],
+          ],
+          collection as unknown as GeoPermissibleObjects,
+        );
       } catch {
         fallbackProjection();
       }
@@ -43,7 +72,7 @@ export function USChoropleth({
 
     const path = geoPath(projection);
     return { path, projection };
-  }, [features]);
+  }, [features, viewport]);
 
   // If the projection failed to initialize, don't render.
   if (!projection) {
@@ -64,19 +93,14 @@ export function USChoropleth({
   return (
     <div className="relative h-full w-full">
       <svg
-        viewBox="0 0 960 560"
+        ref={svgRef}
+        viewBox={`0 0 ${viewport.width} ${viewport.height}`}
         role="img"
         aria-label={`Choropleth map of U.S. states for year ${selectedYear}`}
         className="h-full w-full"
         preserveAspectRatio="xMidYMid meet"
       >
-        <defs>
-          <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#e6f1f8" />
-            <stop offset="100%" stopColor="#d9eaf5" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#waterGradient)" />
+        <rect width="100%" height="100%" fill="transparent" />
         {features.map((feat) => {
           const stateId = (feat.id as string) ?? feat.properties?.stateId ?? "";
           const value = valuesByStateId[stateId] ?? null;

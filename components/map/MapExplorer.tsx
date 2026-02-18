@@ -229,11 +229,12 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   }, [setTableOpen]);
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-b from-[#d7ecfb] via-[#cfe7fb] to-[#c7e0f6] pb-24 md:h-full md:pb-0">
+    <div className="relative w-full min-h-screen bg-[#f6fbff] pb-24 md:h-full md:pb-0">
       <section className="relative w-full">
-        <div className="mx-auto mt-3 w-[min(1100px,96vw)] overflow-hidden rounded-3xl border border-slate-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ss-water ss-water--animate">
-          <div className="min-w-0 overflow-x-hidden border-b border-white/40 bg-white/60 px-3 py-2 backdrop-blur-md">
-            <div className="min-w-0 flex flex-wrap items-center gap-3">
+        <div className="mx-auto mt-3 flex w-[min(1100px,96vw)] flex-col overflow-hidden rounded-3xl border border-slate-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ss-water ss-water--animate md:h-[calc(100vh-2.5rem)]">
+          <div className="min-w-0 overflow-x-hidden border-b border-white/35 bg-white/55 px-3 py-2 backdrop-blur-md">
+            <div className="mx-auto max-w-[980px] min-w-0">
+              <div className="min-w-0 flex flex-wrap items-center gap-3">
               <MetricSelect
                 metrics={metrics}
                 value={selectedMetric?.id ?? ""}
@@ -242,7 +243,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               />
               <div className="min-w-0 flex flex-none items-center gap-2">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
-                <div className="min-w-0 w-40 sm:w-52 lg:w-60">
+                <div className="min-w-0 w-44 sm:w-56 lg:w-64">
                   <input
                     type="range"
                     min={yearMin}
@@ -271,6 +272,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 <span className="hidden md:inline">{isTableOpen ? "Hide table" : "Data table"}</span>
                 <span className="md:hidden">{isTableOpen ? "Hide" : "Table"}</span>
               </button>
+              </div>
             </div>
             <p className="mt-1 text-center text-[11px] text-slate-600">
               Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
@@ -278,11 +280,11 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
 
           <div
-            className="relative h-[34vh] w-full sm:h-[62vh] md:h-[calc(100vh-2.5rem)]"
+            className="relative h-[34vh] w-full flex-1 bg-transparent sm:h-[62vh] md:h-auto"
             ref={mapContainerRef}
           >
             {colorScale ? (
-              <div className="relative z-[1] h-full">
+              <div className="relative h-full">
                 <USChoropleth
                   features={features}
                   valuesByStateId={valuesByStateId}
@@ -301,7 +303,6 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 />
               </div>
             ) : null}
-            <div aria-hidden className="pointer-events-none absolute inset-0 z-[2] ss-water-overlay" />
 
             {tooltipContent ? (
               <div
