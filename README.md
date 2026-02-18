@@ -26,19 +26,29 @@ pnpm db:migrate           # creates tables
 pnpm db:generate          # generates the Prisma client
 ```
 
-### Ingestion (demo data)
+### Ingestion
 
-- `npm run ingest:income` – median household income (synthetic)
-- `npm run ingest:unemployment` – unemployment rate (synthetic)
-- `npm run ingest:population` – population total (synthetic)
-- `npm run ingest:home-value` – median home value (synthetic)
-- `npm run ingest:median-age` – median age (synthetic)
+- `npm run ingest:income` – median household income (Census ACS `B19013_001E`)
+- `npm run ingest:population` – total population (Census ACS `B01003_001E`)
+- `npm run ingest:median-age` – median age (Census ACS `B01002_001E`)
+- `npm run ingest:home-value` – median home value (Census ACS `B25077_001E`)
+- `npm run ingest:unemployment` – unemployment rate annual average (BLS LAUS)
 - `npm run ingest:all` – run all ingestions sequentially
-- API: `POST /api/admin/ingest` to trigger ingestion from the server runtime
 
-All ingestions currently use synthetic demo data and will switch to real Census/BLS APIs once keys (e.g., CENSUS_API_KEY, BLS_API_KEY) are configured.
+Real API ingestion is used when keys are set:
 
-The ingestion run is recorded in the `IngestionRun` table with basic counts and errors.
+- `CENSUS_API_KEY`
+- `BLS_API_KEY`
+
+If either key is missing, that metric falls back to deterministic synthetic data and is labeled with a synthetic fallback data source in the database.
+
+Each ingestion writes an `IngestionRun` row with status, counts, and warning/error details.
+
+Admin trigger endpoint:
+
+- `POST /api/admin/ingest`
+- Auth: `x-admin-ingest-secret` header or `Authorization: Bearer <token>`
+- Env: `ADMIN_INGEST_SECRET` must be configured
 
 ## Pages
 - `/` Map: Choropleth by metric + year, legend, tooltip, pinned state, accessible table.
@@ -65,7 +75,7 @@ Open http://localhost:3000 to view the app.
 - `components/` – Map and graph UI components
 - `lib/` – shared types, Prisma client helper, state list, and metric definitions
 - `prisma/schema.prisma` – PostgreSQL schema and enums
-- `scripts/ingestMedianHouseholdIncome.ts` – example ingestion pipeline (mocked ACS calls)
+- `scripts/ingestion/` – provider-backed ingestion pipelines and helpers
 
 ## Useful scripts
 
@@ -74,6 +84,7 @@ Open http://localhost:3000 to view the app.
 - `pnpm db:migrate` / `pnpm db:generate` – Prisma tooling
 - `pnpm ingest:income` – run the median household income importer
 - `pnpm ingest:unemployment` – run the unemployment rate importer
+- `pnpm ingest:all` – run all metrics ingestion
 
 ## Deployment (Vercel)
 - Ensure `DATABASE_URL` is set in Vercel project settings (server-side).
@@ -82,13 +93,16 @@ Open http://localhost:3000 to view the app.
 
 ### Deploying to Vercel
 - Prereqs: Supabase Postgres (Session Pooler URI) set as `DATABASE_URL` in Vercel project env vars.
+- Set ingestion env vars in Vercel: `CENSUS_API_KEY`, `BLS_API_KEY`, `ADMIN_INGEST_SECRET`.
 - Vercel will run `npm install` (or pnpm), `npm run build`, and `npm start`.
 - Prisma client is generated automatically via `postinstall` (`prisma generate`). Migrations are **not** run automatically; apply them yourself before deploy (e.g., `npx prisma migrate deploy` against Supabase or run `pnpm db:migrate` locally then `db:generate`).
-- Ingestion scripts (`pnpm ingest:median-income`) are manual/cron-only; do not wire them into Vercel build/runtime.
+- Ingestion scripts are manual/cron-only; do not wire them into Vercel build/runtime.
+- Optional: schedule a Vercel Cron job that calls `POST /api/admin/ingest` with `x-admin-ingest-secret`.
 
 ## Data model & ingestion
 - Core tables: State, Metric, Observation, DataSource, IngestionRun.
-- Ingestion pipeline seeds states, data source, metric (median household income), and synthetic observations for development.
+- Metrics are linked to canonical real sources (`census_acs`, `bls_laus`) during real ingestion and fallback sources only when API keys are missing.
+- Ingestion scripts normalize legacy source IDs and keep source/run metadata consistent.
 - Latest successful ingestion is surfaced in the global banner and Data Sources page.
 
 <!--

@@ -17,7 +17,9 @@ export default async function DataSourcesPage() {
         orderBy: { completedAt: "desc" },
         take: 1,
       },
-      metrics: true,
+      _count: {
+        select: { metrics: true },
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -43,6 +45,7 @@ export default async function DataSourcesPage() {
           <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
             {dataSources.map((source) => {
               const lastRun = source.ingestionRuns[0];
+              const isSyntheticFallback = source.id.endsWith("_synthetic");
               return (
                 <div
                   key={source.id}
@@ -67,12 +70,19 @@ export default async function DataSourcesPage() {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-slate-700 md:text-slate-300">
-                    {source.description ?? "No description provided."}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-700 md:text-slate-300">
+                      {source.description ?? "No description provided."}
+                    </p>
+                    {isSyntheticFallback ? (
+                      <p className="text-xs text-amber-700 md:text-amber-300">
+                        Used only when API keys are missing.
+                      </p>
+                    ) : null}
+                  </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 md:text-slate-400">
                     <span className="rounded-full bg-[color:var(--ss-green-light)] px-3 py-1 text-[color:var(--ss-green-dark)]">
-                      Metrics: {source.metrics.length}
+                      Metrics: {source._count.metrics}
                     </span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 md:bg-slate-800 md:text-slate-200">
                       Last success: {lastRun?.completedAt ? formatDateTime(lastRun.completedAt) : "—"}

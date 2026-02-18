@@ -1,8 +1,7 @@
 import { IngestionStatus, PrismaClient } from "@prisma/client";
 import type { IngestionSummary } from "../../lib/types";
 import { DEFAULT_YEAR_RANGE, INGEST_LOOKBACK_YEARS } from "./config";
-import { fetchBlsLausAnnualUnemployment } from "./providers/blsLaus";
-import { noiseFromSeed, stateBaseFactor } from "./syntheticUtils";
+import { fetchCensusAcsSeries } from "./providers/censusAcs";
 import {
   buildCoverageWarnings,
   completeIngestionRun,
@@ -17,28 +16,21 @@ import {
   upsertObservationsWithCounts,
 } from "./utils";
 
-const METRIC_ID = "unemployment_rate";
-const LOG_PREFIX = "[ingestUnemploymentRate]";
+type SyntheticGenerator = (stateId: string, year: number, startYear: number) => number;
 
-function macroCycle(year: number) {
-  if (year >= 2001 && year <= 2003) return 1.25;
-  if (year >= 2008 && year <= 2012) return 1.6;
-  if (year >= 2020 && year <= 2021) return 1.8;
-  if (year >= 2014 && year <= 2019) return 0.8;
-  return 1;
-}
+type RunAcsMetricIngestionOptions = {
+  metricId: string;
+  logPrefix: string;
+  variableCode: string;
+  expectedLabelIncludes: string[];
+  expectedConceptIncludes?: string[];
+  isDefault?: boolean;
+  syntheticGenerator: SyntheticGenerator;
+};
 
-function syntheticUnemploymentValue(stateId: string, year: number, startYear: number): number {
-  const base = stateBaseFactor(METRIC_ID, stateId, 3, 8);
-  const volMultiplier = stateBaseFactor(`${METRIC_ID}:vol`, stateId, 0.7, 1.6);
-  const trend = 1 + (year - startYear) * noiseFromSeed(`${METRIC_ID}:trend:${stateId}`, 0.002);
-  const cycle = macroCycle(year) * volMultiplier;
-  const noise = 1 + noiseFromSeed(`${METRIC_ID}:${stateId}:${year}`, 0.05);
-  const value = base * trend * cycle * noise;
-  return Number(Math.max(1.5, Math.min(15, value)).toFixed(2));
-}
-
-export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> {
+export async function runAcsMetricIngestion(
+  options: RunAcsMetricIngestionOptions,
+): Promise<IngestionSummary> {
   loadIngestionEnv();
 
   const client = new PrismaClient();
@@ -48,27 +40,33 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
   let runStartedAtIso = new Date().toISOString();
 
   try {
-    console.log(`${LOG_PREFIX} Starting ingestion...`);
+    console.log(`${options.logPrefix} Starting ingestion...`);
 
     await ensureStates(client);
     await normalizeLegacyDataSources(client);
-    await ensureDataSource(client, DATA_SOURCE_CONFIGS.blsLausReal);
+    await ensureDataSource(client, DATA_SOURCE_CONFIGS.censusAcsReal);
 
-    const apiKey = process.env.BLS_API_KEY?.trim();
+    const apiKey = process.env.CENSUS_API_KEY?.trim();
     const useRealApi = Boolean(apiKey);
     const activeSourceId = useRealApi
-      ? DATA_SOURCE_CONFIGS.blsLausReal.id
-      : DATA_SOURCE_CONFIGS.blsLausSynthetic.id;
+      ? DATA_SOURCE_CONFIGS.censusAcsReal.id
+      : DATA_SOURCE_CONFIGS.censusAcsSynthetic.id;
 
     if (!useRealApi) {
-      await ensureDataSource(client, DATA_SOURCE_CONFIGS.blsLausSynthetic);
+      await ensureDataSource(client, DATA_SOURCE_CONFIGS.censusAcsSynthetic);
       notices.push(
-        `${LOG_PREFIX} BLS_API_KEY missing; using synthetic fallback source ${DATA_SOURCE_CONFIGS.blsLausSynthetic.id}.`,
+        `${options.logPrefix} CENSUS_API_KEY missing; using synthetic fallback source ${DATA_SOURCE_CONFIGS.censusAcsSynthetic.id}.`,
       );
       console.warn(notices[notices.length - 1]);
     }
 
-    await ensureMetric(client, METRIC_ID, { sourceId: activeSourceId, isDefault: false });
+    const metricOverrides: Partial<{ isDefault: boolean; sourceId: string }> = {
+      sourceId: activeSourceId,
+    };
+    if (typeof options.isDefault === "boolean") {
+      metricOverrides.isDefault = options.isDefault;
+    }
+    await ensureMetric(client, options.metricId, metricOverrides);
 
     const run = await startIngestionRun(client, activeSourceId);
     runId = run.id;
@@ -83,13 +81,18 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
     const providerRows: Array<{ stateCode: string; year: number; value: number }> = [];
 
     if (useRealApi) {
-      const providerResult = await fetchBlsLausAnnualUnemployment({
+      const providerResult = await fetchCensusAcsSeries({
         apiKey: apiKey!,
+        metricId: options.metricId,
+        variableCode: options.variableCode,
+        expectedLabelIncludes: options.expectedLabelIncludes,
+        expectedConceptIncludes: options.expectedConceptIncludes,
         startYear: DEFAULT_YEAR_RANGE.start,
         endYear: DEFAULT_YEAR_RANGE.end,
         lookbackYears: INGEST_LOOKBACK_YEARS,
-        logPrefix: LOG_PREFIX,
+        logPrefix: options.logPrefix,
       });
+
       providerRows.push(...providerResult.observations);
       providerCoverage = providerResult.coverageByYear;
       warnings.push(...providerResult.warnings);
@@ -100,7 +103,7 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
           providerRows.push({
             stateCode: stateId,
             year,
-            value: syntheticUnemploymentValue(stateId, year, DEFAULT_YEAR_RANGE.start),
+            value: options.syntheticGenerator(stateId, year, DEFAULT_YEAR_RANGE.start),
           });
         }
       }
@@ -110,28 +113,30 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
     const upsertSummary = await upsertObservationsWithCounts(
       client,
       filteredRows.map((row) => ({
-        metricId: METRIC_ID,
+        metricId: options.metricId,
         stateId: row.stateCode,
         year: row.year,
         value: row.value,
       })),
     );
 
-    warnings.push(...buildCoverageWarnings(providerCoverage, LOG_PREFIX, stateIds.length));
-    warnings.push(...buildCoverageWarnings(upsertSummary.coverageByYear, LOG_PREFIX, stateIds.length));
+    warnings.push(...buildCoverageWarnings(providerCoverage, options.logPrefix, stateIds.length));
+    warnings.push(
+      ...buildCoverageWarnings(upsertSummary.coverageByYear, options.logPrefix, stateIds.length),
+    );
 
     for (const warning of warnings) {
       console.warn(warning);
     }
 
-    const metricBounds = await getMetricYearBounds(client, METRIC_ID);
+    const metricBounds = await getMetricYearBounds(client, options.metricId);
     const status =
       hadProviderPartialFailures || warnings.length > 0
         ? IngestionStatus.partial
         : IngestionStatus.success;
 
     await completeIngestionRun(client, run.id, status, {
-      metricId: METRIC_ID,
+      metricId: options.metricId,
       sourceId: activeSourceId,
       mode: useRealApi ? "real_api" : "synthetic_fallback",
       lookbackYears: INGEST_LOOKBACK_YEARS,
@@ -150,8 +155,13 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
     });
 
     console.log(
-      `${LOG_PREFIX} Completed with status=${status} inserted=${upsertSummary.inserted} updated=${upsertSummary.updated}.`,
+      `${options.logPrefix} Completed with status=${status} inserted=${upsertSummary.inserted} updated=${upsertSummary.updated}.`,
     );
+
+    const summaryYears = {
+      start: metricBounds.minYear ?? DEFAULT_YEAR_RANGE.start,
+      end: metricBounds.maxYear ?? DEFAULT_YEAR_RANGE.end,
+    };
 
     return {
       runId: run.id,
@@ -162,20 +172,17 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
         states: stateIds.length,
         observationsInserted: upsertSummary.inserted,
         observationsUpdated: upsertSummary.updated,
-        years: {
-          start: metricBounds.minYear ?? DEFAULT_YEAR_RANGE.start,
-          end: metricBounds.maxYear ?? DEFAULT_YEAR_RANGE.end,
-        },
+        years: summaryYears,
       },
       errors: warnings,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`${LOG_PREFIX} Failed:`, error);
+    console.error(`${options.logPrefix} Failed:`, error);
 
     if (runId) {
       await completeIngestionRun(client, runId, IngestionStatus.failed, {
-        metricId: METRIC_ID,
+        metricId: options.metricId,
         error: errorMessage,
         warnings,
         notices,
@@ -186,11 +193,4 @@ export async function runUnemploymentRateIngestion(): Promise<IngestionSummary> 
   } finally {
     await client.$disconnect();
   }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runUnemploymentRateIngestion().catch((err) => {
-    console.error(`${LOG_PREFIX} Unhandled error:`, err);
-    process.exitCode = 1;
-  });
 }

@@ -1,31 +1,39 @@
+import type { IngestionSummary } from "../lib/types";
+import { runMedianAgeIngestion } from "./ingestion/ingestMedianAge";
+import { runMedianHomeValueIngestion } from "./ingestion/ingestMedianHomeValue";
 import { runMedianHouseholdIncomeIngestion } from "./ingestion/ingestMedianHouseholdIncome";
 import { runPopulationTotalIngestion } from "./ingestion/ingestPopulationTotal";
 import { runUnemploymentRateIngestion } from "./ingestion/ingestUnemploymentRate";
-import { runMedianHomeValueIngestion } from "./ingestion/ingestMedianHomeValue";
-import { runMedianAgeIngestion } from "./ingestion/ingestMedianAge";
+import { loadIngestionEnv } from "./ingestion/utils";
 
-async function main() {
+export async function runAllMetricIngestions(): Promise<IngestionSummary[]> {
+  loadIngestionEnv();
   console.log("[ingestAllMetrics] Starting all ingestions...");
 
+  const summaries: IngestionSummary[] = [];
+
   console.log("[ingestAllMetrics] Running median_household_income...");
-  await runMedianHouseholdIncomeIngestion();
+  summaries.push(await runMedianHouseholdIncomeIngestion());
 
   console.log("[ingestAllMetrics] Running population_total...");
-  await runPopulationTotalIngestion();
+  summaries.push(await runPopulationTotalIngestion());
 
   console.log("[ingestAllMetrics] Running unemployment_rate...");
-  await runUnemploymentRateIngestion();
+  summaries.push(await runUnemploymentRateIngestion());
 
   console.log("[ingestAllMetrics] Running median_home_value...");
-  await runMedianHomeValueIngestion();
+  summaries.push(await runMedianHomeValueIngestion());
 
   console.log("[ingestAllMetrics] Running median_age...");
-  await runMedianAgeIngestion();
+  summaries.push(await runMedianAgeIngestion());
 
   console.log("[ingestAllMetrics] Completed all ingestions.");
+  return summaries;
 }
 
-main().catch((err) => {
-  console.error("[ingestAllMetrics] Failed:", err);
-  process.exitCode = 1;
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runAllMetricIngestions().catch((err) => {
+    console.error("[ingestAllMetrics] Failed:", err);
+    process.exitCode = 1;
+  });
+}

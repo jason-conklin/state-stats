@@ -106,7 +106,6 @@ export async function ensureCatalog(prisma: PrismaClient) {
         unit: metric.unit,
         category: metric.category,
         isDefault: Boolean(metric.isDefault),
-        sourceId: metric.sourceId,
       },
       create: {
         id: metric.id,
