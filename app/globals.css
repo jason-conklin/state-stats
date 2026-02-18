@@ -77,3 +77,52 @@ body {
   border: 2px solid #145c36;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
+.ss-water {
+  position: relative;
+  background:
+    radial-gradient(120% 85% at 50% -10%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 56%),
+    linear-gradient(180deg, #d7ecfb 0%, #cfe7fb 55%, #c7e0f6 100%);
+}
+
+.ss-water-texture {
+  opacity: 0.1;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.2) 0.7px, transparent 0.8px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+  background-size:
+    3px 3px,
+    100% 100%;
+  background-position:
+    0 0,
+    0 0;
+  mix-blend-mode: soft-light;
+}
+
+.ss-water--animate .ss-water-texture {
+  animation: ss-water-drift 24s linear infinite;
+}
+
+.ss-water svg > rect:first-of-type {
+  opacity: 0.36;
+}
+
+@keyframes ss-water-drift {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      120px 84px,
+      0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-water--animate .ss-water-texture {
+    animation: none;
+  }
+}

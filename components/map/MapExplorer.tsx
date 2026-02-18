@@ -230,51 +230,50 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
   return (
     <div
-      className="relative w-full min-h-screen bg-gradient-to-b from-[#e6f1f8] to-[#d9eaf5] pb-24 md:h-full md:pb-0"
+      className="relative w-full min-h-screen bg-gradient-to-b from-[#d7ecfb] via-[#cfe7fb] to-[#c7e0f6] pb-24 md:h-full md:pb-0"
       ref={mapContainerRef}
     >
       <section className="relative w-full">
-        <div className="pointer-events-none absolute left-1/2 top-3 z-20 w-[min(720px,92vw)] -translate-x-1/2">
-          <div className="pointer-events-auto rounded-2xl border border-slate-200/90 bg-white/85 px-3 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.10)] backdrop-blur-sm">
-            <div className="flex items-center gap-2">
+        <div className="mx-auto mt-3 w-[min(760px,92vw)]">
+          <div className="rounded-2xl border border-slate-200/90 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-md">
+            <div className="flex items-center gap-3 overflow-x-auto">
               <MetricSelect
                 metrics={metrics}
                 value={selectedMetric?.id ?? ""}
                 onChange={handleMetricSelect}
-                className="min-w-0 flex-1"
+                className="w-[min(360px,45vw)] min-w-[220px] shrink-0"
               />
-              <button
-                type="button"
-                onClick={() => setTableOpen(!isTableOpen)}
-                className="hidden md:inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-              >
-                {isTableOpen ? "Hide table" : "Data table"}
-              </button>
-            </div>
-            <div className="mt-2 rounded-xl border border-slate-200/90 bg-white/70 px-2.5 py-2">
-              <div className="mb-1 flex items-center justify-between">
+              <div className="flex shrink-0 items-center gap-2">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Year</p>
+                <div className="w-52 sm:w-64 lg:w-72">
+                  <input
+                    type="range"
+                    min={yearMin}
+                    max={yearMax}
+                    value={sliderValue}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    className="ss-year-slider w-full"
+                    step={1}
+                    aria-label="Select year"
+                    disabled={!selectedMetric?.years.length}
+                  />
+                  <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="tabular-nums">{yearMin}</span>
+                    <span className="tabular-nums">{yearMax}</span>
+                  </div>
+                </div>
                 <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                   {selectedMetric?.years.length ? selectedYear : "—"}
                 </span>
               </div>
-              <div className="mx-auto w-full max-w-[420px]">
-                <input
-                  type="range"
-                  min={yearMin}
-                  max={yearMax}
-                  value={sliderValue}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="ss-year-slider w-full"
-                  step={1}
-                  aria-label="Select year"
-                  disabled={!selectedMetric?.years.length}
-                />
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                  <span className="tabular-nums">{yearMin}</span>
-                  <span className="tabular-nums">{yearMax}</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setTableOpen(!isTableOpen)}
+                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+              >
+                <span className="hidden md:inline">{isTableOpen ? "Hide table" : "Data table"}</span>
+                <span className="md:hidden">{isTableOpen ? "Hide" : "Table"}</span>
+              </button>
             </div>
             <p className="mt-1 text-center text-[11px] text-slate-600">
               Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
@@ -282,24 +281,27 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
         </div>
 
-        <div className="relative h-[34vh] w-full bg-gradient-to-b from-[#e6f1f8] to-[#d9eaf5] sm:h-[62vh] md:h-[calc(100vh-2.5rem)]">
+        <div className="relative mt-3 h-[34vh] w-full ss-water ss-water--animate sm:h-[62vh] md:h-[calc(100vh-2.5rem)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 ss-water-texture" />
           {colorScale ? (
-            <USChoropleth
-              features={features}
-              valuesByStateId={valuesByStateId}
-              colorScale={colorScale}
-              hoveredStateId={hovered?.stateId ?? null}
-              pinnedStateId={pinnedStateId}
-              onHover={(stateId, position) => {
-                if (!stateId || !position) {
-                  setHovered(null);
-                  return;
-                }
-                setHovered({ stateId, ...position });
-              }}
-              onClick={(stateId) => handleStateClick(stateId)}
-              selectedYear={selectedYear}
-            />
+            <div className="relative z-[1] h-full">
+              <USChoropleth
+                features={features}
+                valuesByStateId={valuesByStateId}
+                colorScale={colorScale}
+                hoveredStateId={hovered?.stateId ?? null}
+                pinnedStateId={pinnedStateId}
+                onHover={(stateId, position) => {
+                  if (!stateId || !position) {
+                    setHovered(null);
+                    return;
+                  }
+                  setHovered({ stateId, ...position });
+                }}
+                onClick={(stateId) => handleStateClick(stateId)}
+                selectedYear={selectedYear}
+              />
+            </div>
           ) : null}
 
           {tooltipContent ? (
