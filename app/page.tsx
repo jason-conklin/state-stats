@@ -5,6 +5,9 @@ import { getUSStateFeatures } from "@/lib/mapData";
 import { states as stateList } from "@/lib/states";
 import { ensureCatalog } from "@/lib/metrics";
 
+const EXCLUDED_STATE_IDS = new Set(["11"]);
+const mapStates = stateList.filter((state) => !EXCLUDED_STATE_IDS.has(state.id));
+
 type MetricData = {
   id: string;
   name: string;
@@ -41,7 +44,10 @@ async function loadMapData() {
 
       const metricIds = metrics.map((m) => m.id);
       const observations = await prisma.observation.findMany({
-        where: { metricId: { in: metricIds } },
+        where: {
+          metricId: { in: metricIds },
+          stateId: { notIn: Array.from(EXCLUDED_STATE_IDS) },
+        },
         select: { metricId: true, stateId: true, year: true, value: true },
       });
 
@@ -128,7 +134,11 @@ export default async function Home() {
   }
 
   const { metrics, defaultMetricId, defaultYear } = mapData;
-  const features = getUSStateFeatures();
+  const features = getUSStateFeatures().filter((feature) => {
+    const featureStateId =
+      feature.properties?.stateId ?? String(feature.id ?? "").padStart(2, "0");
+    return !EXCLUDED_STATE_IDS.has(featureStateId);
+  });
 
   return (
     <section className="relative h-full w-full">
@@ -136,7 +146,7 @@ export default async function Home() {
         metrics={metrics}
         defaultMetricId={defaultMetricId}
         defaultYear={defaultYear}
-        states={stateList}
+        states={mapStates}
         features={features}
       />
     </section>
