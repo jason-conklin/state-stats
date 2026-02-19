@@ -378,7 +378,7 @@ export function DataTablePanel({
                     <tr
                       key={row.stateId}
                       className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
-                        index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                        index % 2 === 0 ? "bg-white" : "bg-slate-100/55"
                       } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
                     >
                       <td
@@ -591,7 +591,7 @@ export function DataTablePanel({
                             rowRefs.current[row.stateId] = el;
                           }}
                           className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
-                            index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                            index % 2 === 0 ? "bg-white" : "bg-slate-100/55"
                           } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
                         >
                           <td

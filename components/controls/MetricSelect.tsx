@@ -390,7 +390,7 @@ export function MetricSelect({
               <span
                 className={
                   isStealth
-                    ? "truncate text-base font-semibold text-slate-900"
+                    ? "min-w-0 flex-1 text-base font-semibold leading-tight text-slate-900"
                     : "truncate text-sm font-medium text-slate-900"
                 }
               >
