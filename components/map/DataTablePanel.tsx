@@ -373,20 +373,16 @@ export function DataTablePanel({
                         : row.rank === 3
                           ? "bg-amber-100 text-amber-700"
                           : "bg-slate-100 text-slate-600";
+                  const rowBaseBgClass = isSelected ? "bg-emerald-50" : index % 2 === 0 ? "bg-white" : "bg-slate-100";
+                  const rowHoverBgClass = isSelected ? "group-hover:bg-emerald-50" : "group-hover:bg-slate-200/70";
 
                   return (
                     <tr
                       key={row.stateId}
-                      className={`group border-b border-slate-100 transition-colors duration-150 ${
-                        isSelected
-                          ? "[&>td]:bg-emerald-50 hover:[&>td]:bg-emerald-50"
-                          : index % 2 === 0
-                            ? "[&>td]:bg-white hover:[&>td]:bg-slate-200/70"
-                            : "[&>td]:bg-slate-100 hover:[&>td]:bg-slate-200/70"
-                      }`}
+                      className="group border-b border-slate-100 transition-colors duration-150"
                     >
                       <td
-                        className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                        className={`${rowBaseBgClass} ${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
                           isSelected ? "border-emerald-500" : "border-transparent"
                         }`}
                       >
@@ -398,11 +394,11 @@ export function DataTablePanel({
                           "–"
                         )}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2`}>
                         <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
                       </td>
-                      <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-800">{row.displayValue}</td>
-                      <td className="px-1 py-2 text-right">
+                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800`}>{row.displayValue}</td>
+                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-1 py-2 text-right`}>
                         <button
                           type="button"
                           aria-label={`Copy row for ${row.stateName}`}
@@ -587,6 +583,8 @@ export function DataTablePanel({
                             : row.rank === 3
                               ? "bg-amber-100 text-amber-700"
                               : "bg-slate-100 text-slate-600";
+                      const rowBaseBgClass = isSelected ? "bg-emerald-50" : index % 2 === 0 ? "bg-white" : "bg-slate-100";
+                      const rowHoverBgClass = isSelected ? "group-hover:bg-emerald-50" : "group-hover:bg-slate-200/70";
 
                       return (
                         <tr
@@ -594,16 +592,10 @@ export function DataTablePanel({
                           ref={(el) => {
                             rowRefs.current[row.stateId] = el;
                           }}
-                          className={`group border-b border-slate-100 transition-colors duration-150 ${
-                            isSelected
-                              ? "[&>td]:bg-emerald-50 hover:[&>td]:bg-emerald-50"
-                              : index % 2 === 0
-                                ? "[&>td]:bg-white hover:[&>td]:bg-slate-200/70"
-                                : "[&>td]:bg-slate-100 hover:[&>td]:bg-slate-200/70"
-                          }`}
+                          className="group border-b border-slate-100 transition-colors duration-150"
                         >
                           <td
-                            className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                            className={`${rowBaseBgClass} ${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
                               isSelected ? "border-emerald-500" : "border-transparent"
                             }`}
                           >
@@ -615,11 +607,11 @@ export function DataTablePanel({
                               "–"
                             )}
                           </td>
-                          <td className="px-3 py-2">
+                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2`}>
                             <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
                           </td>
-                          <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-800">{row.displayValue}</td>
-                          <td className="px-1 py-2 text-right">
+                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800`}>{row.displayValue}</td>
+                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-1 py-2 text-right`}>
                             <button
                               type="button"
                               aria-label={`Copy row for ${row.stateName}`}

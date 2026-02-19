@@ -165,6 +165,18 @@ export function GraphExplorer({
     );
   }, [searchTerm, states]);
 
+  const allStateIds = useMemo(() => states.map((state) => state.id), [states]);
+  const allStatesSelected = useMemo(() => {
+    if (allStateIds.length === 0) return false;
+    const selected = new Set(selectedStateIds);
+    return allStateIds.every((id) => selected.has(id));
+  }, [allStateIds, selectedStateIds]);
+
+  const toggleSelectAllStates = () => {
+    setIsUpdating(true);
+    setSelectedStateIds(allStatesSelected ? [] : allStateIds);
+  };
+
   useEffect(() => {
     if (!isUpdating) return;
     const timeout = setTimeout(() => setIsUpdating(false), 250);
@@ -220,6 +232,14 @@ export function GraphExplorer({
             <label className="text-sm font-medium text-slate-700" htmlFor="state-filter">
               States
             </label>
+            <button
+              type="button"
+              onClick={toggleSelectAllStates}
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              aria-pressed={allStatesSelected}
+            >
+              {allStatesSelected ? "Clear all" : "Select all"}
+            </button>
             <span className="text-xs text-slate-500">{selectedStateIds.length} selected</span>
           </div>
           <input
