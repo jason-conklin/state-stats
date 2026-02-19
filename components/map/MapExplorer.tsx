@@ -51,6 +51,35 @@ function getYearDomain(valuesForYear: Record<string, number | null> | undefined)
   return [min, max];
 }
 
+function buildMajorYearTicks(yearMin: number, yearMax: number): number[] {
+  if (!Number.isFinite(yearMin) || !Number.isFinite(yearMax)) return [];
+  if (yearMax <= yearMin) return [yearMin];
+
+  const range = yearMax - yearMin;
+  const step = range <= 25 ? 5 : 10;
+  const ticks = new Set<number>([yearMin, yearMax]);
+  const firstAlignedTick = Math.ceil(yearMin / step) * step;
+
+  for (let year = firstAlignedTick; year < yearMax; year += step) {
+    if (year > yearMin) ticks.add(year);
+  }
+
+  return Array.from(ticks).sort((a, b) => a - b);
+}
+
+function buildMobileYearTicks(yearMin: number, yearMax: number): number[] {
+  if (!Number.isFinite(yearMin) || !Number.isFinite(yearMax)) return [];
+  if (yearMax <= yearMin) return [yearMin];
+
+  const midpoint = Math.round((yearMin + yearMax) / 2);
+  return Array.from(new Set([yearMin, midpoint, yearMax])).sort((a, b) => a - b);
+}
+
+function getTickOffsetPercent(year: number, yearMin: number, yearMax: number): number {
+  if (yearMax <= yearMin) return 0;
+  return ((year - yearMin) / (yearMax - yearMin)) * 100;
+}
+
 export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, features }: Props) {
   const metricMap = useMemo(() => {
     const map = new Map<string, MetricData>();
@@ -79,6 +108,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     selectedMetric?.maxYear ?? selectedMetric?.years[selectedMetric.years.length - 1] ?? selectedYear ?? 0;
   const sliderValue =
     selectedMetric && selectedMetric.years.length ? Math.min(Math.max(selectedYear, yearMin), yearMax) : yearMax;
+  const majorYearTicks = useMemo(() => buildMajorYearTicks(yearMin, yearMax), [yearMin, yearMax]);
+  const mobileYearTicks = useMemo(() => buildMobileYearTicks(yearMin, yearMax), [yearMin, yearMax]);
 
   const valuesByStateId = useMemo(() => selectedMetric?.dataByYear[selectedYear] ?? {}, [selectedMetric, selectedYear]);
 
@@ -240,33 +271,97 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
               <div className="rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
                 <div className="flex w-full max-w-[980px] min-w-0 items-center gap-3 overflow-visible">
-              <div className="min-w-0 w-[min(380px,46vw)]">
-                <MetricSelect
-                  metrics={metrics}
-                  value={selectedMetric?.id ?? ""}
-                  onChange={handleMetricSelect}
-                  className="w-full min-w-0"
-                />
-              </div>
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
-                <span className="hidden text-[10px] tabular-nums text-slate-600 sm:inline">{yearMin}</span>
-                <input
-                  type="range"
-                  min={yearMin}
-                  max={yearMax}
-                  value={sliderValue}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="ss-year-slider w-[clamp(160px,26vw,320px)]"
-                  step={1}
-                  aria-label="Select year"
-                  disabled={!selectedMetric?.years.length}
-                />
-                <span className="hidden text-[10px] tabular-nums text-slate-600 sm:inline">{yearMax}</span>
-                <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
-                  {selectedMetric?.years.length ? selectedYear : "—"}
-                </span>
-              </div>
+                  <div className="min-w-0 w-[min(380px,46vw)]">
+                    <MetricSelect
+                      metrics={metrics}
+                      value={selectedMetric?.id ?? ""}
+                      onChange={handleMetricSelect}
+                      className="w-full min-w-0"
+                    />
+                  </div>
+                  <div className="flex min-w-0 flex-1 items-start gap-2">
+                    <p className="mt-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <input
+                          type="range"
+                          min={yearMin}
+                          max={yearMax}
+                          value={sliderValue}
+                          onChange={(e) => setSelectedYear(Number(e.target.value))}
+                          className="ss-year-slider w-[clamp(160px,26vw,320px)]"
+                          step={1}
+                          aria-label="Select year"
+                          disabled={!selectedMetric?.years.length}
+                        />
+                        <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                          {selectedMetric?.years.length ? selectedYear : "—"}
+                        </span>
+                      </div>
+
+                      <div className="relative mt-1 hidden h-6 select-none md:block" aria-hidden>
+                        {majorYearTicks.map((tick, index) => {
+                          const isSelectedTick = tick === sliderValue;
+                          const isFirst = index === 0;
+                          const isLast = index === majorYearTicks.length - 1;
+                          const left = getTickOffsetPercent(tick, yearMin, yearMax);
+                          return (
+                            <div
+                              key={`major-tick-${tick}`}
+                              className="absolute top-0"
+                              style={{ left: `${left}%` }}
+                            >
+                              <span
+                                className={`block h-2 w-px ${
+                                  isSelectedTick ? "bg-slate-700" : "bg-slate-300/80"
+                                }`}
+                              />
+                              <span
+                                className={`mt-0.5 block text-[10px] tabular-nums ${
+                                  isSelectedTick ? "font-semibold text-slate-900" : "text-slate-500"
+                                } ${
+                                  isFirst ? "translate-x-0" : isLast ? "-translate-x-full" : "-translate-x-1/2"
+                                }`}
+                              >
+                                {tick}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="relative mt-1 h-6 select-none md:hidden" aria-hidden>
+                        {mobileYearTicks.map((tick, index) => {
+                          const isSelectedTick = tick === sliderValue;
+                          const isFirst = index === 0;
+                          const isLast = index === mobileYearTicks.length - 1;
+                          const left = getTickOffsetPercent(tick, yearMin, yearMax);
+                          return (
+                            <div
+                              key={`mobile-tick-${tick}`}
+                              className="absolute top-0"
+                              style={{ left: `${left}%` }}
+                            >
+                              <span
+                                className={`block h-2 w-px ${
+                                  isSelectedTick ? "bg-slate-700" : "bg-slate-300/80"
+                                }`}
+                              />
+                              <span
+                                className={`mt-0.5 block text-[10px] tabular-nums ${
+                                  isSelectedTick ? "font-semibold text-slate-900" : "text-slate-500"
+                                } ${
+                                  isFirst ? "translate-x-0" : isLast ? "-translate-x-full" : "-translate-x-1/2"
+                                }`}
+                              >
+                                {tick}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setTableOpen(!isTableOpen)}
