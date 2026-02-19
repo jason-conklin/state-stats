@@ -85,7 +85,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
             type="button"
             aria-label="StateStats home"
             onClick={() => router.push("/")}
-            className="mb-4 flex h-10 w-14 items-center justify-center rounded-2xl bg-[color:var(--ss-green-light)] cursor-pointer"
+            className="mb-4 flex h-10 w-14 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
           >
             <Image
               src="/statestats_logo.png"
@@ -102,7 +102,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
               type="button"
               aria-label="StateStats home"
               onClick={() => router.push("/")}
-              className="flex h-12 w-14 items-center justify-center rounded-2xl bg-[color:var(--ss-green-light)] cursor-pointer"
+              className="flex h-12 w-14 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
             >
               <Image
                 src="/statestats_logo.png"
@@ -113,7 +113,12 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
                 priority
               />
             </button>
-            <span className="text-xl font-semibold text-white">StateStats</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-white">StateStats</span>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-300/80">
+                State-Level Data, Made Clear.
+              </p>
+            </div>
           </div>
         )}
 
