@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Banknote,
@@ -113,17 +113,25 @@ export function MetricSelect({
   const triggerPillLabel = useMemo(() => getUnitPillLabel(selectedMetric), [selectedMetric]);
   const isStealth = variant === "stealthTitle";
 
-  const getDropdownPosition = (): DropdownPosition | null => {
+  const getDropdownPosition = useCallback((): DropdownPosition | null => {
     const trigger = triggerRef.current;
     if (!trigger) return null;
     const rect = trigger.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return null;
+    const viewportWidth = typeof window === "undefined" ? rect.width : window.innerWidth;
+    const horizontalPadding = 8;
+    const minStealthWidth = 320;
+    const desiredWidth = isStealth ? Math.max(rect.width, minStealthWidth) : rect.width;
+    const maxWidth = Math.max(220, viewportWidth - horizontalPadding * 2);
+    const width = Math.min(desiredWidth, maxWidth);
+    const maxLeft = viewportWidth - horizontalPadding - width;
+    const left = Math.min(Math.max(horizontalPadding, rect.left), maxLeft);
     return {
-      left: rect.left,
+      left,
       top: rect.bottom + 8,
-      width: rect.width,
+      width,
     };
-  };
+  }, [isStealth]);
 
   const openMenu = (targetIndex: number) => {
     if (!metrics.length) return;
@@ -178,7 +186,7 @@ export function MetricSelect({
     const updatePosition = () => {
       const nextPosition = getDropdownPosition();
       if (!nextPosition) {
-        closeMenu();
+        setIsOpen(false);
         return;
       }
       setDropdownPosition((previous) => {
@@ -201,7 +209,7 @@ export function MetricSelect({
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
-  }, [isOpen]);
+  }, [getDropdownPosition, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -289,7 +297,7 @@ export function MetricSelect({
               {getMetricIcon(metric.id)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{metric.name}</span>
+              <span className="block text-sm font-medium leading-tight text-slate-900">{metric.name}</span>
               <span className="block truncate text-xs text-slate-500">{getMetricMeta(metric)}</span>
             </span>
             {isSelected ? <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden /> : null}

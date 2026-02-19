@@ -363,7 +363,7 @@ export function DataTablePanel({
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((row) => {
+                {visibleRows.map((row, index) => {
                   const isSelected = row.stateId === selectedStateId;
                   const rankBadgeTone =
                     row.rank === 1
@@ -377,8 +377,12 @@ export function DataTablePanel({
                   return (
                     <tr
                       key={row.stateId}
-                      className={`group border-b border-slate-100 even:bg-white odd:bg-slate-100 transition-colors duration-150 hover:bg-slate-200/70 ${
-                        isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""
+                      className={`group border-b border-slate-100 transition-colors duration-150 ${
+                        isSelected
+                          ? "[&>td]:bg-emerald-50 hover:[&>td]:bg-emerald-50"
+                          : index % 2 === 0
+                            ? "[&>td]:bg-white hover:[&>td]:bg-slate-200/70"
+                            : "[&>td]:bg-slate-100 hover:[&>td]:bg-slate-200/70"
                       }`}
                     >
                       <td
@@ -573,7 +577,7 @@ export function DataTablePanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleRows.map((row) => {
+                    {visibleRows.map((row, index) => {
                       const isSelected = row.stateId === selectedStateId;
                       const rankBadgeTone =
                         row.rank === 1
@@ -590,8 +594,12 @@ export function DataTablePanel({
                           ref={(el) => {
                             rowRefs.current[row.stateId] = el;
                           }}
-                          className={`group border-b border-slate-100 even:bg-white odd:bg-slate-100 transition-colors duration-150 hover:bg-slate-200/70 ${
-                            isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""
+                          className={`group border-b border-slate-100 transition-colors duration-150 ${
+                            isSelected
+                              ? "[&>td]:bg-emerald-50 hover:[&>td]:bg-emerald-50"
+                              : index % 2 === 0
+                                ? "[&>td]:bg-white hover:[&>td]:bg-slate-200/70"
+                                : "[&>td]:bg-slate-100 hover:[&>td]:bg-slate-200/70"
                           }`}
                         >
                           <td
