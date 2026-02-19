@@ -373,7 +373,7 @@ export function DataTablePanel({
                         : row.rank === 3
                           ? "bg-amber-100 text-amber-700"
                           : "bg-slate-100 text-slate-600";
-                  const rowBaseBgColor = isSelected ? "#ecfdf5" : index % 2 === 0 ? "#ffffff" : "#f1f5f9";
+                  const rowBaseBgColor = isSelected ? "#ecfdf5" : index % 2 === 0 ? "#ffffff" : "#e2e8f0";
                   const rowHoverBgClass = isSelected ? "group-hover:!bg-emerald-50" : "group-hover:!bg-slate-200";
 
                   return (
