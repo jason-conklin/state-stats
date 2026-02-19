@@ -362,7 +362,7 @@ export function DataTablePanel({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100/80">
+              <tbody>
                 {visibleRows.map((row, index) => {
                   const isSelected = row.stateId === selectedStateId;
                   const rankBadgeTone =
@@ -377,16 +377,12 @@ export function DataTablePanel({
                   return (
                     <tr
                       key={row.stateId}
-                      className={`transition-colors ${
-                        isSelected
-                          ? "bg-emerald-50/90 hover:bg-emerald-50"
-                          : index % 2 === 0
-                            ? "bg-white/80 hover:bg-slate-100/70"
-                            : "bg-slate-50/45 hover:bg-slate-100/70"
-                      } group`}
+                      className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
+                        index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                      } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
                     >
                       <td
-                        className={`border-l-2 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                        className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
                           isSelected ? "border-emerald-500" : "border-transparent"
                         }`}
                       >
@@ -576,7 +572,7 @@ export function DataTablePanel({
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100/80">
+                  <tbody>
                     {visibleRows.map((row, index) => {
                       const isSelected = row.stateId === selectedStateId;
                       const rankBadgeTone =
@@ -594,16 +590,12 @@ export function DataTablePanel({
                           ref={(el) => {
                             rowRefs.current[row.stateId] = el;
                           }}
-                          className={`transition-colors ${
-                            isSelected
-                              ? "bg-emerald-50/90 hover:bg-emerald-50"
-                              : index % 2 === 0
-                                ? "bg-white/80 hover:bg-slate-100/70"
-                                : "bg-slate-50/45 hover:bg-slate-100/70"
-                          } group`}
+                          className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
+                            index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                          } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
                         >
                           <td
-                            className={`border-l-2 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                            className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
                               isSelected ? "border-emerald-500" : "border-transparent"
                             }`}
                           >
