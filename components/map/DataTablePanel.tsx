@@ -363,7 +363,7 @@ export function DataTablePanel({
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((row, index) => {
+                {visibleRows.map((row) => {
                   const isSelected = row.stateId === selectedStateId;
                   const rankBadgeTone =
                     row.rank === 1
@@ -377,9 +377,9 @@ export function DataTablePanel({
                   return (
                     <tr
                       key={row.stateId}
-                      className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
-                        index % 2 === 0 ? "bg-white" : "bg-slate-100/55"
-                      } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
+                      className={`group border-b border-slate-100 even:bg-white odd:bg-slate-100 transition-colors duration-150 hover:bg-slate-200/70 ${
+                        isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""
+                      }`}
                     >
                       <td
                         className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
@@ -573,7 +573,7 @@ export function DataTablePanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleRows.map((row, index) => {
+                    {visibleRows.map((row) => {
                       const isSelected = row.stateId === selectedStateId;
                       const rankBadgeTone =
                         row.rank === 1
@@ -590,9 +590,9 @@ export function DataTablePanel({
                           ref={(el) => {
                             rowRefs.current[row.stateId] = el;
                           }}
-                          className={`group border-b border-slate-100 transition-colors duration-150 hover:bg-slate-100 ${
-                            index % 2 === 0 ? "bg-white" : "bg-slate-100/55"
-                          } ${isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""}`}
+                          className={`group border-b border-slate-100 even:bg-white odd:bg-slate-100 transition-colors duration-150 hover:bg-slate-200/70 ${
+                            isSelected ? "!bg-emerald-50 hover:!bg-emerald-50" : ""
+                          }`}
                         >
                           <td
                             className={`border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
