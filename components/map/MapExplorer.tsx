@@ -413,7 +413,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   <button
                     type="button"
                     onClick={() => setTableOpen(!isTableOpen)}
-                    className="hidden flex-none items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-white md:inline-flex"
+                    className="hidden flex-none items-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-white md:inline-flex"
                   >
                     {isTableOpen ? "Hide table" : "Data table"}
                   </button>
@@ -546,6 +546,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           <div className="w-full rounded-t-3xl bg-white shadow-sm">
             <DataTablePanel
               year={selectedYear}
+              metrics={metrics}
+              selectedMetricId={selectedMetric?.id ?? ""}
+              onMetricChange={handleMetricSelect}
               metricName={selectedMetric?.name}
               metricUnit={selectedMetric?.unit}
               rows={tableRows.map((row) => ({
@@ -566,6 +569,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
         <div className="hidden sm:block">
           <DataTablePanel
             year={selectedYear}
+            metrics={metrics}
+            selectedMetricId={selectedMetric?.id ?? ""}
+            onMetricChange={handleMetricSelect}
             metricName={selectedMetric?.name}
             metricUnit={selectedMetric?.unit}
             rows={tableRows.map((row) => ({

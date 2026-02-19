@@ -2,6 +2,7 @@
 
 import { ArrowUpDown, Check, ChevronDown, Copy, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MetricSelect, type MetricOption } from "@/components/controls/MetricSelect";
 
 type TableRow = {
   rank: number | null;
@@ -14,6 +15,9 @@ type TableRow = {
 type Props = {
   year: number;
   rows: TableRow[];
+  metrics: MetricOption[];
+  selectedMetricId: string;
+  onMetricChange: (metricId: string) => void;
   metricName?: string;
   metricUnit?: string | null;
   selectedStateId?: string | null;
@@ -22,26 +26,15 @@ type Props = {
   showLauncher?: boolean;
 };
 
-type SortMode = "rank_asc" | "rank_desc" | "value_desc" | "value_asc";
+type SortMode = "rank_asc" | "rank_desc";
 
 const SORT_MODE_LABEL: Record<SortMode, string> = {
   rank_asc: "Rank ↑",
   rank_desc: "Rank ↓",
-  value_desc: "Value ↓",
-  value_asc: "Value ↑",
 };
 
 function nextSortMode(current: SortMode): SortMode {
-  switch (current) {
-    case "rank_asc":
-      return "rank_desc";
-    case "rank_desc":
-      return "value_desc";
-    case "value_desc":
-      return "value_asc";
-    default:
-      return "rank_asc";
-  }
+  return current === "rank_asc" ? "rank_desc" : "rank_asc";
 }
 
 function escapeCsvCell(value: string): string {
@@ -64,6 +57,9 @@ function slugifyMetricName(value: string): string {
 export function DataTablePanel({
   year,
   rows,
+  metrics,
+  selectedMetricId,
+  onMetricChange,
   metricName,
   metricUnit,
   selectedStateId,
@@ -84,6 +80,10 @@ export function DataTablePanel({
   const [copiedRowId, setCopiedRowId] = useState<string | null>(null);
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
+  const selectedMetric = useMemo(
+    () => metrics.find((metric) => metric.id === selectedMetricId),
+    [metrics, selectedMetricId],
+  );
   const visibleRows = useMemo(() => {
     const filtered = normalizedQuery
       ? rows.filter((row) => row.stateName.toLowerCase().includes(normalizedQuery))
@@ -100,13 +100,7 @@ export function DataTablePanel({
       if (sortMode === "rank_asc") {
         return compareNullable(a.rank, b.rank, "asc") || a.stateName.localeCompare(b.stateName);
       }
-      if (sortMode === "rank_desc") {
-        return compareNullable(a.rank, b.rank, "desc") || a.stateName.localeCompare(b.stateName);
-      }
-      if (sortMode === "value_desc") {
-        return compareNullable(a.value, b.value, "desc") || a.stateName.localeCompare(b.stateName);
-      }
-      return compareNullable(a.value, b.value, "asc") || a.stateName.localeCompare(b.stateName);
+      return compareNullable(a.rank, b.rank, "desc") || a.stateName.localeCompare(b.stateName);
     });
   }, [normalizedQuery, rows, sortMode]);
 
@@ -161,8 +155,9 @@ export function DataTablePanel({
     onToggle();
   }, [onToggle]);
 
-  const secondaryLine = metricUnit ? `State values • ${metricUnit}` : "State values";
-  const metricLabel = metricName ?? "State values";
+  const secondaryUnit = selectedMetric?.unit ?? metricUnit;
+  const secondaryLine = secondaryUnit ? `State values • ${secondaryUnit}` : "State values";
+  const metricLabel = selectedMetric?.name ?? metricName ?? "State values";
 
   const showFeedback = useCallback((message: string) => {
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
@@ -260,8 +255,17 @@ export function DataTablePanel({
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
               <div className="mt-1 flex items-center gap-2">
-                <h2 className="min-w-0 truncate text-base font-semibold text-slate-900">
-                  {metricName ?? "State values"}
+                <h2 className="min-w-0 flex-1 text-base font-semibold text-slate-900">
+                  <MetricSelect
+                    metrics={metrics}
+                    value={selectedMetricId}
+                    onChange={onMetricChange}
+                    variant="stealthTitle"
+                    portal
+                    showLabel={false}
+                    showCategoryChip={false}
+                    className="w-full min-w-0"
+                  />
                 </h2>
                 <span className="flex-none rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white">
                   {year}
@@ -455,9 +459,18 @@ export function DataTablePanel({
                       <h2
                         ref={headingRef}
                         tabIndex={-1}
-                        className="min-w-0 truncate text-lg font-semibold text-slate-900 focus:outline-none"
+                        className="min-w-0 flex-1 text-lg font-semibold text-slate-900 focus:outline-none"
                       >
-                        {metricName ?? "State values"}
+                        <MetricSelect
+                          metrics={metrics}
+                          value={selectedMetricId}
+                          onChange={onMetricChange}
+                          variant="stealthTitle"
+                          portal
+                          showLabel={false}
+                          showCategoryChip={false}
+                          className="w-full min-w-0"
+                        />
                       </h2>
                       <span className="flex-none rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white">
                         {year}

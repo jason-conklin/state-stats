@@ -13,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 
-type MetricOption = {
+export type MetricOption = {
   id: string;
   name: string;
   unit?: string | null;
@@ -25,6 +25,10 @@ type Props = {
   value: string;
   onChange: (metricId: string) => void;
   className?: string;
+  variant?: "default" | "stealthTitle";
+  portal?: boolean;
+  showLabel?: boolean;
+  showCategoryChip?: boolean;
 };
 
 type DropdownPosition = {
@@ -55,7 +59,45 @@ function getMetricMeta(metric: MetricOption): string {
   return parts.length ? parts.join(" • ") : "State-level metric";
 }
 
-export function MetricSelect({ metrics, value, onChange, className }: Props) {
+function normalizePillLabel(rawValue: string): string {
+  const cleaned = rawValue.replace(/[()]/g, "").trim();
+  if (!cleaned) return "";
+
+  const lower = cleaned.toLowerCase();
+  if (lower.includes("%") || lower === "percent" || lower === "percentage") return "%";
+  if (lower === "usd" || lower === "us dollars" || lower === "dollars" || lower === "$") return "USD";
+  if (lower === "people" || lower === "person" || lower === "persons") return "PEOPLE";
+  if (lower === "years" || lower === "year" || lower === "yrs") return "YEARS";
+
+  return cleaned.toUpperCase();
+}
+
+function getUnitPillLabel(metric?: MetricOption): string | null {
+  if (!metric) return null;
+
+  if (metric.unit) {
+    const normalizedUnit = normalizePillLabel(metric.unit);
+    if (normalizedUnit) return normalizedUnit;
+  }
+
+  if (metric.category) {
+    const normalizedCategory = normalizePillLabel(metric.category);
+    if (normalizedCategory) return normalizedCategory;
+  }
+
+  return null;
+}
+
+export function MetricSelect({
+  metrics,
+  value,
+  onChange,
+  className,
+  variant = "default",
+  portal = true,
+  showLabel = true,
+  showCategoryChip = true,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition | null>(null);
@@ -68,6 +110,8 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
 
   const selectedIndex = useMemo(() => metrics.findIndex((metric) => metric.id === value), [metrics, value]);
   const selectedMetric = selectedIndex >= 0 ? metrics[selectedIndex] : metrics[0];
+  const triggerPillLabel = useMemo(() => getUnitPillLabel(selectedMetric), [selectedMetric]);
+  const isStealth = variant === "stealthTitle";
 
   const getDropdownPosition = (): DropdownPosition | null => {
     const trigger = triggerRef.current;
@@ -172,102 +216,116 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
     optionRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, isOpen]);
 
-  const dropdown =
-    isOpen && dropdownPosition && typeof window !== "undefined"
-      ? createPortal(
+  const dropdownContent = (
+    <div
+      id={listboxId}
+      role="listbox"
+      aria-label="Select metric"
+      aria-activedescendant={metrics[activeIndex] ? `${listboxId}-option-${activeIndex}` : undefined}
+      tabIndex={-1}
+      ref={listboxRef}
+      onKeyDown={(event) => {
+        if (!metrics.length) return;
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          moveActive(1);
+          return;
+        }
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          moveActive(-1);
+          return;
+        }
+        if (event.key === "Home") {
+          event.preventDefault();
+          setActiveIndex(0);
+          return;
+        }
+        if (event.key === "End") {
+          event.preventDefault();
+          setActiveIndex(metrics.length - 1);
+          return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectByIndex(activeIndex);
+          return;
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeMenu();
+          triggerRef.current?.focus();
+          return;
+        }
+        if (event.key === "Tab") {
+          closeMenu();
+        }
+      }}
+      className="max-h-[320px] overflow-auto rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur-sm focus:outline-none"
+    >
+      {metrics.map((metric, index) => {
+        const isSelected = metric.id === value;
+        const isActive = index === activeIndex;
+        return (
           <div
-            ref={portalRef}
-            style={{
-              position: "fixed",
-              left: dropdownPosition.left,
-              top: dropdownPosition.top,
-              width: dropdownPosition.width,
-              zIndex: 1000,
+            key={metric.id}
+            ref={(node) => {
+              optionRefs.current[index] = node;
             }}
+            id={`${listboxId}-option-${index}`}
+            role="option"
+            aria-selected={isSelected}
+            onMouseEnter={() => setActiveIndex(index)}
+            onClick={() => selectByIndex(index)}
+            className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 transition-colors ${
+              isSelected
+                ? "bg-emerald-50 text-emerald-900"
+                : isActive
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-800 hover:bg-slate-50"
+            }`}
           >
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              {getMetricIcon(metric.id)}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{metric.name}</span>
+              <span className="block truncate text-xs text-slate-500">{getMetricMeta(metric)}</span>
+            </span>
+            {isSelected ? <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden /> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const dropdownWrapperClass = portal
+    ? ""
+    : "absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30";
+
+  const dropdown =
+    isOpen && dropdownPosition
+      ? portal && typeof window !== "undefined"
+        ? createPortal(
             <div
-              id={listboxId}
-              role="listbox"
-              aria-label="Select metric"
-              aria-activedescendant={metrics[activeIndex] ? `${listboxId}-option-${activeIndex}` : undefined}
-              tabIndex={-1}
-              ref={listboxRef}
-              onKeyDown={(event) => {
-                if (!metrics.length) return;
-                if (event.key === "ArrowDown") {
-                  event.preventDefault();
-                  moveActive(1);
-                  return;
-                }
-                if (event.key === "ArrowUp") {
-                  event.preventDefault();
-                  moveActive(-1);
-                  return;
-                }
-                if (event.key === "Home") {
-                  event.preventDefault();
-                  setActiveIndex(0);
-                  return;
-                }
-                if (event.key === "End") {
-                  event.preventDefault();
-                  setActiveIndex(metrics.length - 1);
-                  return;
-                }
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  selectByIndex(activeIndex);
-                  return;
-                }
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  closeMenu();
-                  triggerRef.current?.focus();
-                  return;
-                }
-                if (event.key === "Tab") {
-                  closeMenu();
-                }
+              ref={portalRef}
+              style={{
+                position: "fixed",
+                left: dropdownPosition.left,
+                top: dropdownPosition.top,
+                width: dropdownPosition.width,
+                zIndex: 9999,
               }}
-              className="max-h-[320px] overflow-auto rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur-sm focus:outline-none"
             >
-              {metrics.map((metric, index) => {
-                const isSelected = metric.id === value;
-                const isActive = index === activeIndex;
-                return (
-                  <div
-                    key={metric.id}
-                    ref={(node) => {
-                      optionRefs.current[index] = node;
-                    }}
-                    id={`${listboxId}-option-${index}`}
-                    role="option"
-                    aria-selected={isSelected}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => selectByIndex(index)}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 transition-colors ${
-                      isSelected
-                        ? "bg-emerald-50 text-emerald-900"
-                        : isActive
-                          ? "bg-slate-100 text-slate-900"
-                          : "text-slate-800 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                      {getMetricIcon(metric.id)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{metric.name}</span>
-                      <span className="block truncate text-xs text-slate-500">{getMetricMeta(metric)}</span>
-                    </span>
-                    {isSelected ? <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden /> : null}
-                  </div>
-                );
-              })}
+              {dropdownContent}
+            </div>,
+            document.body,
+          )
+        : (
+            <div ref={portalRef} className={dropdownWrapperClass}>
+              {dropdownContent}
             </div>
-          </div>,
-          document.body,
-        )
+          )
       : null;
 
   return (
@@ -279,6 +337,7 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={listboxId}
+          aria-label={isStealth ? "Change metric" : undefined}
           onClick={() => (isOpen ? closeMenu() : openMenu(selectedIndex >= 0 ? selectedIndex : 0))}
           onKeyDown={(event) => {
             if (!metrics.length) return;
@@ -304,24 +363,54 @@ export function MetricSelect({ metrics, value, onChange, className }: Props) {
               closeMenu();
             }
           }}
-          className="group flex w-full items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-left shadow-[0_6px_16px_rgba(0,0,0,0.07)] backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70"
+          className={
+            isStealth
+              ? `group inline-flex w-full items-center justify-between gap-2 rounded-lg border text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+                  isOpen
+                    ? "border-slate-200/80 bg-slate-900/5 px-2 py-1"
+                    : "border-transparent bg-transparent px-1 py-0.5 hover:border-slate-200/80 hover:bg-slate-900/5 hover:px-2 hover:py-1 focus-visible:border-slate-200/80 focus-visible:bg-slate-900/5 focus-visible:px-2 focus-visible:py-1"
+                }`
+              : "group flex w-full items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-left shadow-[0_6px_16px_rgba(0,0,0,0.07)] backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70"
+          }
         >
           <span className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">Metric</span>
-            <span className="mt-0.5 flex min-w-0 items-center gap-2">
-              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                {getMetricIcon(selectedMetric?.id ?? "")}
+            {showLabel ? (
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">Metric</span>
+            ) : null}
+            <span className={`flex min-w-0 items-center gap-2 ${showLabel ? "mt-0.5" : ""}`}>
+              <span
+                className={
+                  isStealth
+                    ? "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-200/70 text-slate-600"
+                    : "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
+                }
+              >
+                {getMetricIcon(selectedMetric?.id ?? "", isStealth ? "h-3.5 w-3.5" : "h-4 w-4")}
               </span>
-              <span className="truncate text-sm font-medium text-slate-900">{selectedMetric?.name ?? "Select metric"}</span>
-              {selectedMetric?.category ? (
+              <span
+                className={
+                  isStealth
+                    ? "truncate text-base md:text-lg font-semibold text-slate-900"
+                    : "truncate text-sm font-medium text-slate-900"
+                }
+              >
+                {selectedMetric?.name ?? "Select metric"}
+              </span>
+              {showCategoryChip && triggerPillLabel ? (
                 <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:inline-flex">
-                  {selectedMetric.category}
+                  {triggerPillLabel}
                 </span>
               ) : null}
             </span>
           </span>
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+            className={
+              isStealth
+                ? `h-3.5 w-3.5 shrink-0 text-slate-500 transition-all duration-150 ${
+                    isOpen ? "opacity-100 scale-100 rotate-180" : "opacity-0 scale-90"
+                  } group-hover:opacity-100 group-hover:scale-100 group-focus-visible:opacity-100 group-focus-visible:scale-100`
+                : `h-4 w-4 shrink-0 text-slate-500 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`
+            }
             aria-hidden
           />
         </button>
