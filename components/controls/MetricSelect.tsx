@@ -365,7 +365,7 @@ export function MetricSelect({
           }}
           className={
             isStealth
-              ? `group inline-flex w-full items-center justify-between gap-2 rounded-lg border text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+              ? `group inline-flex w-full items-center justify-between gap-1.5 rounded-lg border text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
                   isOpen
                     ? "border-slate-200/80 bg-slate-900/5 px-2 py-1"
                     : "border-transparent bg-transparent px-1 py-0.5 hover:border-slate-200/80 hover:bg-slate-900/5 hover:px-2 hover:py-1 focus-visible:border-slate-200/80 focus-visible:bg-slate-900/5 focus-visible:px-2 focus-visible:py-1"
@@ -377,20 +377,20 @@ export function MetricSelect({
             {showLabel ? (
               <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">Metric</span>
             ) : null}
-            <span className={`flex min-w-0 items-center gap-2 ${showLabel ? "mt-0.5" : ""}`}>
+            <span className={`flex min-w-0 items-center gap-1.5 ${showLabel ? "mt-0.5" : ""}`}>
               <span
                 className={
                   isStealth
-                    ? "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-200/70 text-slate-600"
+                    ? "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-slate-200/70 text-slate-600"
                     : "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
                 }
               >
-                {getMetricIcon(selectedMetric?.id ?? "", isStealth ? "h-3.5 w-3.5" : "h-4 w-4")}
+                {getMetricIcon(selectedMetric?.id ?? "", isStealth ? "h-3 w-3" : "h-4 w-4")}
               </span>
               <span
                 className={
                   isStealth
-                    ? "truncate text-base md:text-lg font-semibold text-slate-900"
+                    ? "truncate text-base font-semibold text-slate-900"
                     : "truncate text-sm font-medium text-slate-900"
                 }
               >
@@ -406,9 +406,9 @@ export function MetricSelect({
           <ChevronDown
             className={
               isStealth
-                ? `h-3.5 w-3.5 shrink-0 text-slate-500 transition-all duration-150 ${
-                    isOpen ? "opacity-100 scale-100 rotate-180" : "opacity-0 scale-90"
-                  } group-hover:opacity-100 group-hover:scale-100 group-focus-visible:opacity-100 group-focus-visible:scale-100`
+                ? `h-3.5 shrink-0 text-slate-500 transition-all duration-150 ${
+                    isOpen ? "ml-1 w-3.5 opacity-100 scale-100 rotate-180" : "ml-0 w-0 opacity-0 scale-90"
+                  } group-hover:ml-1 group-hover:w-3.5 group-hover:opacity-100 group-hover:scale-100 group-focus-visible:ml-1 group-focus-visible:w-3.5 group-focus-visible:opacity-100 group-focus-visible:scale-100`
                 : `h-4 w-4 shrink-0 text-slate-500 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`
             }
             aria-hidden
