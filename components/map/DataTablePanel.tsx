@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { ArrowUpDown, Check, ChevronDown, Copy, Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type TableRow = {
   rank: number | null;
@@ -14,16 +15,57 @@ type Props = {
   year: number;
   rows: TableRow[];
   metricName?: string;
+  metricUnit?: string | null;
   selectedStateId?: string | null;
   isOpen: boolean;
   onToggle: () => void;
   showLauncher?: boolean;
 };
 
+type SortMode = "rank_asc" | "rank_desc" | "value_desc" | "value_asc";
+
+const SORT_MODE_LABEL: Record<SortMode, string> = {
+  rank_asc: "Rank ↑",
+  rank_desc: "Rank ↓",
+  value_desc: "Value ↓",
+  value_asc: "Value ↑",
+};
+
+function nextSortMode(current: SortMode): SortMode {
+  switch (current) {
+    case "rank_asc":
+      return "rank_desc";
+    case "rank_desc":
+      return "value_desc";
+    case "value_desc":
+      return "value_asc";
+    default:
+      return "rank_asc";
+  }
+}
+
+function escapeCsvCell(value: string): string {
+  if (!/[",\n\r]/.test(value)) return value;
+  return `"${value.replace(/"/g, "\"\"")}"`;
+}
+
+function sanitizeTsvCell(value: string): string {
+  return value.replace(/\t/g, " ").replace(/\r?\n/g, " ");
+}
+
+function slugifyMetricName(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "metric";
+}
+
 export function DataTablePanel({
   year,
   rows,
   metricName,
+  metricUnit,
   selectedStateId,
   isOpen,
   onToggle,
@@ -31,9 +73,42 @@ export function DataTablePanel({
 }: Props) {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const mobileExportRef = useRef<HTMLDivElement | null>(null);
+  const desktopExportRef = useRef<HTMLDivElement | null>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowCopyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("rank_asc");
+  const [activeExportMenu, setActiveExportMenu] = useState<"mobile" | "desktop" | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [copiedRowId, setCopiedRowId] = useState<string | null>(null);
 
-  const sortedRows = useMemo(() => rows, [rows]);
-  // Panel uses flex + max-height + overflow-y to ensure table content never spills outside the card.
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleRows = useMemo(() => {
+    const filtered = normalizedQuery
+      ? rows.filter((row) => row.stateName.toLowerCase().includes(normalizedQuery))
+      : rows;
+
+    return [...filtered].sort((a, b) => {
+      const compareNullable = (left: number | null, right: number | null, direction: "asc" | "desc") => {
+        if (left === null && right === null) return 0;
+        if (left === null) return 1;
+        if (right === null) return -1;
+        return direction === "asc" ? left - right : right - left;
+      };
+
+      if (sortMode === "rank_asc") {
+        return compareNullable(a.rank, b.rank, "asc") || a.stateName.localeCompare(b.stateName);
+      }
+      if (sortMode === "rank_desc") {
+        return compareNullable(a.rank, b.rank, "desc") || a.stateName.localeCompare(b.stateName);
+      }
+      if (sortMode === "value_desc") {
+        return compareNullable(a.value, b.value, "desc") || a.stateName.localeCompare(b.stateName);
+      }
+      return compareNullable(a.value, b.value, "asc") || a.stateName.localeCompare(b.stateName);
+    });
+  }, [normalizedQuery, rows, sortMode]);
 
   useEffect(() => {
     if (isOpen && headingRef.current) {
@@ -45,46 +120,311 @@ export function DataTablePanel({
     if (isOpen && selectedStateId && rowRefs.current[selectedStateId]) {
       rowRefs.current[selectedStateId]?.scrollIntoView({ block: "center", behavior: "smooth" });
     }
-  }, [isOpen, selectedStateId]);
+  }, [isOpen, selectedStateId, visibleRows]);
+
+  useEffect(() => {
+    if (!activeExportMenu) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      const withinMobile = mobileExportRef.current?.contains(target);
+      const withinDesktop = desktopExportRef.current?.contains(target);
+      if (!withinMobile && !withinDesktop) {
+        setActiveExportMenu(null);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveExportMenu(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeExportMenu]);
+
+  useEffect(
+    () => () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      if (rowCopyTimerRef.current) clearTimeout(rowCopyTimerRef.current);
+    },
+    [],
+  );
+
+  const handlePanelToggle = useCallback(() => {
+    setActiveExportMenu(null);
+    onToggle();
+  }, [onToggle]);
+
+  const secondaryLine = metricUnit ? `State values • ${metricUnit}` : "State values";
+  const metricLabel = metricName ?? "State values";
+
+  const showFeedback = useCallback((message: string) => {
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    setFeedbackMessage(message);
+    feedbackTimerRef.current = setTimeout(() => {
+      setFeedbackMessage(null);
+      feedbackTimerRef.current = null;
+    }, 1200);
+  }, []);
+
+  const buildCsvContent = useCallback(() => {
+    const header = ["rank", "state", "value_numeric", "value_display", "year", "metric"];
+    const lines = visibleRows.map((row) =>
+      [
+        row.rank === null ? "" : String(row.rank),
+        row.stateName,
+        row.value === null ? "" : String(row.value),
+        row.displayValue,
+        String(year),
+        metricLabel,
+      ]
+        .map(escapeCsvCell)
+        .join(","),
+    );
+    return [header.join(","), ...lines].join("\n");
+  }, [metricLabel, visibleRows, year]);
+
+  const buildTsvContent = useCallback(() => {
+    const header = ["rank", "state", "value_display", "year", "metric"];
+    const lines = visibleRows.map((row) =>
+      [
+        row.rank === null ? "" : String(row.rank),
+        row.stateName,
+        row.displayValue,
+        String(year),
+        metricLabel,
+      ]
+        .map(sanitizeTsvCell)
+        .join("\t"),
+    );
+    return [header.join("\t"), ...lines].join("\n");
+  }, [metricLabel, visibleRows, year]);
+
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsvContent();
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `statestats_${slugifyMetricName(metricLabel)}_${year}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setActiveExportMenu(null);
+  }, [buildCsvContent, metricLabel, year]);
+
+  const handleCopyAllTsv = useCallback(async () => {
+    const tsv = buildTsvContent();
+    try {
+      await navigator.clipboard.writeText(tsv);
+      showFeedback("Copied TSV");
+    } catch {
+      showFeedback("Clipboard unavailable");
+    }
+    setActiveExportMenu(null);
+  }, [buildTsvContent, showFeedback]);
+
+  const handleCopyRow = useCallback(
+    async (row: TableRow) => {
+      const total = visibleRows.length;
+      const rankLabel = row.rank === null ? "N/A" : String(row.rank);
+      const rowText = `${row.stateName} — ${row.displayValue} (Rank ${rankLabel}/${total}) • ${metricLabel} • ${year}`;
+      try {
+        await navigator.clipboard.writeText(rowText);
+        setCopiedRowId(row.stateId);
+        if (rowCopyTimerRef.current) clearTimeout(rowCopyTimerRef.current);
+        rowCopyTimerRef.current = setTimeout(() => {
+          setCopiedRowId(null);
+          rowCopyTimerRef.current = null;
+        }, 1200);
+      } catch {
+        showFeedback(`Couldn't copy ${row.stateName}`);
+      }
+    },
+    [metricLabel, showFeedback, visibleRows.length, year],
+  );
 
   return (
     <>
       {/* Mobile: inline section below the map */}
       <div className="w-full px-4 pb-10 pt-2 md:hidden">
-        <div className="w-full rounded-t-3xl bg-white shadow-md ring-1 ring-slate-200">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="w-full overflow-hidden rounded-t-3xl border border-slate-200/90 bg-white/95 shadow-lg">
+          <div className="border-b border-slate-200/80 px-4 py-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
-              <h2 className="text-base font-semibold text-slate-900">
-                {metricName ? `${metricName} for ${year}` : `Values for ${year}`}
-              </h2>
-              <p className="text-xs text-slate-500">Accessible table of state values</p>
+              <div className="mt-1 flex items-center gap-2">
+                <h2 className="min-w-0 truncate text-base font-semibold text-slate-900">
+                  {metricName ?? "State values"}
+                </h2>
+                <span className="flex-none rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white">
+                  {year}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{secondaryLine}</p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 border-b border-slate-200/80 px-4 py-2">
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">Search states</span>
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search state..."
+                className="w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setSortMode((current) => nextSortMode(current))}
+              className="inline-flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              aria-label={`Change sort order. Current sort is ${SORT_MODE_LABEL[sortMode]}`}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
+              <span className="tabular-nums">{SORT_MODE_LABEL[sortMode]}</span>
+            </button>
+            <div className="relative flex-none" ref={mobileExportRef}>
+              <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  className="px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                >
+                  Export
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveExportMenu((current) => (current === "mobile" ? null : "mobile"))
+                  }
+                  aria-label="Open export options"
+                  aria-haspopup="menu"
+                  aria-expanded={activeExportMenu === "mobile"}
+                  className="border-l border-slate-200 px-1.5 text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+                </button>
+              </div>
+              {activeExportMenu === "mobile" ? (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+0.5rem)] z-20 w-40 rounded-xl border border-slate-200 bg-white p-1 shadow-lg"
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" || event.key === "Tab") {
+                      setActiveExportMenu(null);
+                    }
+                  }}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleExportCsv}
+                    className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleCopyAllTsv}
+                    className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  >
+                    Copy all as TSV
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
           <div className="max-h-[60vh] overflow-y-auto">
-            <table className="min-w-full text-left text-sm">
+            <table className="w-full table-fixed text-left text-sm">
               <caption className="sr-only">State values for {year}</caption>
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-3 py-2">Rank</th>
-                  <th className="px-3 py-2">State</th>
-                  <th className="px-3 py-2">Value</th>
+              <thead className="sticky top-0 z-10 bg-white/90 text-slate-600 backdrop-blur-sm">
+                <tr className="border-b border-slate-200/80 text-[11px] font-semibold uppercase tracking-[0.12em]">
+                  <th className="w-14 px-3 py-2 text-left">Rank</th>
+                  <th className="px-3 py-2 text-left">State</th>
+                  <th className="w-24 px-3 py-2 text-right">Value</th>
+                  <th className="w-10 px-1 py-2 text-right">
+                    <span className="sr-only">Copy row</span>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {sortedRows.map((row) => {
+              <tbody className="divide-y divide-slate-100/80">
+                {visibleRows.map((row, index) => {
                   const isSelected = row.stateId === selectedStateId;
+                  const rankBadgeTone =
+                    row.rank === 1
+                      ? "bg-emerald-100 text-emerald-700"
+                      : row.rank === 2
+                        ? "bg-slate-200 text-slate-700"
+                        : row.rank === 3
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-slate-100 text-slate-600";
+
                   return (
                     <tr
                       key={row.stateId}
-                      className={`hover:bg-slate-50 ${isSelected ? "bg-[color:var(--ss-green-light)]" : ""}`}
+                      className={`transition-colors ${
+                        isSelected
+                          ? "bg-emerald-50/90 hover:bg-emerald-50"
+                          : index % 2 === 0
+                            ? "bg-white/80 hover:bg-slate-100/70"
+                            : "bg-slate-50/45 hover:bg-slate-100/70"
+                      } group`}
                     >
-                      <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
-                      <td className="px-3 py-2 text-slate-900">{row.stateName}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.displayValue}</td>
+                      <td
+                        className={`border-l-2 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                          isSelected ? "border-emerald-500" : "border-transparent"
+                        }`}
+                      >
+                        {typeof row.rank === "number" ? (
+                          <span className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 font-medium ${rankBadgeTone}`}>
+                            {row.rank}
+                          </span>
+                        ) : (
+                          "–"
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
+                      </td>
+                      <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-800">{row.displayValue}</td>
+                      <td className="px-1 py-2 text-right">
+                        <button
+                          type="button"
+                          aria-label={`Copy row for ${row.stateName}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void handleCopyRow(row);
+                          }}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-slate-500 transition hover:border-slate-200 hover:bg-white/80 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                        >
+                          {copiedRowId === row.stateId ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" aria-hidden />
+                          )}
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
+                {visibleRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-8 text-center text-sm text-slate-500">
+                      No states match your search.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>
@@ -96,9 +436,9 @@ export function DataTablePanel({
         {!isOpen && showLauncher ? (
           <button
             type="button"
-            onClick={onToggle}
+            onClick={handlePanelToggle}
             aria-expanded={isOpen}
-            className="pointer-events-auto mb-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-lg ring-1 ring-slate-200 hover:bg-slate-50 cursor-pointer"
+            className="pointer-events-auto mb-2 rounded-full border border-slate-200/90 bg-white/85 px-3 py-2 text-xs font-medium text-slate-700 shadow-lg backdrop-blur-sm ring-1 ring-slate-100 hover:bg-white cursor-pointer"
           >
             Data table ▸
           </button>
@@ -106,55 +446,193 @@ export function DataTablePanel({
 
         {isOpen ? (
           <div className="pointer-events-auto w-[360px] max-h-[calc(100vh-32px)]">
-            <div className="flex h-full max-h-[calc(100vh-32px)] flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
-              <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
-                <h2
-                  ref={headingRef}
-                  tabIndex={-1}
-                  className="text-lg font-semibold text-slate-900 focus:outline-none"
-                >
-                  {metricName ? `${metricName} for ${year}` : `Values for ${year}`}
-                </h2>
-                <p className="text-xs text-slate-500">Accessible table of state values</p>
+            <div className="flex h-full max-h-[calc(100vh-32px)] flex-col overflow-hidden rounded-3xl border border-white/45 bg-white/86 shadow-[0_18px_40px_rgba(15,23,42,0.22)] backdrop-blur-xl ring-1 ring-slate-200/70">
+              <div className="border-b border-slate-200/75 px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Data table</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <h2
+                        ref={headingRef}
+                        tabIndex={-1}
+                        className="min-w-0 truncate text-lg font-semibold text-slate-900 focus:outline-none"
+                      >
+                        {metricName ?? "State values"}
+                      </h2>
+                      <span className="flex-none rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white">
+                        {year}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">{secondaryLine}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePanelToggle}
+                    aria-label="Close data table"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 shadow-sm transition-colors hover:bg-white hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 cursor-pointer"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={onToggle}
-                aria-label="Close data table"
-                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-              <div className="max-h-[calc(100vh-120px)] overflow-y-auto">
-                <table className="min-w-full text-left text-sm">
+
+              <div className="flex items-center gap-2 border-b border-slate-200/75 px-4 py-2">
+                <label className="relative min-w-0 flex-1">
+                  <span className="sr-only">Search states</span>
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" aria-hidden />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search state..."
+                    className="w-full rounded-lg border border-slate-200 bg-white/90 pl-8 pr-2 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setSortMode((current) => nextSortMode(current))}
+                  className="inline-flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  aria-label={`Change sort order. Current sort is ${SORT_MODE_LABEL[sortMode]}`}
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
+                  <span className="tabular-nums">{SORT_MODE_LABEL[sortMode]}</span>
+                </button>
+                <div className="relative flex-none" ref={desktopExportRef}>
+                  <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white/90 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={handleExportCsv}
+                      className="px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                    >
+                      Export
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveExportMenu((current) => (current === "desktop" ? null : "desktop"))
+                      }
+                      aria-label="Open export options"
+                      aria-haspopup="menu"
+                      aria-expanded={activeExportMenu === "desktop"}
+                      className="border-l border-slate-200 px-1.5 text-slate-600 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </div>
+                  {activeExportMenu === "desktop" ? (
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-[calc(100%+0.5rem)] z-20 w-40 rounded-xl border border-slate-200 bg-white p-1 shadow-lg"
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape" || event.key === "Tab") {
+                          setActiveExportMenu(null);
+                        }
+                      }}
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleExportCsv}
+                        className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                      >
+                        Export CSV
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleCopyAllTsv}
+                        className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                      >
+                        Copy all as TSV
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <table className="w-full table-fixed text-left text-sm">
                   <caption className="sr-only">State values for {year}</caption>
-                  <thead className="bg-slate-50 text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2">Rank</th>
-                      <th className="px-3 py-2">State</th>
-                      <th className="px-3 py-2">Value</th>
+                  <thead className="sticky top-0 z-10 bg-white/90 text-slate-600 backdrop-blur-sm">
+                    <tr className="border-b border-slate-200/80 text-[11px] font-semibold uppercase tracking-[0.12em]">
+                      <th className="w-14 px-3 py-2 text-left">Rank</th>
+                      <th className="px-3 py-2 text-left">State</th>
+                      <th className="w-24 px-3 py-2 text-right">Value</th>
+                      <th className="w-10 px-1 py-2 text-right">
+                        <span className="sr-only">Copy row</span>
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {sortedRows.map((row) => {
+                  <tbody className="divide-y divide-slate-100/80">
+                    {visibleRows.map((row, index) => {
                       const isSelected = row.stateId === selectedStateId;
+                      const rankBadgeTone =
+                        row.rank === 1
+                          ? "bg-emerald-100 text-emerald-700"
+                          : row.rank === 2
+                            ? "bg-slate-200 text-slate-700"
+                            : row.rank === 3
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-slate-100 text-slate-600";
+
                       return (
                         <tr
                           key={row.stateId}
                           ref={(el) => {
                             rowRefs.current[row.stateId] = el;
                           }}
-                          className={`hover:bg-slate-50 ${isSelected ? "bg-[color:var(--ss-green-light)]" : ""}`}
+                          className={`transition-colors ${
+                            isSelected
+                              ? "bg-emerald-50/90 hover:bg-emerald-50"
+                              : index % 2 === 0
+                                ? "bg-white/80 hover:bg-slate-100/70"
+                                : "bg-slate-50/45 hover:bg-slate-100/70"
+                          } group`}
                         >
-                          <td className="px-3 py-2 text-slate-700">{row.rank ?? "–"}</td>
-                          <td className="px-3 py-2 text-slate-900">{row.stateName}</td>
-                          <td className="px-3 py-2 text-slate-700">{row.displayValue}</td>
+                          <td
+                            className={`border-l-2 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                              isSelected ? "border-emerald-500" : "border-transparent"
+                            }`}
+                          >
+                            {typeof row.rank === "number" ? (
+                              <span className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 font-medium ${rankBadgeTone}`}>
+                                {row.rank}
+                              </span>
+                            ) : (
+                              "–"
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
+                          </td>
+                          <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-800">{row.displayValue}</td>
+                          <td className="px-1 py-2 text-right">
+                            <button
+                              type="button"
+                              aria-label={`Copy row for ${row.stateName}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleCopyRow(row);
+                              }}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-slate-500 opacity-100 transition hover:border-slate-200 hover:bg-white/80 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100"
+                            >
+                              {copiedRowId === row.stateId ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" aria-hidden />
+                              )}
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
+                    {visibleRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-3 py-8 text-center text-sm text-slate-500">
+                          No states match your search.
+                        </td>
+                      </tr>
+                    ) : null}
                   </tbody>
                 </table>
               </div>
@@ -162,6 +640,11 @@ export function DataTablePanel({
           </div>
         ) : null}
       </div>
+      {feedbackMessage ? (
+        <div className="pointer-events-none fixed bottom-4 right-4 z-50 rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-lg backdrop-blur-sm">
+          {feedbackMessage}
+        </div>
+      ) : null}
     </>
   );
 }

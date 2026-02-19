@@ -547,6 +547,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             <DataTablePanel
               year={selectedYear}
               metricName={selectedMetric?.name}
+              metricUnit={selectedMetric?.unit}
               rows={tableRows.map((row) => ({
                 rank: row.rank ?? null,
                 stateId: row.id,
@@ -566,6 +567,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           <DataTablePanel
             year={selectedYear}
             metricName={selectedMetric?.name}
+            metricUnit={selectedMetric?.unit}
             rows={tableRows.map((row) => ({
               rank: row.rank ?? null,
               stateId: row.id,
