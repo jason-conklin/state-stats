@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
@@ -15,12 +16,37 @@ type Props = {
   navLinks: NavLink[];
   statusText: string;
   collapsed: boolean;
-  onToggleCollapse: () => void;
+  onSetCollapsed: (next: boolean) => void;
 };
 
-export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: Props) {
+export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Props) {
   const pathname = usePathname();
   const router = useRouter();
+  const hoverDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  const clearHoverDelay = useCallback(() => {
+    if (!hoverDelayTimerRef.current) return;
+    clearTimeout(hoverDelayTimerRef.current);
+    hoverDelayTimerRef.current = null;
+  }, []);
+
+  const scheduleCollapseState = useCallback(
+    (next: boolean, delayMs = 100) => {
+      clearHoverDelay();
+      hoverDelayTimerRef.current = setTimeout(() => {
+        onSetCollapsed(next);
+      }, delayMs);
+    },
+    [clearHoverDelay, onSetCollapsed],
+  );
+
+  const supportsDesktopHover = useCallback(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  }, []);
+
+  useEffect(() => () => clearHoverDelay(), [clearHoverDelay]);
 
   const iconByHref: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
     "/": MapIcon,
@@ -31,31 +57,27 @@ export function Sidebar({ navLinks, statusText, collapsed, onToggleCollapse }: P
 
   const content = (
     <aside
+      ref={rootRef}
       className={`relative flex h-full flex-col border-r border-blue-900 bg-blue-950 shadow-sm transition-all duration-200 ${
         collapsed ? "w-20" : "w-64"
-      }`}
+      } motion-reduce:transition-none`}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "mouse" || !supportsDesktopHover()) return;
+        scheduleCollapseState(false, 100);
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType !== "mouse" || !supportsDesktopHover()) return;
+        scheduleCollapseState(true, 120);
+      }}
+      onFocusCapture={() => {
+        scheduleCollapseState(false, 0);
+      }}
+      onBlurCapture={(event) => {
+        const nextFocused = event.relatedTarget as Node | null;
+        if (nextFocused && rootRef.current?.contains(nextFocused)) return;
+        scheduleCollapseState(true, 120);
+      }}
     >
-      {/* Floating toggle tab */}
-      <button
-        type="button"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className={`absolute top-5 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-blue-700 bg-blue-900 text-blue-100 shadow-md transition-transform duration-200 hover:bg-blue-800 hover:text-white cursor-pointer ${
-          collapsed ? "right-[-16px]" : "right-[-12px]"
-        }`}
-        onClick={onToggleCollapse}
-      >
-        <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-          <path
-            d={collapsed ? "M9 6l6 6-6 6" : "M15 6l-6 6 6 6"}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-
       <div className={`flex h-full flex-col ${collapsed ? "items-center pt-4" : "items-stretch pt-4"}`}>
         {/* Logo row */}
         {collapsed ? (

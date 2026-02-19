@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function AppShell({ children, navLinks, statusText }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   // Emit sidebar toggle events after state commits to avoid cross-render setState warnings.
   useEffect(() => {
@@ -40,7 +40,7 @@ export function AppShell({ children, navLinks, statusText }: Props) {
         navLinks={navLinks}
         statusText={statusText}
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed((v) => !v)}
+        onSetCollapsed={setCollapsed}
       />
 
       <main className="relative flex-1 overflow-y-auto pt-12 sm:pt-0">
