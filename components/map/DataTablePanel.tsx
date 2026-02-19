@@ -373,8 +373,8 @@ export function DataTablePanel({
                         : row.rank === 3
                           ? "bg-amber-100 text-amber-700"
                           : "bg-slate-100 text-slate-600";
-                  const rowBaseBgClass = isSelected ? "bg-emerald-50" : index % 2 === 0 ? "bg-white" : "bg-slate-100";
-                  const rowHoverBgClass = isSelected ? "group-hover:bg-emerald-50" : "group-hover:bg-slate-200/70";
+                  const rowBaseBgColor = isSelected ? "#ecfdf5" : index % 2 === 0 ? "#ffffff" : "#e2e8f0";
+                  const rowHoverBgClass = isSelected ? "group-hover:!bg-emerald-50" : "group-hover:!bg-slate-200";
 
                   return (
                     <tr
@@ -382,9 +382,10 @@ export function DataTablePanel({
                       className="group border-b border-slate-100 transition-colors duration-150"
                     >
                       <td
-                        className={`${rowBaseBgClass} ${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                        className={`${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 transition-colors duration-150 ${
                           isSelected ? "border-emerald-500" : "border-transparent"
                         }`}
+                        style={{ backgroundColor: rowBaseBgColor }}
                       >
                         {typeof row.rank === "number" ? (
                           <span className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 font-medium ${rankBadgeTone}`}>
@@ -394,11 +395,11 @@ export function DataTablePanel({
                           "–"
                         )}
                       </td>
-                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2`}>
+                      <td className={`${rowHoverBgClass} px-3 py-2 transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>
                         <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
                       </td>
-                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800`}>{row.displayValue}</td>
-                      <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-1 py-2 text-right`}>
+                      <td className={`${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800 transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>{row.displayValue}</td>
+                      <td className={`${rowHoverBgClass} px-1 py-2 text-right transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>
                         <button
                           type="button"
                           aria-label={`Copy row for ${row.stateName}`}
@@ -583,8 +584,8 @@ export function DataTablePanel({
                             : row.rank === 3
                               ? "bg-amber-100 text-amber-700"
                               : "bg-slate-100 text-slate-600";
-                      const rowBaseBgClass = isSelected ? "bg-emerald-50" : index % 2 === 0 ? "bg-white" : "bg-slate-100";
-                      const rowHoverBgClass = isSelected ? "group-hover:bg-emerald-50" : "group-hover:bg-slate-200/70";
+                      const rowBaseBgColor = isSelected ? "#ecfdf5" : index % 2 === 0 ? "#ffffff" : "#e2e8f0";
+                      const rowHoverBgClass = isSelected ? "group-hover:!bg-emerald-50" : "group-hover:!bg-slate-200";
 
                       return (
                         <tr
@@ -595,9 +596,10 @@ export function DataTablePanel({
                           className="group border-b border-slate-100 transition-colors duration-150"
                         >
                           <td
-                            className={`${rowBaseBgClass} ${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 ${
+                            className={`${rowHoverBgClass} border-l-4 px-3 py-2 text-xs tabular-nums text-slate-500 transition-colors duration-150 ${
                               isSelected ? "border-emerald-500" : "border-transparent"
                             }`}
+                            style={{ backgroundColor: rowBaseBgColor }}
                           >
                             {typeof row.rank === "number" ? (
                               <span className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 font-medium ${rankBadgeTone}`}>
@@ -607,11 +609,11 @@ export function DataTablePanel({
                               "–"
                             )}
                           </td>
-                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2`}>
+                          <td className={`${rowHoverBgClass} px-3 py-2 transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>
                             <span className="block truncate font-medium text-slate-900">{row.stateName}</span>
                           </td>
-                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800`}>{row.displayValue}</td>
-                          <td className={`${rowBaseBgClass} ${rowHoverBgClass} px-1 py-2 text-right`}>
+                          <td className={`${rowHoverBgClass} px-3 py-2 text-right font-semibold tabular-nums text-slate-800 transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>{row.displayValue}</td>
+                          <td className={`${rowHoverBgClass} px-1 py-2 text-right transition-colors duration-150`} style={{ backgroundColor: rowBaseBgColor }}>
                             <button
                               type="button"
                               aria-label={`Copy row for ${row.stateName}`}
