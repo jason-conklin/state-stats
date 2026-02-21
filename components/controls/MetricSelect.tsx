@@ -373,12 +373,12 @@ export function MetricSelect({
           }}
           className={
             isStealth
-              ? `group inline-flex w-full items-center justify-between gap-1.5 rounded-lg border text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+              ? `group inline-flex w-full cursor-pointer items-center justify-between gap-1.5 rounded-lg border text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
                   isOpen
                     ? "border-slate-200/80 bg-slate-900/5 px-2 py-1"
                     : "border-transparent bg-transparent px-1 py-0.5 hover:border-slate-200/80 hover:bg-slate-900/5 hover:px-2 hover:py-1 focus-visible:border-slate-200/80 focus-visible:bg-slate-900/5 focus-visible:px-2 focus-visible:py-1"
                 }`
-              : "group flex w-full items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-left shadow-[0_6px_16px_rgba(0,0,0,0.07)] backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70"
+              : "group flex w-full cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 text-left shadow-[0_6px_16px_rgba(0,0,0,0.07)] backdrop-blur-sm transition-colors duration-150 hover:border-slate-300 hover:bg-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70"
           }
         >
           <span className="min-w-0">
