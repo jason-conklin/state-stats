@@ -1,6 +1,7 @@
 "use client";
 
 import { Feature, Geometry } from "geojson";
+import { EyeOff, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Legend } from "./Legend";
@@ -413,12 +414,13 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   <button
                     type="button"
                     onClick={() => setTableOpen(!isTableOpen)}
-                    className={`hidden flex-none cursor-pointer items-center rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
+                    className={`hidden flex-none cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
                       isTableOpen
                         ? "border-slate-300 bg-gradient-to-b from-slate-100 to-slate-200/70 text-slate-800 hover:from-slate-100 hover:to-slate-200 active:to-slate-200/90"
                         : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-700 hover:from-white hover:to-slate-100 active:to-slate-100"
                     }`}
                   >
+                    {isTableOpen ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Table2 className="h-4 w-4 shrink-0" aria-hidden />}
                     {isTableOpen ? "Hide table" : "Data table"}
                   </button>
                 </div>
