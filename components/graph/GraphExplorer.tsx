@@ -91,6 +91,8 @@ type ChartContainerProps = {
   chartData: ChartDataRow[];
   selectedStateIds: string[];
   states: StateInfo[];
+  metricUnit?: string | null;
+  normalization: "raw" | "indexed";
 };
 
 const ChartContainer = dynamic<ChartContainerProps>(
@@ -372,8 +374,14 @@ export function GraphExplorer({
             No data available for this metric.
           </div>
         ) : (
-          <div className="mt-4 h-[420px] w-full overflow-x-auto">
-            <ChartContainer chartData={chartData} selectedStateIds={selectedStateIds} states={states} />
+          <div className="mt-4 h-[420px] w-full min-w-0">
+            <ChartContainer
+              chartData={chartData}
+              selectedStateIds={selectedStateIds}
+              states={states}
+              metricUnit={selectedMetric?.unit}
+              normalization={normalization}
+            />
           </div>
         )}
 

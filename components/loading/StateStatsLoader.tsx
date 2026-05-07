@@ -12,7 +12,7 @@ const ANIMATION_FRAMES = [
 ] as const;
 
 const FULL_LOGO_FRAME = "/statestats_logo.png";
-const FRAME_INTERVAL_MS = 150;
+const FRAME_INTERVAL_MS = 110;
 
 type Props = {
   visible?: boolean;

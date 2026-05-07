@@ -48,6 +48,11 @@ body {
   opacity: 0.55;
 }
 
+.ss-year-slider-touch {
+  height: 1.75rem;
+  touch-action: pan-y;
+}
+
 .ss-year-slider::-webkit-slider-runnable-track {
   height: var(--ss-track);
   border-radius: 9999px;

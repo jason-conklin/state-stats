@@ -1,10 +1,16 @@
 "use client";
 
 import type { TooltipProps } from "recharts";
+import { formatMetricValue } from "@/lib/format";
 
 type NumericPayload = NonNullable<TooltipProps<number, string>["payload"]>[number];
 
-export function TooltipContent({ payload, label }: TooltipProps<number, string>) {
+type Props = TooltipProps<number, string> & {
+  metricUnit?: string | null;
+  normalization: "raw" | "indexed";
+};
+
+export function TooltipContent({ payload, label, metricUnit, normalization }: Props) {
   const safePayload = (payload ?? []) as NumericPayload[];
   if (!safePayload || safePayload.length === 0) return null;
   return (
@@ -19,7 +25,11 @@ export function TooltipContent({ payload, label }: TooltipProps<number, string>)
               aria-hidden
             />
             <span className="font-medium">{entry.name}</span>
-            <span className="text-slate-500">{entry.value ?? "–"}</span>
+            <span className="text-slate-500">
+              {entry.value === null || entry.value === undefined
+                ? "–"
+                : formatMetricValue(entry.value, metricUnit ?? undefined, { mode: normalization })}
+            </span>
           </li>
         ))}
       </ul>
