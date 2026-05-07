@@ -1,11 +1,12 @@
 "use client";
 
 import { Feature, Geometry } from "geojson";
-import { EyeOff, Table2 } from "lucide-react";
+import { EyeOff, RotateCcw, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Legend } from "./Legend";
 import { USChoropleth } from "./USChoropleth";
+import { useMapZoom } from "./useMapZoom";
 import { createContinuousColorScale, createQuantizeColorScale } from "@/lib/mapScales";
 import { formatMetricValue } from "@/lib/format";
 import { StateInfo } from "@/lib/types";
@@ -95,6 +96,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [mapContainerWidth, setMapContainerWidth] = useState(0);
   const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 240 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
@@ -102,6 +104,19 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     offsetX: 0,
     offsetY: 0,
   });
+  const {
+    transform: mapTransform,
+    hasFinePointer,
+    isPanning: isMapPanning,
+    isZoomed,
+    reset: resetMapZoom,
+    handleWheel: handleMapWheel,
+    handlePointerDown: handleMapPointerDown,
+    handlePointerMove: handleMapPointerMove,
+    handlePointerUp: handleMapPointerUp,
+    handlePointerCancel: handleMapPointerCancel,
+    consumeClickSuppressed,
+  } = useMapZoom({ containerRef: mapContainerRef });
 
   const selectedMetric = metricMap.get(selectedMetricId) ?? metrics[0];
   const yearMin = selectedMetric?.minYear ?? selectedMetric?.years[0] ?? selectedYear ?? 0;
@@ -173,6 +188,30 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     return { state, value, rank };
   }, [pinnedStateId, states, valuesByStateId, rankByStateId]);
 
+  const tooltipStyle = useMemo(() => {
+    if (!tooltipContent) return null;
+
+    const edgePadding = 8;
+    const defaultOffset = 8;
+    const top = tooltipContent.position.y + defaultOffset;
+    let left = tooltipContent.position.x + defaultOffset;
+
+    if (!mapContainerWidth || mapContainerWidth >= 640) {
+      return { left, top };
+    }
+
+    const tooltipWidth = 176;
+    const rightEdge = left + tooltipWidth;
+    if (rightEdge > mapContainerWidth - edgePadding) {
+      left = Math.max(edgePadding, tooltipContent.position.x - tooltipWidth - defaultOffset);
+    }
+
+    const maxLeft = Math.max(edgePadding, mapContainerWidth - tooltipWidth - edgePadding);
+    left = Math.min(left, maxLeft);
+
+    return { left, top };
+  }, [mapContainerWidth, tooltipContent]);
+
   const tableRows = useMemo(() => {
     return states
       .map((state) => ({
@@ -234,6 +273,24 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
+  }, []);
+
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    const updateWidth = () => {
+      setMapContainerWidth((current) => {
+        const nextWidth = Math.round(container.getBoundingClientRect().width);
+        return current === nextWidth ? current : nextWidth;
+      });
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(container);
+
+    return () => observer.disconnect();
   }, []);
 
   const startDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -471,8 +528,30 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   }}
                   onClick={(stateId) => handleStateClick(stateId)}
                   selectedYear={selectedYear}
+                  transform={mapTransform}
+                  isPanning={isMapPanning}
+                  onWheel={handleMapWheel}
+                  onPointerDown={(event) => {
+                    setHovered(null);
+                    handleMapPointerDown(event);
+                  }}
+                  onPointerMove={handleMapPointerMove}
+                  onPointerUp={handleMapPointerUp}
+                  onPointerCancel={handleMapPointerCancel}
+                  consumeClickSuppressed={consumeClickSuppressed}
                 />
               </div>
+            ) : null}
+
+            {hasFinePointer && isZoomed ? (
+              <button
+                type="button"
+                onClick={resetMapZoom}
+                className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white/92 px-3 py-2 text-xs font-medium text-slate-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent"
+              >
+                <RotateCcw className="h-4 w-4 shrink-0" aria-hidden />
+                Reset view
+              </button>
             ) : null}
 
             <div
@@ -490,13 +569,10 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               </span>
             </div>
 
-            {tooltipContent ? (
+            {tooltipContent && tooltipStyle ? (
               <div
                 className="pointer-events-none absolute z-20 w-44 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-150 ease-out sm:w-56"
-                style={{
-                  left: tooltipContent.position.x + 8,
-                  top: tooltipContent.position.y + 8,
-                }}
+                style={tooltipStyle}
               >
                 <p className="text-base font-semibold text-slate-900">{tooltipContent.stateName}</p>
                 <p className="mt-1 text-lg font-bold text-emerald-700">
@@ -541,7 +617,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             </div>
 
             {/* Pinned */}
-              <div className="pointer-events-auto absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
+              <div className="pointer-events-auto absolute bottom-16 right-2 sm:bottom-4 sm:right-4 z-10 max-w-full">
                 {pinnedCard && pinnedCard.state ? (
                   <div className="flex w-36 sm:w-64 flex-col gap-1 rounded-lg border border-[color:var(--ss-green-mid)]/30 bg-white/95 p-1.5 sm:p-3 shadow-md backdrop-blur text-[9px] sm:text-xs">
                     <div className="flex items-start justify-between gap-1">

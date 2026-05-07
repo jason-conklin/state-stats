@@ -2,8 +2,10 @@
 
 import { geoAlbersUsa, geoPath, GeoPermissibleObjects } from "d3-geo";
 import { Feature, FeatureCollection, Geometry } from "geojson";
+import type { MouseEvent, PointerEventHandler, WheelEventHandler } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NEUTRAL_COLOR } from "@/lib/mapScales";
+import type { MapTransform } from "./useMapZoom";
 
 type Props = {
   features: Feature<Geometry, { stateId?: string; name?: string; abbreviation?: string }>[];
@@ -14,6 +16,14 @@ type Props = {
   selectedYear: number;
   hoveredStateId?: string | null;
   pinnedStateId?: string | null;
+  transform?: MapTransform;
+  isPanning?: boolean;
+  onWheel?: WheelEventHandler<SVGSVGElement>;
+  onPointerDown?: PointerEventHandler<SVGSVGElement>;
+  onPointerMove?: PointerEventHandler<SVGSVGElement>;
+  onPointerUp?: PointerEventHandler<SVGSVGElement>;
+  onPointerCancel?: PointerEventHandler<SVGSVGElement>;
+  consumeClickSuppressed?: () => boolean;
 };
 
 export function USChoropleth({
@@ -25,6 +35,14 @@ export function USChoropleth({
   selectedYear,
   hoveredStateId,
   pinnedStateId,
+  transform,
+  isPanning = false,
+  onWheel,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+  consumeClickSuppressed,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [viewport, setViewport] = useState({ width: 960, height: 560 });
@@ -95,7 +113,13 @@ export function USChoropleth({
     return null;
   }
 
-  const handleMouseEnter = (stateId: string | null) => (event: React.MouseEvent<SVGPathElement>) => {
+  const mapTransform = transform ?? { scale: 1, x: 0, y: 0 };
+
+  const handleMouseEnter = (stateId: string | null) => (event: MouseEvent<SVGPathElement>) => {
+    if (isPanning) {
+      onHover(null);
+      return;
+    }
     const rect = (event.currentTarget.ownerSVGElement as SVGSVGElement)?.getBoundingClientRect();
     const position = rect
       ? {
@@ -117,39 +141,58 @@ export function USChoropleth({
         aria-label={`Choropleth map of U.S. states for year ${selectedYear}`}
         className="h-full w-full"
         preserveAspectRatio={preserveAspectRatio}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
       >
         <rect width="100%" height="100%" fill="transparent" />
-        {features.map((feat) => {
-          const stateId = (feat.id as string) ?? feat.properties?.stateId ?? "";
-          const value = valuesByStateId[stateId] ?? null;
-          const fill = colorScale(value);
-          const d = path(feat) ?? undefined;
-          const isHighlighted = stateId === hoveredStateId || stateId === pinnedStateId;
+        <g
+          transform={`translate(${mapTransform.x} ${mapTransform.y}) scale(${mapTransform.scale})`}
+          className="[will-change:transform]"
+        >
+          {features.map((feat) => {
+            const stateId = (feat.id as string) ?? feat.properties?.stateId ?? "";
+            const value = valuesByStateId[stateId] ?? null;
+            const fill = colorScale(value);
+            const d = path(feat) ?? undefined;
+            const isHighlighted = stateId === hoveredStateId || stateId === pinnedStateId;
 
-          return (
-            <path
-              key={stateId}
-              d={d}
-              fill={fill}
-              stroke={isHighlighted ? "#ffffff" : "#e1e7ea"}
-              strokeWidth={isHighlighted ? 1.5 : 0.7}
-              onMouseEnter={handleMouseEnter(stateId)}
-              onMouseMove={handleMouseEnter(stateId)}
-              onMouseLeave={handleMouseEnter(null)}
-              onClick={() => onClick(stateId)}
-              className="cursor-pointer transition-[fill] duration-200 ease-out"
-              tabIndex={0}
-              role="button"
-              aria-label={`${feat.properties?.name ?? stateId}: ${value ?? "No data"}`}
-            />
-          );
-        })}
-        <path
-          d={path({ type: "Sphere" } as GeoPermissibleObjects) ?? undefined}
-          fill="none"
-          stroke={NEUTRAL_COLOR}
-          strokeWidth={0.5}
-        />
+            return (
+              <path
+                key={stateId}
+                d={d}
+                fill={fill}
+                stroke={isHighlighted ? "#ffffff" : "#e1e7ea"}
+                strokeWidth={isHighlighted ? 1.5 : 0.7}
+                vectorEffect="non-scaling-stroke"
+                onMouseEnter={handleMouseEnter(stateId)}
+                onMouseMove={handleMouseEnter(stateId)}
+                onMouseLeave={handleMouseEnter(null)}
+                onClick={() => {
+                  if (consumeClickSuppressed?.()) {
+                    return;
+                  }
+                  onClick(stateId);
+                }}
+                className={`outline-none focus:outline-none focus-visible:outline-none transition-[fill] duration-200 ease-out ${
+                  mapTransform.scale > 1.01 ? (isPanning ? "cursor-grabbing" : "cursor-grab") : "cursor-pointer"
+                }`}
+                tabIndex={0}
+                role="button"
+                aria-label={`${feat.properties?.name ?? stateId}: ${value ?? "No data"}`}
+              />
+            );
+          })}
+          <path
+            d={path({ type: "Sphere" } as GeoPermissibleObjects) ?? undefined}
+            fill="none"
+            stroke={NEUTRAL_COLOR}
+            strokeWidth={0.5}
+            vectorEffect="non-scaling-stroke"
+          />
+        </g>
       </svg>
     </div>
   );
