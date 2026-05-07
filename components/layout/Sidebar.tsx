@@ -79,7 +79,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
         scheduleCollapseState(true, 120);
       }}
     >
-      <div className={`flex h-full flex-col ${collapsed ? "items-center pt-4" : "items-stretch pt-4"}`}>
+      <div className={`flex h-full flex-col ${collapsed ? "items-center pt-5" : "items-stretch pt-4"}`}>
         {/* Logo row */}
         {collapsed ? (
           <button
