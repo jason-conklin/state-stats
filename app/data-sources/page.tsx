@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "StateStats - Data Sources",
 };
 
+const SOURCE_LINK_OVERRIDES: Record<string, string> = {
+  census_acs: "https://www.census.gov/programs-surveys/acs.html",
+  bls_laus: "https://www.bls.gov/lau/",
+};
+
 export default async function DataSourcesPage() {
   const dataSources = await prisma.dataSource.findMany({
     include: {
@@ -115,13 +120,25 @@ export default async function DataSourcesPage() {
                   <td className="px-4 py-3 text-slate-700 md:text-slate-300">{metric.unit}</td>
                   <td className="px-4 py-3 text-slate-700 md:text-slate-300">
                     {metric.source ? (
-                      <a
-                        className="text-[color:var(--ss-green)] hover:underline"
-                        href={`#source-${metric.sourceId}`}
-                        title={metric.source.name}
-                      >
-                        {metric.source.name}
-                      </a>
+                      (() => {
+                        const sourceLink =
+                          SOURCE_LINK_OVERRIDES[metric.sourceId] ??
+                          metric.source.homepageUrl ??
+                          `#source-${metric.sourceId}`;
+                        const isExternal = sourceLink.startsWith("http");
+
+                        return (
+                          <a
+                            className="text-[color:var(--ss-green)] hover:underline"
+                            href={sourceLink}
+                            title={metric.source.name}
+                            target={isExternal ? "_blank" : undefined}
+                            rel={isExternal ? "noreferrer" : undefined}
+                          >
+                            {metric.source.name}
+                          </a>
+                        );
+                      })()
                     ) : (
                       "—"
                     )}
