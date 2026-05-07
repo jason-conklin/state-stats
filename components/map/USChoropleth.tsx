@@ -143,7 +143,7 @@ export function USChoropleth({
   };
   const [pacificLabelX, pacificLabelY] = getProjectedPoint(-127.2, 35.6, viewport.width * 0.08, viewport.height * 0.39);
   const [atlanticLabelX, atlanticLabelY] = getProjectedPoint(-67.8, 36.2, viewport.width * 0.93, viewport.height * 0.4);
-  const [gulfLabelX, gulfLabelY] = getProjectedPoint(-82.1, 23.2, viewport.width * 0.62, viewport.height * 0.86);
+  const [gulfLabelX, gulfLabelY] = getProjectedPoint(-92.1, 21.6, viewport.width * 0.62, viewport.height * 0.9);
 
   return (
     <div className="relative h-full w-full">
