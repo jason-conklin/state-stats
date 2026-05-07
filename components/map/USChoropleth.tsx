@@ -49,15 +49,18 @@ export function USChoropleth({
   const { path, projection } = useMemo(() => {
     const projection = geoAlbersUsa();
     const { width, height } = viewport;
+    const isMobileViewport = width < 640;
     const padding = Math.max(12, Math.min(24, Math.round(Math.min(width, height) * 0.03)));
     const fallbackProjection = () =>
       projection.scale(Math.min(width, height) * 2.15).translate([Math.round(width / 2), Math.round(height / 2)]);
+
+    let collection: FeatureCollection<Geometry> | null = null;
 
     if (!features.length) {
       fallbackProjection();
     } else {
       try {
-        const collection = { type: "FeatureCollection", features } as FeatureCollection<Geometry>;
+        collection = { type: "FeatureCollection", features } as FeatureCollection<Geometry>;
         projection.fitExtent(
           [
             [padding, padding],
@@ -70,7 +73,20 @@ export function USChoropleth({
       }
     }
 
-    const path = geoPath(projection);
+    let path = geoPath(projection);
+
+    if (collection && isMobileViewport) {
+      const [[, minY]] = path.bounds(collection as unknown as GeoPermissibleObjects);
+      const desiredTop = Math.max(6, Math.round(padding * 0.5));
+      const deltaY = minY - desiredTop;
+
+      if (Number.isFinite(deltaY) && deltaY > 0) {
+        const [translateX, translateY] = projection.translate();
+        projection.translate([translateX, translateY - deltaY]);
+        path = geoPath(projection);
+      }
+    }
+
     return { path, projection };
   }, [features, viewport]);
 

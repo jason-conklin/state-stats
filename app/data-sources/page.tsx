@@ -14,6 +14,11 @@ const SOURCE_LINK_OVERRIDES: Record<string, string> = {
   bls_laus: "https://www.bls.gov/lau/",
 };
 
+const SYNTHETIC_SOURCE_COUNTERPARTS: Record<string, string> = {
+  census_acs_synthetic: "census_acs",
+  bls_unemployment_rate_synthetic: "bls_laus",
+};
+
 function sortSourcesByPriority<T extends { id: string; name: string }>(sources: T[]) {
   return [...sources].sort((left, right) => {
     const leftIsSynthetic = left.id.endsWith("_synthetic");
@@ -25,6 +30,38 @@ function sortSourcesByPriority<T extends { id: string; name: string }>(sources: 
 
     return left.name.localeCompare(right.name);
   });
+}
+
+type LatestRunSummary = {
+  dataSourceId: string;
+  completedAt: Date | null;
+  startedAt: Date;
+};
+
+function getRunTimestamp(run: LatestRunSummary | undefined) {
+  return run?.completedAt ?? run?.startedAt ?? null;
+}
+
+function shouldShowSourceCard(
+  sourceId: string,
+  latestRunBySourceId: Map<string, LatestRunSummary>,
+) {
+  if (!sourceId.endsWith("_synthetic")) return true;
+
+  const syntheticRun = latestRunBySourceId.get(sourceId);
+  if (!syntheticRun) return false;
+
+  const counterpartSourceId = SYNTHETIC_SOURCE_COUNTERPARTS[sourceId];
+  if (!counterpartSourceId) return true;
+
+  const counterpartRun = latestRunBySourceId.get(counterpartSourceId);
+  const syntheticTimestamp = getRunTimestamp(syntheticRun);
+  const counterpartTimestamp = getRunTimestamp(counterpartRun);
+
+  if (!syntheticTimestamp) return false;
+  if (!counterpartTimestamp) return true;
+
+  return syntheticTimestamp >= counterpartTimestamp;
 }
 
 export default async function DataSourcesPage() {
@@ -41,7 +78,28 @@ export default async function DataSourcesPage() {
     },
     orderBy: { name: "asc" },
   });
-  const sortedDataSources = sortSourcesByPriority(dataSources);
+  const latestCompletedRuns = await prisma.ingestionRun.findMany({
+    where: {
+      status: { in: ["success", "partial"] },
+    },
+    select: {
+      dataSourceId: true,
+      completedAt: true,
+      startedAt: true,
+    },
+    orderBy: [{ completedAt: "desc" }, { startedAt: "desc" }],
+  });
+
+  const latestRunBySourceId = new Map<string, LatestRunSummary>();
+  latestCompletedRuns.forEach((run) => {
+    if (!latestRunBySourceId.has(run.dataSourceId)) {
+      latestRunBySourceId.set(run.dataSourceId, run);
+    }
+  });
+
+  const visibleDataSources = sortSourcesByPriority(dataSources).filter((source) =>
+    shouldShowSourceCard(source.id, latestRunBySourceId),
+  );
 
   const metrics = await prisma.metric.findMany({
     include: { source: true },
@@ -62,7 +120,7 @@ export default async function DataSourcesPage() {
         <div className="space-y-3 md:space-y-4">
           <h2 className="text-lg md:text-xl font-semibold text-slate-900 md:text-white">Sources</h2>
           <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
-            {sortedDataSources.map((source) => {
+            {visibleDataSources.map((source) => {
               const lastRun = source.ingestionRuns[0];
               const isSyntheticFallback = source.id.endsWith("_synthetic");
               return (
