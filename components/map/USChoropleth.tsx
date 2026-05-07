@@ -131,6 +131,14 @@ export function USChoropleth({
   };
 
   const preserveAspectRatio = viewport.width < 640 ? "xMidYMin meet" : "xMidYMid meet";
+  const showSideOceanLabels = viewport.width >= 768;
+  const showGulfLabel = viewport.width >= 1024;
+  const pacificLabelX = viewport.width * 0.08;
+  const pacificLabelY = viewport.height * 0.39;
+  const atlanticLabelX = viewport.width * 0.93;
+  const atlanticLabelY = viewport.height * 0.4;
+  const gulfLabelX = viewport.width * 0.66;
+  const gulfLabelY = viewport.height * 0.82;
 
   return (
     <div className="relative h-full w-full">
@@ -152,6 +160,45 @@ export function USChoropleth({
           transform={`translate(${mapTransform.x} ${mapTransform.y}) scale(${mapTransform.scale})`}
           className="[will-change:transform]"
         >
+          {showSideOceanLabels ? (
+            <>
+              <text
+                x={pacificLabelX}
+                y={pacificLabelY}
+                transform={`rotate(-90 ${pacificLabelX} ${pacificLabelY})`}
+                pointerEvents="none"
+                aria-hidden="true"
+                textAnchor="middle"
+                className="select-none fill-sky-950/30 font-serif text-[18px] italic tracking-[0.18em] drop-shadow-[0_1px_1px_rgba(255,255,255,0.22)]"
+              >
+                Pacific Ocean
+              </text>
+              <text
+                x={atlanticLabelX}
+                y={atlanticLabelY}
+                transform={`rotate(90 ${atlanticLabelX} ${atlanticLabelY})`}
+                pointerEvents="none"
+                aria-hidden="true"
+                textAnchor="middle"
+                className="select-none fill-sky-950/30 font-serif text-[18px] italic tracking-[0.18em] drop-shadow-[0_1px_1px_rgba(255,255,255,0.22)]"
+              >
+                Atlantic Ocean
+              </text>
+            </>
+          ) : null}
+          {showGulfLabel ? (
+            <text
+              x={gulfLabelX}
+              y={gulfLabelY}
+              transform={`rotate(-10 ${gulfLabelX} ${gulfLabelY})`}
+              pointerEvents="none"
+              aria-hidden="true"
+              textAnchor="middle"
+              className="select-none fill-sky-950/30 font-serif text-[14px] italic tracking-[0.14em] drop-shadow-[0_1px_1px_rgba(255,255,255,0.22)]"
+            >
+              Gulf of Mexico
+            </text>
+          ) : null}
           {features.map((feat) => {
             const stateId = (feat.id as string) ?? feat.properties?.stateId ?? "";
             const value = valuesByStateId[stateId] ?? null;
