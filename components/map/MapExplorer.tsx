@@ -328,12 +328,117 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   return (
     <div className="w-full h-[calc(100vh-0px)] bg-slate-50">
       <section className="relative w-full h-full">
+        <div className="pointer-events-none absolute inset-x-0 top-2 z-20 hidden md:block">
+          <div className="mx-auto w-full max-w-[1100px] px-3">
+            <div className="pointer-events-auto rounded-xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md">
+              <div className="flex w-full max-w-[980px] min-w-0 items-start gap-3 overflow-visible">
+                <div className="min-w-0 w-[min(380px,46vw)]">
+                  <MetricSelect
+                    metrics={metrics}
+                    value={selectedMetric?.id ?? ""}
+                    onChange={handleMetricSelect}
+                    className="w-full min-w-0"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 items-start gap-2">
+                    <p className="mt-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">Year</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="mt-1 flex min-w-0 items-center gap-2">
+                        <div className="w-[clamp(160px,26vw,320px)] max-w-full">
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-0 flex items-center" aria-hidden>
+                              <div className="relative h-1.5" style={trackRegionStyle}>
+                                <span className="absolute inset-0 rounded-full bg-slate-300/70" />
+                                <span
+                                  className="absolute inset-y-0 left-0 rounded-full bg-emerald-500/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                                  style={{ width: `${fillPct}%` }}
+                                />
+                              </div>
+                            </div>
+
+                            <input
+                              type="range"
+                              min={yearMin}
+                              max={yearMax}
+                              value={sliderValue}
+                              onChange={(e) => setSelectedYear(Number(e.target.value))}
+                              className="ss-year-slider relative z-10 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent"
+                              step={1}
+                              aria-label="Select year"
+                              disabled={!selectedMetric?.years.length}
+                            />
+                          </div>
+
+                          <div className="mt-1 h-6 select-none" aria-hidden>
+                            <div className="relative h-full" style={trackRegionStyle}>
+                              {majorYearTicks.map((tick, index) => {
+                                const isSelectedTick = tick === sliderValue;
+                                const isFirst = index === 0;
+                                const isLast = index === majorYearTicks.length - 1;
+                                const left = getTickOffsetPercent(tick, yearMin, yearMax);
+                                return (
+                                  <div
+                                    key={`desktop-major-tick-${tick}`}
+                                    className="absolute top-0"
+                                    style={{ left: `${left}%` }}
+                                  >
+                                    <span
+                                      className={`block w-px -translate-x-1/2 ${
+                                        isSelectedTick ? "h-2.5 bg-slate-700" : "h-2 bg-slate-400/60"
+                                      }`}
+                                    />
+                                    <span
+                                      className={`mt-0.5 block text-[10px] tabular-nums select-none ${
+                                        isSelectedTick ? "font-semibold text-slate-900" : "text-slate-500"
+                                      } ${
+                                        isFirst
+                                          ? "translate-x-0 text-left"
+                                          : isLast
+                                            ? "-translate-x-full text-right"
+                                            : "-translate-x-1/2 text-center"
+                                      }`}
+                                    >
+                                      {tick}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                          {selectedMetric?.years.length ? selectedYear : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTableOpen(!isTableOpen)}
+                  className={`flex-none cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
+                    isTableOpen
+                      ? "border-slate-300 bg-gradient-to-b from-slate-100 to-slate-200/70 text-slate-800 hover:from-slate-100 hover:to-slate-200 active:to-slate-200/90"
+                      : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-700 hover:from-white hover:to-slate-100 active:to-slate-100"
+                  }`}
+                >
+                  {isTableOpen ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Table2 className="h-4 w-4 shrink-0" aria-hidden />}
+                  {isTableOpen ? "Hide table" : "Data table"}
+                </button>
+              </div>
+              <p className="mt-2 truncate text-right text-[10px] text-slate-600">
+                Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
+              </p>
+            </div>
+          </div>
+        </div>
         <div
-          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-x-hidden overflow-y-visible transition-[padding] duration-200 flex flex-col ${
+          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-hidden transition-[padding] duration-200 flex flex-col md:mt-[5.75rem] md:h-[calc(100vh-5.75rem)] ${
             isTableOpen ? "md:pr-[392px]" : "md:pr-0"
           }`}
         >
-          <div className="relative z-20 w-full md:pointer-events-none md:absolute md:inset-x-0 md:-top-4">
+          <div className="relative z-20 w-full md:hidden">
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
               <div className="pointer-events-auto rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
                 <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-2.5 overflow-visible sm:flex-row sm:items-start sm:gap-3">
