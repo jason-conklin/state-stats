@@ -333,9 +333,9 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
             isTableOpen ? "md:pr-[392px]" : "md:pr-0"
           }`}
         >
-          <div className="relative z-20 w-full">
+          <div className="relative z-20 w-full md:pointer-events-none md:absolute md:inset-x-0 md:top-0">
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
-              <div className="rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
+              <div className="pointer-events-auto rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
                 <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-2.5 overflow-visible sm:flex-row sm:items-start sm:gap-3">
                   <div className="min-w-0 w-full sm:w-[min(380px,46vw)]">
                     <MetricSelect
