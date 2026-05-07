@@ -328,7 +328,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   return (
     <div className="w-full h-[calc(100vh-0px)] bg-slate-50">
       <section className="relative w-full h-full">
-        <div className="pointer-events-none absolute inset-x-0 top-2 z-20 hidden md:block">
+        <div className="pointer-events-none absolute inset-x-0 top-1 z-20 hidden md:block">
           <div className="mx-auto w-full max-w-[1100px] px-3">
             <div className="pointer-events-auto rounded-xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md">
               <div className="flex w-full max-w-[980px] min-w-0 items-start gap-3 overflow-visible">
@@ -434,7 +434,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           </div>
         </div>
         <div
-          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-hidden transition-[padding] duration-200 flex flex-col md:mt-[5.75rem] md:h-[calc(100vh-5.75rem)] ${
+          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-hidden transition-[padding] duration-200 flex flex-col ${
             isTableOpen ? "md:pr-[392px]" : "md:pr-0"
           }`}
         >
