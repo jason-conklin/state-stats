@@ -329,11 +329,11 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     <div className="w-full h-[calc(100vh-0px)] bg-slate-50">
       <section className="relative w-full h-full">
         <div
-          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-hidden transition-[padding] duration-200 flex flex-col ${
+          className={`relative h-[calc(100vh-0px)] w-full ss-water ss-water--animate overflow-x-hidden overflow-y-visible transition-[padding] duration-200 flex flex-col ${
             isTableOpen ? "md:pr-[392px]" : "md:pr-0"
           }`}
         >
-          <div className="relative z-20 w-full md:pointer-events-none md:absolute md:inset-x-0 md:top-0">
+          <div className="relative z-20 w-full md:pointer-events-none md:absolute md:inset-x-0 md:-top-4">
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
               <div className="pointer-events-auto rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
                 <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-2.5 overflow-visible sm:flex-row sm:items-start sm:gap-3">

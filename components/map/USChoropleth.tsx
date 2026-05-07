@@ -139,7 +139,7 @@ export function USChoropleth({
   };
   const [pacificLabelX, pacificLabelY] = getProjectedPoint(-127.2, 35.6, viewport.width * 0.08, viewport.height * 0.39);
   const [atlanticLabelX, atlanticLabelY] = getProjectedPoint(-67.8, 36.2, viewport.width * 0.93, viewport.height * 0.4);
-  const [gulfLabelX, gulfLabelY] = getProjectedPoint(-88.8, 24.7, viewport.width * 0.66, viewport.height * 0.82);
+  const [gulfLabelX, gulfLabelY] = getProjectedPoint(-90.1, 23.2, viewport.width * 0.62, viewport.height * 0.86);
 
   return (
     <div className="relative h-full w-full">
@@ -205,7 +205,9 @@ export function USChoropleth({
             const value = valuesByStateId[stateId] ?? null;
             const fill = colorScale(value);
             const d = path(feat) ?? undefined;
-            const isHighlighted = stateId === hoveredStateId || stateId === pinnedStateId;
+            const isPinned = stateId === pinnedStateId;
+            const isHovered = stateId === hoveredStateId;
+            const isHighlighted = isHovered || isPinned;
 
             return (
               <path
@@ -213,8 +215,10 @@ export function USChoropleth({
                 d={d}
                 fill={fill}
                 stroke={isHighlighted ? "#ffffff" : "#e1e7ea"}
-                strokeWidth={isHighlighted ? 1.5 : 0.7}
+                strokeWidth={isPinned ? 2.6 : isHovered ? 1.9 : 0.7}
                 vectorEffect="non-scaling-stroke"
+                strokeLinejoin="round"
+                strokeLinecap="round"
                 onMouseEnter={handleMouseEnter(stateId)}
                 onMouseMove={handleMouseEnter(stateId)}
                 onMouseLeave={handleMouseEnter(null)}
