@@ -279,7 +279,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
           <div className="relative z-20 w-full">
             <div className="mx-auto w-full max-w-[1100px] px-3 py-2">
               <div className="rounded-2xl border border-white/40 bg-white/55 px-3 py-2 shadow-sm backdrop-blur-md md:rounded-xl">
-                <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-3 overflow-visible sm:flex-row sm:items-start">
+                <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-2.5 overflow-visible sm:flex-row sm:items-start sm:gap-3">
                   <div className="min-w-0 w-full sm:w-[min(380px,46vw)]">
                     <MetricSelect
                       metrics={metrics}
@@ -289,14 +289,14 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="rounded-xl border border-white/45 bg-white/30 px-3 py-3 sm:hidden">
+                    <div className="rounded-xl border border-white/45 bg-white/30 px-3 py-2 sm:hidden">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-600">Year</p>
-                        <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-600">Year</p>
+                        <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
                           {selectedMetric?.years.length ? selectedYear : "—"}
                         </span>
                       </div>
-                      <div className="mt-3 px-1">
+                      <div className="mt-2 px-0.5">
                         <div className="relative">
                           <div className="pointer-events-none absolute inset-0 flex items-center" aria-hidden>
                             <div className="relative h-1.5" style={trackRegionStyle}>
@@ -321,7 +321,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                           />
                         </div>
 
-                        <div className="mt-2 h-7 select-none" aria-hidden>
+                        <div className="mt-1 h-5 select-none" aria-hidden>
                           <div className="relative h-full" style={trackRegionStyle}>
                             {mobileYearTicks.map((tick, index) => {
                               const isSelectedTick = tick === sliderValue;
@@ -336,11 +336,11 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                                 >
                                   <span
                                     className={`block w-px -translate-x-1/2 ${
-                                      isSelectedTick ? "h-2.5 bg-slate-700" : "h-2 bg-slate-400/55"
+                                      isSelectedTick ? "h-2.5 bg-slate-700" : "h-1.5 bg-slate-400/55"
                                     }`}
                                   />
                                   <span
-                                    className={`mt-1 block text-[9px] leading-none tabular-nums select-none ${
+                                    className={`mt-0.5 block text-[8px] leading-none tabular-nums select-none ${
                                       isSelectedTick ? "font-semibold text-slate-900" : "text-slate-500"
                                     } ${
                                       isFirst

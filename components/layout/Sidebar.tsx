@@ -109,20 +109,22 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
                 if (pathname !== "/") startRouteTransition();
                 router.push("/");
               }}
-              className="flex h-12 w-14 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
+              className="flex h-10 w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
             >
-              <Image
-                src="/statestats_logo.png"
-                alt="StateStats logo"
-                width={36}
-                height={36}
-                className="h-14 w-14"
-                priority
-              />
+              <span className="relative block h-9 w-[3.35rem] overflow-hidden" aria-hidden>
+                <Image
+                  src="/statestats_logo.png"
+                  alt="StateStats logo"
+                  fill
+                  sizes="54px"
+                  className="object-cover object-center"
+                  priority
+                />
+              </span>
             </button>
-            <div className="flex flex-col">
-              <span className="text-xl font-semibold text-white">StateStats</span>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-300/80">
+            <div className="min-w-0 flex flex-col">
+              <span className="text-lg font-semibold tracking-tight text-white">StateStats</span>
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] leading-[1.35] text-slate-300/80">
                 State-Level Data, Made Clear.
               </p>
             </div>
