@@ -133,12 +133,13 @@ export function USChoropleth({
   const preserveAspectRatio = viewport.width < 640 ? "xMidYMin meet" : "xMidYMid meet";
   const showSideOceanLabels = viewport.width >= 768;
   const showGulfLabel = viewport.width >= 1024;
-  const pacificLabelX = viewport.width * 0.08;
-  const pacificLabelY = viewport.height * 0.39;
-  const atlanticLabelX = viewport.width * 0.93;
-  const atlanticLabelY = viewport.height * 0.4;
-  const gulfLabelX = viewport.width * 0.66;
-  const gulfLabelY = viewport.height * 0.82;
+  const getProjectedPoint = (longitude: number, latitude: number, fallbackX: number, fallbackY: number) => {
+    const projected = projection([longitude, latitude]);
+    return projected ?? [fallbackX, fallbackY];
+  };
+  const [pacificLabelX, pacificLabelY] = getProjectedPoint(-127.2, 35.6, viewport.width * 0.08, viewport.height * 0.39);
+  const [atlanticLabelX, atlanticLabelY] = getProjectedPoint(-67.8, 36.2, viewport.width * 0.93, viewport.height * 0.4);
+  const [gulfLabelX, gulfLabelY] = getProjectedPoint(-88.8, 24.7, viewport.width * 0.66, viewport.height * 0.82);
 
   return (
     <div className="relative h-full w-full">
