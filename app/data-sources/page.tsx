@@ -14,6 +14,19 @@ const SOURCE_LINK_OVERRIDES: Record<string, string> = {
   bls_laus: "https://www.bls.gov/lau/",
 };
 
+function sortSourcesByPriority<T extends { id: string; name: string }>(sources: T[]) {
+  return [...sources].sort((left, right) => {
+    const leftIsSynthetic = left.id.endsWith("_synthetic");
+    const rightIsSynthetic = right.id.endsWith("_synthetic");
+
+    if (leftIsSynthetic !== rightIsSynthetic) {
+      return leftIsSynthetic ? 1 : -1;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
 export default async function DataSourcesPage() {
   const dataSources = await prisma.dataSource.findMany({
     include: {
@@ -28,6 +41,7 @@ export default async function DataSourcesPage() {
     },
     orderBy: { name: "asc" },
   });
+  const sortedDataSources = sortSourcesByPriority(dataSources);
 
   const metrics = await prisma.metric.findMany({
     include: { source: true },
@@ -48,7 +62,7 @@ export default async function DataSourcesPage() {
         <div className="space-y-3 md:space-y-4">
           <h2 className="text-lg md:text-xl font-semibold text-slate-900 md:text-white">Sources</h2>
           <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
-            {dataSources.map((source) => {
+            {sortedDataSources.map((source) => {
               const lastRun = source.ingestionRuns[0];
               const isSyntheticFallback = source.id.endsWith("_synthetic");
               return (

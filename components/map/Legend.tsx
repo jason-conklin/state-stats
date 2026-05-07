@@ -20,6 +20,8 @@ type LegendProps =
 export function Legend(props: LegendProps) {
   const domainMin = props.domain?.[0] ?? null;
   const domainMax = props.domain?.[1] ?? null;
+  const unitLabel = props.unitLabel ?? undefined;
+
   return (
     <div className="w-full max-w-[480px] rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_8px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm sm:max-w-full">
       <div className="flex items-center justify-between">
@@ -50,9 +52,23 @@ export function Legend(props: LegendProps) {
             className="h-2 rounded-md border border-[color:var(--ss-green-mid)]/50 shadow-inner"
             style={{ backgroundImage: props.gradient }}
           />
-          <div className="flex items-center justify-between text-xs text-slate-600">
-            <span>{domainMin !== null ? formatMetricValue(domainMin, props.unitLabel ?? undefined) : "–"}</span>
-            <span>{domainMax !== null ? formatMetricValue(domainMax, props.unitLabel ?? undefined) : "–"}</span>
+          <div className="flex items-center justify-between gap-3 text-[11px] text-slate-600 sm:text-xs">
+            <span className="min-w-0 flex-1 text-left tabular-nums">
+              <span className="sm:hidden">
+                {domainMin !== null ? formatMetricValue(domainMin, unitLabel, { compact: true }) : "–"}
+              </span>
+              <span className="hidden sm:inline">
+                {domainMin !== null ? formatMetricValue(domainMin, unitLabel) : "–"}
+              </span>
+            </span>
+            <span className="min-w-0 flex-1 text-right tabular-nums">
+              <span className="sm:hidden">
+                {domainMax !== null ? formatMetricValue(domainMax, unitLabel, { compact: true }) : "–"}
+              </span>
+              <span className="hidden sm:inline">
+                {domainMax !== null ? formatMetricValue(domainMax, unitLabel) : "–"}
+              </span>
+            </span>
           </div>
         </div>
       )}

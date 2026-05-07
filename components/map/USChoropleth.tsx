@@ -90,6 +90,8 @@ export function USChoropleth({
     onHover(stateId, position);
   };
 
+  const preserveAspectRatio = viewport.width < 640 ? "xMidYMin meet" : "xMidYMid meet";
+
   return (
     <div className="relative h-full w-full">
       <svg
@@ -98,7 +100,7 @@ export function USChoropleth({
         role="img"
         aria-label={`Choropleth map of U.S. states for year ${selectedYear}`}
         className="h-full w-full"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio={preserveAspectRatio}
       >
         <rect width="100%" height="100%" fill="transparent" />
         {features.map((feat) => {
