@@ -475,6 +475,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
               </div>
             ) : null}
 
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[3] select-none font-serif italic tracking-[0.18em] text-sky-950/30 drop-shadow-[0_1px_1px_rgba(255,255,255,0.22)]"
+            >
+              <span className="absolute left-[2.25%] top-[36%] hidden -rotate-90 whitespace-nowrap text-sm md:block lg:text-base">
+                Pacific Ocean
+              </span>
+              <span className="absolute right-[1.75%] top-[39%] hidden rotate-90 whitespace-nowrap text-sm md:block lg:text-base">
+                Atlantic Ocean
+              </span>
+              <span className="absolute bottom-[13%] left-[58%] hidden -rotate-[10deg] whitespace-nowrap text-xs tracking-[0.14em] lg:block">
+                Gulf of Mexico
+              </span>
+            </div>
+
             {tooltipContent ? (
               <div
                 className="pointer-events-none absolute z-20 w-44 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-150 ease-out sm:w-56"
