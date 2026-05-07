@@ -192,6 +192,25 @@ body {
   transform-origin: center;
 }
 
+.ss-loader-frame {
+  opacity: 0;
+  animation-name: ss-loader-frame-cycle;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1, end);
+}
+
+@keyframes ss-loader-frame-cycle {
+  0%,
+  19.999% {
+    opacity: 1;
+  }
+
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @keyframes ss-loader-pulse {
   0%,
   100% {
@@ -206,6 +225,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ss-loader-frame {
+    animation: none;
+    opacity: 0;
+  }
+
+  .ss-loader-frame-final {
+    opacity: 1;
+  }
+
   .ss-loader-pulse {
     animation: none;
   }
