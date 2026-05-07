@@ -68,7 +68,11 @@ export function USChoropleth({
     const projection = geoAlbersUsa();
     const { width, height } = viewport;
     const isMobileViewport = width < 640;
+    const isDesktopViewport = width >= 768;
     const padding = Math.max(12, Math.min(24, Math.round(Math.min(width, height) * 0.03)));
+    const topInset = isDesktopViewport
+      ? padding + Math.max(52, Math.min(88, Math.round(height * 0.09)))
+      : padding;
     const fallbackProjection = () =>
       projection.scale(Math.min(width, height) * 2.15).translate([Math.round(width / 2), Math.round(height / 2)]);
 
@@ -81,7 +85,7 @@ export function USChoropleth({
         collection = { type: "FeatureCollection", features } as FeatureCollection<Geometry>;
         projection.fitExtent(
           [
-            [padding, padding],
+            [padding, topInset],
             [Math.max(padding + 1, width - padding), Math.max(padding + 1, height - padding)],
           ],
           collection as unknown as GeoPermissibleObjects,
