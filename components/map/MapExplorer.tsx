@@ -341,7 +341,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="mt-1 flex min-w-0 items-start gap-3">
+                  <div className="mt-1 flex min-w-0 items-start gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="w-[clamp(180px,28vw,360px)] max-w-full">
                           <div className="relative">
@@ -406,7 +406,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                           </div>
                         </div>
                       </div>
-                    <div className="flex w-14 shrink-0 flex-col items-end gap-1 pt-0.5">
+                    <div className="flex w-[3.25rem] shrink-0 flex-col items-start gap-1 pt-0.5 text-left">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Year</p>
                       <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                         {selectedMetric?.years.length ? selectedYear : "—"}
@@ -452,7 +452,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="rounded-xl border border-white/45 bg-white/30 px-3 py-2 sm:hidden">
-                      <div className="flex items-start gap-2.5">
+                      <div className="flex items-start gap-2">
                         <div className="min-w-0 flex-1 px-0.5">
                           <div className="relative">
                             <div className="pointer-events-none absolute inset-0 flex items-center" aria-hidden>
@@ -515,7 +515,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                             </div>
                           </div>
                         </div>
-                        <div className="flex w-11 shrink-0 flex-col items-end gap-1">
+                        <div className="flex w-10 shrink-0 flex-col items-start gap-1 text-left">
                           <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500">Year</p>
                           <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
                             {selectedMetric?.years.length ? selectedYear : "—"}
@@ -526,7 +526,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
 
                     <div className="hidden min-w-0 flex-1 items-start gap-3 sm:flex">
                       <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex min-w-0 items-start gap-2">
                           <div className="w-[clamp(180px,28vw,360px)] max-w-full flex-1">
                             <div className="relative">
                               <div className="pointer-events-none absolute inset-0 flex items-center" aria-hidden>
@@ -589,7 +589,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                               </div>
                             </div>
                           </div>
-                          <div className="flex w-14 shrink-0 flex-col items-end gap-1 pt-0.5">
+                          <div className="flex w-[3.25rem] shrink-0 flex-col items-start gap-1 pt-0.5 text-left">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Year</p>
                             <span className="flex-none rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                               {selectedMetric?.years.length ? selectedYear : "—"}
