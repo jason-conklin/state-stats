@@ -181,3 +181,27 @@ body {
     animation: none;
   }
 }
+
+.ss-loader-pulse {
+  animation: ss-loader-pulse 1.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes ss-loader-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.94;
+    transform: scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-loader-pulse {
+    animation: none;
+  }
+}

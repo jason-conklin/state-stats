@@ -4,6 +4,7 @@ import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { useEffect } from "react";
 import { MobileTopNav } from "./MobileTopNav";
+import { RouteTransitionLoader } from "@/components/loading/RouteTransitionLoader";
 
 type NavLink = { href: string; label: string };
 
@@ -46,6 +47,7 @@ export function AppShell({ children, navLinks, statusText }: Props) {
       <main className="relative flex-1 overflow-y-auto pt-12 sm:pt-0">
         <div className="h-full w-full">{children}</div>
       </main>
+      <RouteTransitionLoader />
     </div>
   );
 }

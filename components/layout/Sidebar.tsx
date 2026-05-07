@@ -9,6 +9,7 @@ import { MapIcon } from "../icons/MapIcon";
 import { GraphIcon } from "../icons/GraphIcon";
 import { DataSourcesIcon } from "../icons/DataSourcesIcon";
 import { InfoIcon } from "../icons/InfoIcon";
+import { startRouteTransition } from "@/components/loading/routeTransition";
 
 type NavLink = { href: string; label: string };
 
@@ -84,7 +85,10 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
           <button
             type="button"
             aria-label="StateStats home"
-            onClick={() => router.push("/")}
+            onClick={() => {
+              if (pathname !== "/") startRouteTransition();
+              router.push("/");
+            }}
             className="mb-4 flex h-10 w-14 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
           >
             <Image
@@ -101,7 +105,10 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
             <button
               type="button"
               aria-label="StateStats home"
-              onClick={() => router.push("/")}
+              onClick={() => {
+                if (pathname !== "/") startRouteTransition();
+                router.push("/");
+              }}
               className="flex h-12 w-14 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
             >
               <Image
