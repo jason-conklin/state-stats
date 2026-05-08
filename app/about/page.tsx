@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="min-h-full w-full overflow-y-auto bg-slate-950 px-4 py-6 md:px-8 md:py-10">
-      <div className="max-w-6xl space-y-6 md:space-y-8">
+      <div className="w-full space-y-6 md:space-y-8">
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 shadow-[0_20px_50px_rgba(15,23,42,0.35)]">
           <div className="relative">
             <Image
