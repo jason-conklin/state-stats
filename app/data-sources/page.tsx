@@ -19,8 +19,22 @@ const SYNTHETIC_SOURCE_COUNTERPARTS: Record<string, string> = {
   bls_unemployment_rate_synthetic: "bls_laus",
 };
 
+const SOURCE_DISPLAY_PRIORITY: Record<string, number> = {
+  census_acs: 0,
+  census_acs_synthetic: 1,
+  bls_laus: 2,
+  bls_unemployment_rate_synthetic: 3,
+};
+
 function sortSourcesByPriority<T extends { id: string; name: string }>(sources: T[]) {
   return [...sources].sort((left, right) => {
+    const leftPriority = SOURCE_DISPLAY_PRIORITY[left.id] ?? Number.MAX_SAFE_INTEGER;
+    const rightPriority = SOURCE_DISPLAY_PRIORITY[right.id] ?? Number.MAX_SAFE_INTEGER;
+
+    if (leftPriority !== rightPriority) {
+      return leftPriority - rightPriority;
+    }
+
     const leftIsSynthetic = left.id.endsWith("_synthetic");
     const rightIsSynthetic = right.id.endsWith("_synthetic");
 
