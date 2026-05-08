@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="min-h-full w-full overflow-y-auto bg-slate-950 px-4 py-6 md:px-8 md:py-10">
-      <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
+      <div className="max-w-6xl space-y-6 md:space-y-8">
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 shadow-[0_20px_50px_rgba(15,23,42,0.35)]">
           <div className="relative">
             <Image
@@ -20,19 +20,6 @@ export default function AboutPage() {
               className="h-auto w-full"
               sizes="(max-width: 1280px) 100vw, 1200px"
             />
-            <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-4 md:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-100/80">
-                About StateStats
-              </p>
-              <h1 className="mt-2 text-2xl font-semibold text-white sm:text-3xl md:text-4xl">
-                State-level data, made clear.
-              </h1>
-              <p className="mt-2 hidden max-w-2xl text-sm text-slate-200/90 sm:block md:text-base">
-                Explore public metrics across states, years, and trends through an interface built to
-                make comparison fast and interpretation clear.
-              </p>
-            </div>
           </div>
         </section>
 
@@ -77,7 +64,7 @@ export default function AboutPage() {
 
         <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="flex justify-center sm:justify-start">
+            <div className="flex justify-start">
               <Image
                 src="/jason_conklin.png"
                 alt="Portrait of Jason Conklin, creator of StateStats"
