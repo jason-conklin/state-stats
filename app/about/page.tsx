@@ -18,7 +18,7 @@ const dataHighlights = [
   },
   {
     title: "State-level coverage",
-    body: "Metrics cover all 50 states and the District of Columbia, with year coverage varying by source.",
+    body: "Metrics cover all 50 states with year coverage varying by source.",
     Icon: Map,
   },
   {
@@ -134,16 +134,16 @@ export default function AboutPage() {
             <h3 className="text-xl font-semibold text-white md:text-2xl">The perspective and intent behind StateStats</h3>
           </div>
           <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
-            <div className="grid gap-6 md:grid-cols-[320px_1fr] md:gap-8">
+            <div className="grid gap-6 md:grid-cols-[460px_1fr] md:gap-8">
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="flex shrink-0 justify-start">
                     <Image
                       src="/jason_conklin.png"
                       alt="Portrait of Jason Conklin, creator of StateStats"
-                      width={112}
-                      height={112}
-                      className="h-28 w-28 rounded-full border border-white/10 object-cover shadow-md"
+                      width={208}
+                      height={208}
+                      className="h-36 w-36 rounded-full border border-white/10 object-cover shadow-md sm:h-40 sm:w-40 md:h-52 md:w-52"
                       priority
                     />
                   </div>
