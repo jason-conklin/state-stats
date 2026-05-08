@@ -7,6 +7,7 @@ import { ensureCatalog } from "@/lib/metrics";
 type QueryParams = { [key: string]: string | string[] | undefined };
 
 const DEFAULT_STATE_ABBRS = ["CA", "TX", "NY", "FL"];
+const graphStateList = stateList.filter((state) => state.id !== "11");
 
 export const metadata: Metadata = {
   title: "StateStats - Graph",
@@ -24,8 +25,8 @@ function normalizeStateIds(param: string | string[] | undefined) {
   const ids = codes
     .map((code) => {
       const match =
-        stateList.find((state) => state.abbreviation.toUpperCase() === code) ??
-        stateList.find((state) => state.id === code);
+        graphStateList.find((state) => state.abbreviation.toUpperCase() === code) ??
+        graphStateList.find((state) => state.id === code);
       return match?.id;
     })
     .filter(Boolean) as string[];
@@ -121,7 +122,7 @@ export default async function GraphPage(props: GraphPageProps) {
     const statesParam = Array.isArray(statesRaw) ? statesRaw.join(",") : statesRaw;
     const requestedStates = normalizeStateIds(typeof statesParam === "string" ? statesParam : undefined);
     const defaultStates = DEFAULT_STATE_ABBRS.map(
-      (abbr) => stateList.find((s) => s.abbreviation === abbr)?.id,
+      (abbr) => graphStateList.find((s) => s.abbreviation === abbr)?.id,
     ).filter(Boolean) as string[];
     const selectedStates = requestedStates.length > 0 ? requestedStates : defaultStates;
 
@@ -164,7 +165,7 @@ export default async function GraphPage(props: GraphPageProps) {
                 unit: m.unit,
                 description: m.description,
               }))}
-              states={stateList}
+              states={graphStateList}
               initialMetricId={selectedMetricId}
               initialSelectedStates={selectedStates}
               availableYears={availableYears}
