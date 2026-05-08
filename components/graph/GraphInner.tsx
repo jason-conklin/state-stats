@@ -261,7 +261,13 @@ export default function GraphInner({
   return (
     <div
       ref={setChartAreaNode}
-      className={`relative h-full w-full ${isZoomed ? (isPanning ? "cursor-grabbing select-none" : "cursor-grab") : ""}`}
+      className={`relative h-full w-full ${
+        isZoomed
+          ? isPanning
+            ? "cursor-grabbing select-none [&_*]:cursor-grabbing"
+            : "cursor-grab [&_*]:cursor-grab"
+          : ""
+      }`}
       onWheel={handleWheelZoom}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -293,13 +299,21 @@ export default function GraphInner({
           onMouseLeave={hideHoverTooltip}
         >
           <CartesianGrid
-            stroke="#e2e8f0"
-            strokeDasharray="3 4"
+            stroke="rgba(148, 163, 184, 0.34)"
+            strokeDasharray="4 6"
+            vertical={false}
+          />
+          <CartesianGrid
+            stroke="rgba(148, 163, 184, 0.18)"
+            strokeDasharray="3 7"
+            horizontal={false}
             vertical={visibleVerticalGridLines}
+            verticalPoints={visibleVerticalGridLines ? undefined : []}
+            syncWithTicks
           />
           <XAxis
             dataKey="year"
-            stroke="#475569"
+            stroke="#94a3b8"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
@@ -308,7 +322,7 @@ export default function GraphInner({
             minTickGap={24}
           />
           <YAxis
-            stroke="#475569"
+            stroke="#94a3b8"
             width={yAxisWidth}
             domain={yDomain as [number, number]}
             tickFormatter={yAxisTickFormatter}
