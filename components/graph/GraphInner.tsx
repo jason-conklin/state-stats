@@ -22,12 +22,6 @@ type ZoomWindow = {
   endIndex: number;
 };
 
-type ChartMouseState = {
-  activePayload?: Array<{
-    dataKey?: string | number;
-  }>;
-};
-
 const MIN_VISIBLE_POINTS = 3;
 const ZOOM_IN_MULTIPLIER = 0.88;
 const ZOOM_OUT_MULTIPLIER = 1.14;
@@ -178,18 +172,6 @@ export default function GraphInner({
     setHoveredStateId(null);
   }, []);
 
-  const handleChartMouseMove = useCallback(
-    (nextState: ChartMouseState) => {
-      const activeDataKey = nextState.activePayload?.[0]?.dataKey?.toString();
-      if (!activeDataKey) {
-        hideHoverTooltip();
-        return;
-      }
-      setHoveredStateId((previous) => (previous === activeDataKey ? previous : activeDataKey));
-    },
-    [hideHoverTooltip],
-  );
-
   return (
     <div ref={setChartAreaNode} className="relative h-full w-full" onWheel={handleWheelZoom}>
       {isZoomed ? (
@@ -214,7 +196,6 @@ export default function GraphInner({
         <LineChart
           data={visibleData}
           margin={{ left: 4, right: 14, top: 16, bottom: 8 }}
-          onMouseMove={handleChartMouseMove}
           onMouseLeave={hideHoverTooltip}
         >
           <CartesianGrid
@@ -275,6 +256,11 @@ export default function GraphInner({
                 activeDot={{ r: 4, strokeWidth: 0, fill: color }}
                 isAnimationActive={false}
                 connectNulls
+                onMouseEnter={() => setHoveredStateId(stateId)}
+                onMouseMove={() => setHoveredStateId(stateId)}
+                onMouseLeave={() => {
+                  setHoveredStateId((previous) => (previous === stateId ? null : previous));
+                }}
               />
             );
           })}
