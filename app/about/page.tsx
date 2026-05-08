@@ -134,7 +134,7 @@ export default function AboutPage() {
             <h3 className="text-xl font-semibold text-white md:text-2xl">The person and philosophy behind StateStats</h3>
           </div>
           <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
-            <div className="grid gap-6 md:grid-cols-[460px_1fr] md:gap-8">
+            <div className="grid gap-6 md:grid-cols-2 md:gap-8">
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="flex shrink-0 justify-start">
