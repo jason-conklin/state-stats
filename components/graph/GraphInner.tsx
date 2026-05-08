@@ -194,7 +194,7 @@ export default function GraphInner({
   );
   const verticalGridCoordinatesGenerator = useCallback(
     ({ offset }: { offset?: { left?: number; width?: number } }) => {
-      if (visibleEndYear < visibleStartYear) {
+      if (visibleData.length <= 1) {
         return [];
       }
 
@@ -204,14 +204,10 @@ export default function GraphInner({
         return [];
       }
 
-      const span = visibleEndYear - visibleStartYear;
-      if (span === 0) {
-        return [left];
-      }
-
-      return Array.from({ length: span + 1 }, (_, index) => left + (width * index) / span);
+      const step = width / (visibleData.length - 1);
+      return Array.from({ length: visibleData.length }, (_, index) => left + step * index);
     },
-    [visibleEndYear, visibleStartYear],
+    [visibleData.length],
   );
 
   const handleResetZoom = useCallback(() => {
@@ -407,11 +403,7 @@ export default function GraphInner({
           />
           <XAxis
             dataKey="year"
-            type="number"
-            scale="linear"
-            domain={[visibleStartYear, visibleEndYear]}
             ticks={yearTicks}
-            allowDecimals={false}
             interval={0}
             stroke="#94a3b8"
             tickLine={false}
@@ -419,7 +411,6 @@ export default function GraphInner({
             tickMargin={8}
             tick={{ fontSize: 12, fill: "#475569" }}
             tickFormatter={xAxisTickFormatter}
-            padding={{ left: 0, right: 0 }}
           />
           <YAxis
             stroke="#94a3b8"
