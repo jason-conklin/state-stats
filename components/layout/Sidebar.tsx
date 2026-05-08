@@ -122,11 +122,8 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
                 />
               </span>
             </button>
-            <div className="min-w-0 flex flex-col">
+            <div className="min-w-0 flex items-center">
               <span className="text-lg font-semibold tracking-tight text-white">StateStats</span>
-              <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] leading-[1.35] text-slate-300/80">
-                State-Level Data, Made Clear.
-              </p>
             </div>
           </div>
         )}

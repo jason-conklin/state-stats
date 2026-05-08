@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import { useCallback, useMemo, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StateInfo } from "@/lib/types";
@@ -22,38 +22,15 @@ type ZoomWindow = {
   endIndex: number;
 };
 
-type ChartMousePayloadEntry = {
-  color?: string;
-  dataKey?: string | number;
-  name?: string | number;
-  value?: number | null;
-};
-
 type ChartMouseState = {
-  activeCoordinate?: { x?: number; y?: number };
-  activeLabel?: number | string;
-  activePayload?: ChartMousePayloadEntry[];
-  chartX?: number;
-  chartY?: number;
-  yAxisMap?: Record<string, { scale?: unknown }>;
-};
-
-type HoverTooltipState = {
-  chartX: number;
-  chartY: number;
-  color: string;
-  stateId: string;
-  stateName: string;
-  value: number;
-  year: number;
+  activePayload?: Array<{
+    dataKey?: string | number;
+  }>;
 };
 
 const MIN_VISIBLE_POINTS = 3;
-const TOOLTIP_PROXIMITY_THRESHOLD = 14;
-const TOOLTIP_HORIZONTAL_OFFSET = 16;
-const TOOLTIP_WIDTH_MOBILE = 224;
-const TOOLTIP_WIDTH_DESKTOP = 240;
-const TOOLTIP_ESTIMATED_HEIGHT = 100;
+const ZOOM_IN_MULTIPLIER = 0.88;
+const ZOOM_OUT_MULTIPLIER = 1.14;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
@@ -106,9 +83,7 @@ export default function GraphInner({
   normalization,
 }: Props) {
   const chartAreaRef = useRef<HTMLDivElement | null>(null);
-  const [chartBounds, setChartBounds] = useState({ width: 0, height: 0 });
   const [hoveredStateId, setHoveredStateId] = useState<string | null>(null);
-  const [hoverTooltip, setHoverTooltip] = useState<HoverTooltipState | null>(null);
   const [zoomWindow, setZoomWindow] = useState<ZoomWindow>({
     startIndex: 0,
     endIndex: Math.max(0, chartData.length - 1),
@@ -123,36 +98,6 @@ export default function GraphInner({
   );
   const setChartAreaNode = useCallback((node: HTMLDivElement | null) => {
     chartAreaRef.current = node;
-
-    if (!node) return;
-
-    setChartBounds((previous) => {
-      const next = {
-        width: node.clientWidth,
-        height: node.clientHeight,
-      };
-
-      return previous.width === next.width && previous.height === next.height ? previous : next;
-    });
-  }, []);
-
-  useEffect(() => {
-    const node = chartAreaRef.current;
-    if (!node) return;
-
-    const observer = new ResizeObserver(() => {
-      setChartBounds((previous) => {
-        const next = {
-          width: node.clientWidth,
-          height: node.clientHeight,
-        };
-
-        return previous.width === next.width && previous.height === next.height ? previous : next;
-      });
-    });
-
-    observer.observe(node);
-    return () => observer.disconnect();
   }, []);
 
   const isZoomed = visibleStartIndex !== 0 || visibleEndIndex !== maxIndex;
@@ -177,25 +122,6 @@ export default function GraphInner({
   );
   const baseStrokeWidth = selectedStateIds.length >= 24 ? 1.7 : 2;
   const visibleVerticalGridLines = visibleData.length <= 12;
-  const tooltipWidth = chartBounds.width < 640 ? TOOLTIP_WIDTH_MOBILE : TOOLTIP_WIDTH_DESKTOP;
-  const tooltipPosition = useMemo(() => {
-    if (!hoverTooltip) return null;
-
-    const width = chartBounds.width || tooltipWidth + 24;
-    const height = chartBounds.height || TOOLTIP_ESTIMATED_HEIGHT + 24;
-    let left = hoverTooltip.chartX + TOOLTIP_HORIZONTAL_OFFSET;
-
-    if (left + tooltipWidth > width - 12) {
-      left = hoverTooltip.chartX - tooltipWidth - TOOLTIP_HORIZONTAL_OFFSET;
-    }
-
-    left = clamp(left, 12, Math.max(12, width - tooltipWidth - 12));
-
-    let top = hoverTooltip.chartY - TOOLTIP_ESTIMATED_HEIGHT / 2;
-    top = clamp(top, 12, Math.max(12, height - TOOLTIP_ESTIMATED_HEIGHT - 12));
-
-    return { left, top };
-  }, [chartBounds.height, chartBounds.width, hoverTooltip, tooltipWidth]);
 
   const handleResetZoom = useCallback(() => {
     setZoomWindow({
@@ -218,8 +144,15 @@ export default function GraphInner({
         const currentEnd = clamp(previous.endIndex, currentStart, maxIndex);
         const currentVisiblePoints = currentEnd - currentStart + 1;
 
-        const zoomFactor = Math.exp(event.deltaY * 0.0015);
-        let nextVisiblePoints = Math.round(currentVisiblePoints * zoomFactor);
+        const isZoomingIn = event.deltaY < 0;
+        let nextVisiblePoints = isZoomingIn
+          ? Math.floor(currentVisiblePoints * ZOOM_IN_MULTIPLIER)
+          : Math.ceil(currentVisiblePoints * ZOOM_OUT_MULTIPLIER);
+
+        if (nextVisiblePoints === currentVisiblePoints) {
+          nextVisiblePoints = currentVisiblePoints + (isZoomingIn ? -1 : 1);
+        }
+
         nextVisiblePoints = clamp(nextVisiblePoints, MIN_VISIBLE_POINTS, chartData.length);
 
         if (nextVisiblePoints === currentVisiblePoints) {
@@ -243,108 +176,22 @@ export default function GraphInner({
 
   const hideHoverTooltip = useCallback(() => {
     setHoveredStateId(null);
-    setHoverTooltip(null);
   }, []);
 
   const handleChartMouseMove = useCallback(
     (nextState: ChartMouseState) => {
-      const chartX = nextState.chartX;
-      const chartY = nextState.chartY;
-      const activePayload = nextState.activePayload ?? [];
-      const yAxis = nextState.yAxisMap ? Object.values(nextState.yAxisMap)[0] : undefined;
-      const scale = yAxis?.scale;
-
-      if (
-        typeof chartX !== "number" ||
-        typeof chartY !== "number" ||
-        !activePayload.length ||
-        typeof scale !== "function"
-      ) {
+      const activeDataKey = nextState.activePayload?.[0]?.dataKey?.toString();
+      if (!activeDataKey) {
         hideHoverTooltip();
         return;
       }
-
-      const nearestEntry = activePayload
-        .map((entry) => {
-          const stateId = entry.dataKey?.toString() ?? "";
-          const value = typeof entry.value === "number" && Number.isFinite(entry.value) ? entry.value : null;
-          if (!stateId || value === null) return null;
-
-          const scaledY = scale(value);
-          if (typeof scaledY !== "number" || !Number.isFinite(scaledY)) return null;
-
-          return {
-            color: entry.color ?? getStateSeriesStyle(stateId).color,
-            distance: Math.abs(chartY - scaledY),
-            stateId,
-            stateName: entry.name?.toString() ?? statesById.get(stateId)?.name ?? stateId,
-            value,
-          };
-        })
-        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
-        .sort((left, right) => left.distance - right.distance)[0];
-
-      const yearValue =
-        typeof nextState.activeLabel === "number"
-          ? nextState.activeLabel
-          : Number(nextState.activeLabel);
-
-      if (
-        !nearestEntry ||
-        nearestEntry.distance > TOOLTIP_PROXIMITY_THRESHOLD ||
-        !Number.isFinite(yearValue)
-      ) {
-        hideHoverTooltip();
-        return;
-      }
-
-      setHoveredStateId(nearestEntry.stateId);
-      setHoverTooltip((previous) => {
-        if (
-          previous &&
-          previous.chartX === chartX &&
-          previous.chartY === chartY &&
-          previous.color === nearestEntry.color &&
-          previous.stateId === nearestEntry.stateId &&
-          previous.stateName === nearestEntry.stateName &&
-          previous.value === nearestEntry.value &&
-          previous.year === yearValue
-        ) {
-          return previous;
-        }
-
-        return {
-          chartX,
-          chartY,
-          color: nearestEntry.color,
-          stateId: nearestEntry.stateId,
-          stateName: nearestEntry.stateName,
-          value: nearestEntry.value,
-          year: yearValue,
-        };
-      });
+      setHoveredStateId((previous) => (previous === activeDataKey ? previous : activeDataKey));
     },
-    [hideHoverTooltip, statesById],
+    [hideHoverTooltip],
   );
 
   return (
     <div ref={setChartAreaNode} className="relative h-full w-full" onWheel={handleWheelZoom}>
-      {hoverTooltip && tooltipPosition ? (
-        <div
-          className="pointer-events-none absolute z-20"
-          style={{ left: tooltipPosition.left, top: tooltipPosition.top }}
-        >
-          <TooltipContent
-            year={hoverTooltip.year}
-            stateName={hoverTooltip.stateName}
-            value={hoverTooltip.value}
-            color={hoverTooltip.color}
-            metricUnit={metricUnit}
-            normalization={normalization}
-          />
-        </div>
-      ) : null}
-
       {isZoomed ? (
         <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-wrap items-center justify-end gap-2">
           {visibleRangeLabel ? (
@@ -396,10 +243,12 @@ export default function GraphInner({
             tick={{ fontSize: 12, fill: "#475569" }}
           />
           <Tooltip
-            content={() => null}
+            content={<TooltipContent metricUnit={metricUnit} normalization={normalization} />}
             cursor={false}
+            shared={false}
+            allowEscapeViewBox={{ x: false, y: false }}
+            wrapperStyle={{ pointerEvents: "none", zIndex: 20 }}
             isAnimationActive={false}
-            wrapperStyle={{ display: "none" }}
           />
           {selectedStateIds.map((stateId) => {
             const state = statesById.get(stateId);
