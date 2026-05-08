@@ -2,7 +2,7 @@
 
 StateStats is a Next.js (App Router) + Prisma project for exploring U.S. state-level metrics. It ships with a typed domain model, a Supabase/PostgreSQL schema, ingestion pipelines, and interactive map/graph experiences.
 
-![StateStats Map](public/map-placeholder.svg)
+<img width="1983" height="793" alt="statestats-banner" src="https://github.com/user-attachments/assets/494ffb0a-bfdf-4b5e-860c-5e6b9aca20a5" />
 
 ## Tech stack
 - Next.js (App Router) + TypeScript
