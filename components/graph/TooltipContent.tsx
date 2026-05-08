@@ -15,14 +15,12 @@ export function TooltipContent({
   active,
   payload,
   label,
-  hoveredStateId,
   metricUnit,
   normalization,
 }: Props) {
-  const entry =
-    ((payload ?? []).find((item) => item.dataKey?.toString() === hoveredStateId) ?? null) as TooltipPayloadEntry | null;
+  const entry = ((payload ?? [])[0] ?? null) as TooltipPayloadEntry | null;
 
-  if (!active || !hoveredStateId || !entry || typeof entry.value !== "number" || !Number.isFinite(entry.value)) {
+  if (!active || !entry || typeof entry.value !== "number" || !Number.isFinite(entry.value)) {
     return null;
   }
 
