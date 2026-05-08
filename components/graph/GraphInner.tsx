@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StateInfo } from "@/lib/types";
@@ -436,14 +436,14 @@ export default function GraphInner({
             wrapperStyle={{ pointerEvents: "none", zIndex: 20 }}
             isAnimationActive={false}
           />
-          {selectedStateIds.map((stateId) => {
+          {selectedStateIds.flatMap((stateId) => {
             const state = statesById.get(stateId);
             const { color, dashArray } = getStateSeriesStyle(stateId);
             const isHovered = hoveredStateId === stateId;
 
-            return (
-              <Fragment key={stateId}>
-                <Line
+            return [
+              <Line
+                  key={`${stateId}-interaction`}
                   type="monotone"
                   dataKey={stateId}
                   name={state?.name ?? stateId}
@@ -465,8 +465,9 @@ export default function GraphInner({
                   onMouseLeave={() => {
                     setHoveredStateId((previous) => (previous === stateId ? null : previous));
                   }}
-                />
-                <Line
+                />,
+              <Line
+                  key={stateId}
                   type="monotone"
                   dataKey={stateId}
                   name={state?.name ?? stateId}
@@ -490,9 +491,8 @@ export default function GraphInner({
                   }}
                   isAnimationActive={false}
                   connectNulls
-                />
-              </Fragment>
-            );
+                />,
+            ];
           })}
         </LineChart>
       </ResponsiveContainer>
