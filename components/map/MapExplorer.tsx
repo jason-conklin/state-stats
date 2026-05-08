@@ -97,7 +97,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [mapContainerWidth, setMapContainerWidth] = useState(0);
-  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 240 });
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 290 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
@@ -415,17 +415,17 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                 <button
                   type="button"
                   onClick={() => setTableOpen(!isTableOpen)}
-                  className={`flex-none cursor-pointer items-center gap-2.5 rounded-xl border px-5 py-2.5 text-[15px] font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
+                  className={`flex-none cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
                     isTableOpen
                       ? "border-slate-300 bg-gradient-to-b from-slate-100 to-slate-200/70 text-slate-800 hover:from-slate-100 hover:to-slate-200 active:to-slate-200/90"
                       : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-700 hover:from-white hover:to-slate-100 active:to-slate-100"
                   }`}
                 >
-                  {isTableOpen ? <EyeOff className="h-[18px] w-[18px] shrink-0" aria-hidden /> : <Table2 className="h-[18px] w-[18px] shrink-0" aria-hidden />}
+                  {isTableOpen ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Table2 className="h-4 w-4 shrink-0" aria-hidden />}
                   {isTableOpen ? "Hide table" : "Data table"}
                 </button>
               </div>
-              <p className="mt-2 truncate text-right text-[10px] text-slate-600">
+              <p className="mt-0.5 truncate text-right text-[10px] text-slate-600">
                 Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
               </p>
             </div>
@@ -596,17 +596,17 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   <button
                     type="button"
                     onClick={() => setTableOpen(!isTableOpen)}
-                    className={`hidden flex-none cursor-pointer items-center gap-2.5 rounded-xl border px-5 py-2.5 text-[15px] font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
+                    className={`hidden flex-none cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150 ease-out ring-1 ring-white/70 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_16px_rgba(15,23,42,0.10)] hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.08),0_10px_22px_rgba(15,23,42,0.14)] active:translate-y-[1px] active:shadow-[0_1px_2px_rgba(15,23,42,0.06)] active:ring-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent md:inline-flex ${
                       isTableOpen
                         ? "border-slate-300 bg-gradient-to-b from-slate-100 to-slate-200/70 text-slate-800 hover:from-slate-100 hover:to-slate-200 active:to-slate-200/90"
                         : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-700 hover:from-white hover:to-slate-100 active:to-slate-100"
                     }`}
                   >
-                    {isTableOpen ? <EyeOff className="h-[18px] w-[18px] shrink-0" aria-hidden /> : <Table2 className="h-[18px] w-[18px] shrink-0" aria-hidden />}
+                    {isTableOpen ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Table2 className="h-4 w-4 shrink-0" aria-hidden />}
                     {isTableOpen ? "Hide table" : "Data table"}
                   </button>
                 </div>
-                <p className="mt-2 truncate text-left text-[10px] text-slate-600 sm:mt-1 sm:text-right">
+                <p className="mt-0.5 truncate text-left text-[10px] text-slate-600 sm:text-right">
                   Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
                 </p>
               </div>
@@ -714,7 +714,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                         type="button"
                         aria-label="Unpin state"
                         onClick={() => setPinnedStateId(null)}
-                        className="text-slate-500 hover:text-slate-700 text-xs leading-none"
+                        className="cursor-pointer text-xs leading-none text-slate-500 hover:text-slate-700"
                       >
                         ✕
                       </button>
