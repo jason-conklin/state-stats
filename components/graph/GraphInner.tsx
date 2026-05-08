@@ -38,39 +38,32 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function getNiceYearStep(targetStep: number) {
-  if (targetStep <= 1) return 1;
-
-  const magnitude = 10 ** Math.floor(Math.log10(targetStep));
-  const normalized = targetStep / magnitude;
-
-  if (normalized <= 1) return magnitude;
-  if (normalized <= 2) return 2 * magnitude;
-  if (normalized <= 5) return 5 * magnitude;
-  return 10 * magnitude;
-}
-
 function buildYearTicks(startYear: number, endYear: number, chartWidth: number) {
   if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) return [];
   if (endYear < startYear) return [];
   if (startYear === endYear) return [startYear];
 
-  const range = endYear - startYear;
-  const safeWidth = chartWidth > 0 ? chartWidth : 720;
-  const targetTickCount = Math.max(2, Math.floor(safeWidth / 88));
-  const roughStep = Math.max(1, Math.ceil(range / Math.max(targetTickCount - 1, 1)));
-  const step = range <= 8 ? 1 : getNiceYearStep(roughStep);
-
-  const ticks = new Set<number>([startYear, endYear]);
-  const firstAlignedYear = Math.ceil(startYear / step) * step;
-
-  for (let year = firstAlignedYear; year < endYear; year += step) {
-    if (year > startYear) {
-      ticks.add(year);
-    }
+  const totalYears = endYear - startYear + 1;
+  if (totalYears <= 12) {
+    return Array.from({ length: totalYears }, (_, index) => startYear + index);
   }
 
-  return Array.from(ticks).sort((a, b) => a - b);
+  const safeWidth = chartWidth > 0 ? chartWidth : 720;
+  const maxLabels = Math.max(2, Math.floor(safeWidth / 72));
+  const candidateSteps = [1, 2, 5, 10];
+  const step =
+    candidateSteps.find((candidate) => Math.ceil(totalYears / candidate) <= maxLabels) ??
+    Math.max(1, Math.ceil(totalYears / maxLabels));
+
+  const ticks: number[] = [startYear];
+  for (let year = startYear + step; year < endYear; year += step) {
+    ticks.push(year);
+  }
+  if (ticks[ticks.length - 1] !== endYear) {
+    ticks.push(endYear);
+  }
+
+  return ticks;
 }
 
 function getVisibleYDomain(
