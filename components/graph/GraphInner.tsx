@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type WheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StateInfo } from "@/lib/types";
@@ -15,6 +15,7 @@ type Props = {
   states: StateInfo[];
   metricUnit?: string | null;
   normalization: "raw" | "indexed";
+  onZoomChange?: (isZoomed: boolean) => void;
 };
 
 type ZoomWindow = {
@@ -82,6 +83,7 @@ export default function GraphInner({
   states,
   metricUnit,
   normalization,
+  onZoomChange,
 }: Props) {
   const chartAreaRef = useRef<HTMLDivElement | null>(null);
   const panSessionRef = useRef<PanSession | null>(null);
@@ -273,6 +275,10 @@ export default function GraphInner({
     },
     [endPan],
   );
+
+  useEffect(() => {
+    onZoomChange?.(isZoomed);
+  }, [isZoomed, onZoomChange]);
 
   return (
     <div

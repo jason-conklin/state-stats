@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { MousePointer2 } from "lucide-react";
 import { StateInfo } from "@/lib/types";
 import { getStateSeriesColor } from "./seriesStyle";
 
@@ -87,6 +88,7 @@ type ChartContainerProps = {
   states: StateInfo[];
   metricUnit?: string | null;
   normalization: "raw" | "indexed";
+  onZoomChange?: (isZoomed: boolean) => void;
 };
 
 const ChartContainer = dynamic<ChartContainerProps>(
@@ -113,6 +115,7 @@ export function GraphExplorer({
   const [series, setSeries] = useState<Series[]>(initialSeries);
   const [loading, setLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isChartZoomed, setIsChartZoomed] = useState(false);
 
   useEffect(() => {
     // If metric changes, fetch fresh series data
@@ -356,13 +359,21 @@ export function GraphExplorer({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Chart</p>
-            <h2 className="text-xl font-semibold text-slate-900">State comparison</h2>
+            <h2 className="text-xl font-semibold text-slate-900">
+              State comparison{selectedMetric?.name ? `: ${selectedMetric.name}` : ""}
+            </h2>
             <p className="text-xs text-slate-500">
               {selectedMetric?.unit ? `Unit: ${selectedMetric.unit}` : "Unit: n/a"} ·{" "}
               {normalization === "raw" ? "Raw values" : "Indexed to start year"}
             </p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500" aria-live="polite">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 md:justify-end" aria-live="polite">
+            {!isChartZoomed && selectedStateIds.length > 0 && chartData.length > 0 ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+                <MousePointer2 className="h-3.5 w-3.5" aria-hidden />
+                <span>Scroll to zoom</span>
+              </span>
+            ) : null}
             {loading ? <span>Loading metric data…</span> : null}
             {isUpdating && !loading ? <span className="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Updating…</span> : null}
           </div>
@@ -385,6 +396,7 @@ export function GraphExplorer({
               states={states}
               metricUnit={selectedMetric?.unit}
               normalization={normalization}
+              onZoomChange={setIsChartZoomed}
             />
           </div>
         )}
