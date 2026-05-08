@@ -131,7 +131,7 @@ export default function AboutPage() {
         <section className="space-y-4 md:space-y-5">
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">About the creator</p>
-            <h3 className="text-xl font-semibold text-white md:text-2xl">The perspective and intent behind StateStats</h3>
+            <h3 className="text-xl font-semibold text-white md:text-2xl">The person and philosophy behind StateStats</h3>
           </div>
           <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
             <div className="grid gap-6 md:grid-cols-[460px_1fr] md:gap-8">
@@ -147,12 +147,12 @@ export default function AboutPage() {
                       priority
                     />
                   </div>
-                  <div className="min-w-0 space-y-2">
-                    <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Built by</p>
-                    <div className="space-y-1.5">
-                      <p className="text-xl font-semibold text-slate-50">Jason Conklin</p>
-                      <p className="text-sm text-slate-300">Creator of StateStats</p>
-                      <p className="text-sm leading-relaxed text-slate-400">
+                  <div className="min-w-0 space-y-3">
+                    <p className="text-base uppercase tracking-[0.18em] text-slate-400 md:text-lg">Built by</p>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-semibold text-slate-50 md:text-3xl">Jason Conklin</p>
+                      <p className="text-base text-slate-300 md:text-lg">Creator of StateStats</p>
+                      <p className="text-base leading-relaxed text-slate-400 md:text-lg">
                         B.S. Computer Science, New Jersey Institute of Technology (NJIT)
                       </p>
                     </div>
