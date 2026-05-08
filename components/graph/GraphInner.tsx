@@ -38,6 +38,41 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
+function getNiceYearStep(targetStep: number) {
+  if (targetStep <= 1) return 1;
+
+  const magnitude = 10 ** Math.floor(Math.log10(targetStep));
+  const normalized = targetStep / magnitude;
+
+  if (normalized <= 1) return magnitude;
+  if (normalized <= 2) return 2 * magnitude;
+  if (normalized <= 5) return 5 * magnitude;
+  return 10 * magnitude;
+}
+
+function buildYearTicks(startYear: number, endYear: number, chartWidth: number) {
+  if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) return [];
+  if (endYear < startYear) return [];
+  if (startYear === endYear) return [startYear];
+
+  const range = endYear - startYear;
+  const safeWidth = chartWidth > 0 ? chartWidth : 720;
+  const targetTickCount = Math.max(2, Math.floor(safeWidth / 88));
+  const roughStep = Math.max(1, Math.ceil(range / Math.max(targetTickCount - 1, 1)));
+  const step = range <= 8 ? 1 : getNiceYearStep(roughStep);
+
+  const ticks = new Set<number>([startYear, endYear]);
+  const firstAlignedYear = Math.ceil(startYear / step) * step;
+
+  for (let year = firstAlignedYear; year < endYear; year += step) {
+    if (year > startYear) {
+      ticks.add(year);
+    }
+  }
+
+  return Array.from(ticks).sort((a, b) => a - b);
+}
+
 function getVisibleYDomain(
   visibleData: ChartDataRow[],
   selectedStateIds: string[],
@@ -87,8 +122,10 @@ export default function GraphInner({
 }: Props) {
   const chartAreaRef = useRef<HTMLDivElement | null>(null);
   const panSessionRef = useRef<PanSession | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [hoveredStateId, setHoveredStateId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
+  const [chartWidth, setChartWidth] = useState(0);
   const [zoomWindow, setZoomWindow] = useState<ZoomWindow>({
     startIndex: 0,
     endIndex: Math.max(0, chartData.length - 1),
@@ -102,12 +139,35 @@ export default function GraphInner({
     [chartData, visibleEndIndex, visibleStartIndex],
   );
   const setChartAreaNode = useCallback((node: HTMLDivElement | null) => {
+    resizeObserverRef.current?.disconnect();
+    resizeObserverRef.current = null;
     chartAreaRef.current = node;
+
+    if (!node) {
+      setChartWidth(0);
+      return;
+    }
+
+    const updateWidth = (nextWidth: number) => {
+      const roundedWidth = Math.round(nextWidth);
+      setChartWidth((previous) => (previous === roundedWidth ? previous : roundedWidth));
+    };
+
+    updateWidth(node.clientWidth);
+
+    const observer = new ResizeObserver((entries) => {
+      const nextWidth = entries[0]?.contentRect.width ?? node.clientWidth;
+      updateWidth(nextWidth);
+    });
+    observer.observe(node);
+    resizeObserverRef.current = observer;
   }, []);
 
   const isZoomed = visibleStartIndex !== 0 || visibleEndIndex !== maxIndex;
+  const visibleStartYear = visibleData[0]?.year ?? 0;
+  const visibleEndYear = visibleData[visibleData.length - 1]?.year ?? visibleStartYear;
   const visibleRangeLabel =
-    visibleData.length > 0 ? `${visibleData[0].year}\u2013${visibleData[visibleData.length - 1].year}` : null;
+    visibleData.length > 0 ? `${visibleStartYear}\u2013${visibleEndYear}` : null;
   const statesById = useMemo(() => new Map(states.map((state) => [state.id, state])), [states]);
   const yDomain = useMemo(
     () => getVisibleYDomain(visibleData, selectedStateIds),
@@ -125,11 +185,16 @@ export default function GraphInner({
       }),
     [metricUnit, normalization],
   );
+  const xAxisTickFormatter = useCallback((value: number) => `${Math.round(Number(value))}`, []);
   const baseStrokeWidth = selectedStateIds.length >= 24 ? 1.7 : 2;
   const interactionStrokeWidth = 14;
+  const yearTicks = useMemo(
+    () => buildYearTicks(visibleStartYear, visibleEndYear, chartWidth),
+    [chartWidth, visibleEndYear, visibleStartYear],
+  );
   const verticalGridCoordinatesGenerator = useCallback(
     ({ offset }: { offset?: { left?: number; width?: number } }) => {
-      if (visibleData.length <= 1) {
+      if (visibleEndYear < visibleStartYear) {
         return [];
       }
 
@@ -139,10 +204,14 @@ export default function GraphInner({
         return [];
       }
 
-      const step = width / (visibleData.length - 1);
-      return Array.from({ length: visibleData.length }, (_, index) => left + step * index);
+      const span = visibleEndYear - visibleStartYear;
+      if (span === 0) {
+        return [left];
+      }
+
+      return Array.from({ length: span + 1 }, (_, index) => left + (width * index) / span);
     },
-    [visibleData.length],
+    [visibleEndYear, visibleStartYear],
   );
 
   const handleResetZoom = useCallback(() => {
@@ -281,6 +350,12 @@ export default function GraphInner({
     onZoomChange?.(isZoomed);
   }, [isZoomed, onZoomChange]);
 
+  useEffect(() => {
+    return () => {
+      resizeObserverRef.current?.disconnect();
+    };
+  }, []);
+
   return (
     <div
       ref={setChartAreaNode}
@@ -332,13 +407,19 @@ export default function GraphInner({
           />
           <XAxis
             dataKey="year"
+            type="number"
+            scale="linear"
+            domain={[visibleStartYear, visibleEndYear]}
+            ticks={yearTicks}
+            allowDecimals={false}
+            interval={0}
             stroke="#94a3b8"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             tick={{ fontSize: 12, fill: "#475569" }}
-            interval="preserveStartEnd"
-            minTickGap={24}
+            tickFormatter={xAxisTickFormatter}
+            padding={{ left: 0, right: 0 }}
           />
           <YAxis
             stroke="#94a3b8"

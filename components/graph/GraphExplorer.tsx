@@ -36,18 +36,19 @@ function normalizeSeries(
   mode: "raw" | "indexed",
 ) {
   const yearsSet = new Set<number>();
-  series.forEach((s) => s.points.forEach((p) => yearsSet.add(p.year)));
+  series.forEach((s) => s.points.forEach((p) => yearsSet.add(Number(p.year))));
   const sortedYears = Array.from(yearsSet)
+    .map((year) => Number(year))
     .filter((year) => year >= yearRange.start && year <= yearRange.end)
     .sort((a, b) => a - b);
 
-  const chartRows: ChartDataRow[] = sortedYears.map((year) => ({ year }));
+  const chartRows: ChartDataRow[] = sortedYears.map((year) => ({ year: Number(year) }));
 
   selectedStateIds.forEach((stateId) => {
     const seriesEntry = series.find((s) => s.stateId === stateId);
     if (!seriesEntry) return;
 
-    const pointsByYear = new Map(seriesEntry.points.map((p) => [p.year, p.value]));
+    const pointsByYear = new Map(seriesEntry.points.map((p) => [Number(p.year), p.value] as const));
     let baseValue: number | null = null;
     if (mode === "indexed") {
       const startValue = pointsByYear.get(yearRange.start);
