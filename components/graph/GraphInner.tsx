@@ -49,8 +49,8 @@ function buildYearTicks(startYear: number, endYear: number, chartWidth: number) 
   }
 
   const safeWidth = chartWidth > 0 ? chartWidth : 720;
-  const maxLabels = Math.max(2, Math.floor(safeWidth / 72));
-  const candidateSteps = [1, 2, 5, 10];
+  const maxLabels = Math.max(2, Math.floor(safeWidth / 84));
+  const candidateSteps = totalYears <= 25 ? [1, 2, 5] : [1, 2, 5, 10];
   const step =
     candidateSteps.find((candidate) => Math.ceil(totalYears / candidate) <= maxLabels) ??
     Math.max(1, Math.ceil(totalYears / maxLabels));
@@ -187,7 +187,7 @@ export default function GraphInner({
   );
   const verticalGridCoordinatesGenerator = useCallback(
     ({ offset }: { offset?: { left?: number; width?: number } }) => {
-      if (visibleData.length <= 1) {
+      if (visibleEndYear < visibleStartYear) {
         return [];
       }
 
@@ -197,10 +197,14 @@ export default function GraphInner({
         return [];
       }
 
-      const step = width / (visibleData.length - 1);
-      return Array.from({ length: visibleData.length }, (_, index) => left + step * index);
+      const span = visibleEndYear - visibleStartYear;
+      if (span === 0) {
+        return [left];
+      }
+
+      return Array.from({ length: span + 1 }, (_, index) => left + (width * index) / span);
     },
-    [visibleData.length],
+    [visibleEndYear, visibleStartYear],
   );
 
   const handleResetZoom = useCallback(() => {
@@ -396,14 +400,19 @@ export default function GraphInner({
           />
           <XAxis
             dataKey="year"
+            type="number"
+            scale="linear"
+            domain={[visibleStartYear, visibleEndYear]}
             ticks={yearTicks}
             interval={0}
+            allowDecimals={false}
             stroke="#94a3b8"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             tick={{ fontSize: 12, fill: "#475569" }}
             tickFormatter={xAxisTickFormatter}
+            padding={{ left: 0, right: 0 }}
           />
           <YAxis
             stroke="#94a3b8"

@@ -35,12 +35,10 @@ function normalizeSeries(
   yearRange: { start: number; end: number },
   mode: "raw" | "indexed",
 ) {
-  const yearsSet = new Set<number>();
-  series.forEach((s) => s.points.forEach((p) => yearsSet.add(Number(p.year))));
-  const sortedYears = Array.from(yearsSet)
-    .map((year) => Number(year))
-    .filter((year) => year >= yearRange.start && year <= yearRange.end)
-    .sort((a, b) => a - b);
+  const sortedYears = Array.from(
+    { length: Math.max(0, yearRange.end - yearRange.start) + 1 },
+    (_, index) => yearRange.start + index,
+  );
 
   const chartRows: ChartDataRow[] = sortedYears.map((year) => ({ year: Number(year) }));
 
