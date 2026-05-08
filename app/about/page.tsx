@@ -30,25 +30,21 @@ const dataHighlights = [
 
 const explorationSteps = [
   {
-    step: "01",
     title: "Choose a metric",
     body: "Select income, population, unemployment, age, home value, and more.",
     Icon: MousePointerClick,
   },
   {
-    step: "02",
     title: "Explore the map",
     body: "Hover or pin states to inspect rankings and values for a selected year.",
     Icon: MapPinned,
   },
   {
-    step: "03",
     title: "Compare trends",
     body: "Add states to the Graph page to analyze changes over time.",
     Icon: LineChart,
   },
   {
-    step: "04",
     title: "Normalize data",
     body: "Compare relative growth and long-term changes more clearly.",
     Icon: SlidersHorizontal,
@@ -97,11 +93,13 @@ export default function AboutPage() {
                 key={title}
                 className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-6"
               >
-                <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-800/80 text-emerald-300">
-                  <Icon className="h-5 w-5" aria-hidden />
+                <div className="flex items-center gap-3">
+                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-800/80 text-emerald-300">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white">{title}</h4>
                 </div>
-                <h4 className="mt-4 text-lg font-semibold text-white">{title}</h4>
-                <p className="mt-2 text-sm leading-7 text-slate-300">{body}</p>
+                <p className="mt-3 text-sm leading-7 text-slate-300">{body}</p>
               </article>
             ))}
           </div>
@@ -113,19 +111,18 @@ export default function AboutPage() {
             <h3 className="text-xl font-semibold text-white md:text-2xl">A simple workflow for comparing states and trends</h3>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {explorationSteps.map(({ step, title, body, Icon }) => (
+            {explorationSteps.map(({ title, body, Icon }) => (
               <article
-                key={step}
+                key={title}
                 className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-6"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
                   <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-800/80 text-sky-300">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <span className="text-xs font-semibold tracking-[0.22em] text-slate-500">{step}</span>
+                  <h4 className="text-lg font-semibold text-white">{title}</h4>
                 </div>
-                <h4 className="mt-4 text-lg font-semibold text-white">{title}</h4>
-                <p className="mt-2 text-sm leading-7 text-slate-300">{body}</p>
+                <p className="mt-3 text-sm leading-7 text-slate-300">{body}</p>
               </article>
             ))}
           </div>
@@ -134,27 +131,29 @@ export default function AboutPage() {
         <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
           <div className="grid gap-6 md:grid-cols-[320px_1fr] md:gap-8">
             <div className="space-y-4">
-              <div className="flex justify-start">
-                <Image
-                  src="/jason_conklin.png"
-                  alt="Portrait of Jason Conklin, creator of StateStats"
-                  width={112}
-                  height={112}
-                  className="h-28 w-28 rounded-full border border-white/10 object-cover shadow-md"
-                  priority
-                />
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                  About the creator
-                </p>
-                <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Built by</p>
-                <div className="space-y-1.5">
-                  <p className="text-xl font-semibold text-slate-50">Jason Conklin</p>
-                  <p className="text-sm text-slate-300">Creator of StateStats</p>
-                  <p className="text-sm leading-relaxed text-slate-400">
-                    B.S. Computer Science, New Jersey Institute of Technology (NJIT)
-                  </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                About the creator
+              </p>
+              <div className="flex items-start gap-4">
+                <div className="flex shrink-0 justify-start">
+                  <Image
+                    src="/jason_conklin.png"
+                    alt="Portrait of Jason Conklin, creator of StateStats"
+                    width={112}
+                    height={112}
+                    className="h-28 w-28 rounded-full border border-white/10 object-cover shadow-md"
+                    priority
+                  />
+                </div>
+                <div className="min-w-0 space-y-2">
+                  <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Built by</p>
+                  <div className="space-y-1.5">
+                    <p className="text-xl font-semibold text-slate-50">Jason Conklin</p>
+                    <p className="text-sm text-slate-300">Creator of StateStats</p>
+                    <p className="text-sm leading-relaxed text-slate-400">
+                      B.S. Computer Science, New Jersey Institute of Technology (NJIT)
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
