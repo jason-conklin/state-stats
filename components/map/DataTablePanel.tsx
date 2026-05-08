@@ -290,7 +290,7 @@ export function DataTablePanel({
             <button
               type="button"
               onClick={() => setSortMode((current) => nextSortMode(current))}
-              className="inline-flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              className="inline-flex cursor-pointer flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
               aria-label={`Change sort order. Current sort is ${SORT_MODE_LABEL[sortMode]}`}
             >
               <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
@@ -301,7 +301,7 @@ export function DataTablePanel({
                 <button
                   type="button"
                   onClick={handleExportCsv}
-                  className="px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  className="cursor-pointer px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                 >
                   Export
                 </button>
@@ -313,7 +313,7 @@ export function DataTablePanel({
                   aria-label="Open export options"
                   aria-haspopup="menu"
                   aria-expanded={activeExportMenu === "mobile"}
-                  className="border-l border-slate-200 px-1.5 text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  className="cursor-pointer border-l border-slate-200 px-1.5 text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                 >
                   <ChevronDown className="h-3.5 w-3.5" aria-hidden />
                 </button>
@@ -501,7 +501,7 @@ export function DataTablePanel({
                 <button
                   type="button"
                   onClick={() => setSortMode((current) => nextSortMode(current))}
-                  className="inline-flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  className="inline-flex cursor-pointer flex-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                   aria-label={`Change sort order. Current sort is ${SORT_MODE_LABEL[sortMode]}`}
                 >
                   <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
@@ -512,7 +512,7 @@ export function DataTablePanel({
                     <button
                       type="button"
                       onClick={handleExportCsv}
-                      className="px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                      className="cursor-pointer px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                     >
                       Export
                     </button>
@@ -524,7 +524,7 @@ export function DataTablePanel({
                       aria-label="Open export options"
                       aria-haspopup="menu"
                       aria-expanded={activeExportMenu === "desktop"}
-                      className="border-l border-slate-200 px-1.5 text-slate-600 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                      className="cursor-pointer border-l border-slate-200 px-1.5 text-slate-600 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                     >
                       <ChevronDown className="h-3.5 w-3.5" aria-hidden />
                     </button>

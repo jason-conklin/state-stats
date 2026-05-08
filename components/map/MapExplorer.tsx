@@ -425,7 +425,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                   {isTableOpen ? "Hide table" : "Data table"}
                 </button>
               </div>
-              <p className="mt-0.5 truncate text-right text-[10px] text-slate-600">
+              <p className="mt-0 truncate text-right text-[10px] leading-none text-slate-600">
                 Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
               </p>
             </div>
@@ -606,7 +606,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
                     {isTableOpen ? "Hide table" : "Data table"}
                   </button>
                 </div>
-                <p className="mt-0.5 truncate text-left text-[10px] text-slate-600 sm:text-right">
+                <p className="mt-0 truncate text-left text-[10px] leading-none text-slate-600 sm:text-right">
                   Data through {selectedMetric?.maxYear ?? "—"} for {selectedMetric?.name ?? "this metric"}
                 </p>
               </div>
