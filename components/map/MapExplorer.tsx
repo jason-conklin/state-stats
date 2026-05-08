@@ -97,7 +97,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [mapContainerWidth, setMapContainerWidth] = useState(0);
-  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 290 });
+  const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 390 });
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
