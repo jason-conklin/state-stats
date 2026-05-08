@@ -32,17 +32,17 @@ export function StateStatsLoader({
       <div
         role="status"
         aria-live="polite"
-        className="ss-loader-pulse flex flex-col items-center gap-4 rounded-[28px] border border-white/75 bg-white/72 px-7 py-6 text-center shadow-[0_18px_48px_rgba(15,23,42,0.12)]"
+        className="ss-loader-pulse flex flex-col items-center gap-6 rounded-[32px] border border-white/75 bg-white/72 px-10 py-9 text-center shadow-[0_18px_48px_rgba(15,23,42,0.12)] sm:px-12 sm:py-10"
       >
-        <div className="relative w-20 sm:w-24 md:w-28">
+        <div className="relative w-36 sm:w-44 md:w-52">
           {ANIMATION_FRAMES.map((src, index) => (
             <Image
               key={src}
               src={src}
               alt=""
               aria-hidden
-              width={128}
-              height={128}
+              width={208}
+              height={208}
               priority
               className={`ss-loader-frame absolute inset-0 h-auto w-full ${
                 index === ANIMATION_FRAMES.length - 1 ? "ss-loader-frame-final" : ""
@@ -51,12 +51,12 @@ export function StateStatsLoader({
                 animationDelay: `${index * FRAME_INTERVAL_MS}ms`,
                 animationDuration: `${TOTAL_DURATION_MS}ms`,
               }}
-              sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, 112px"
+              sizes="(max-width: 640px) 144px, (max-width: 768px) 176px, 208px"
             />
           ))}
           <div className="w-full pb-[100%]" aria-hidden />
         </div>
-        <p className="text-xs font-medium tracking-[0.18em] text-slate-600 sm:text-sm">
+        <p className="text-lg font-medium tracking-[0.14em] text-slate-600 sm:text-xl md:text-2xl">
           {message}
         </p>
       </div>
