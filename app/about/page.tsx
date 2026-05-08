@@ -10,17 +10,18 @@ export default function AboutPage() {
     <main className="min-h-full w-full overflow-y-auto bg-slate-950 px-4 py-6 md:px-8 md:py-10">
       <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 shadow-[0_20px_50px_rgba(15,23,42,0.35)]">
-          <div className="relative aspect-[16/9] md:aspect-[21/9]">
+          <div className="relative">
             <Image
               src="/statestats-banner.png"
               alt="StateStats banner showing the StateStats logo and a U.S. data map"
-              fill
+              width={2475}
+              height={793}
               priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 1200px"
+              className="h-auto w-full"
+              sizes="(max-width: 1280px) 100vw, 1200px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
+            <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4 md:p-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-100/80">
                 About StateStats
               </p>
