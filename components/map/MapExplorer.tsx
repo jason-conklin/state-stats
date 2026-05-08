@@ -98,6 +98,8 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [mapContainerWidth, setMapContainerWidth] = useState(0);
   const [legendPosition, setLegendPosition] = useState<{ x: number; y: number }>({ x: 12, y: 580 });
+  const legendWasDraggedRef = useRef(false);
+  const lastLegendViewportRef = useRef<"mobile" | "desktop" | null>(null);
   const dragRef = useRef<{ isDragging: boolean; didDrag: boolean; offsetX: number; offsetY: number }>({
     isDragging: false,
     didDrag: false,
@@ -258,6 +260,7 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
       const clampedX = Math.min(Math.max(0, x), rect.width - 180);
       const clampedY = Math.min(Math.max(0, y), rect.height - 100);
       dragRef.current.didDrag = true;
+      legendWasDraggedRef.current = true;
       setLegendPosition({ x: clampedX, y: clampedY });
     };
 
@@ -280,10 +283,21 @@ export function MapExplorer({ metrics, defaultMetricId, defaultYear, states, fea
     if (!container) return;
 
     const updateWidth = () => {
+      const nextWidth = Math.round(container.getBoundingClientRect().width);
       setMapContainerWidth((current) => {
-        const nextWidth = Math.round(container.getBoundingClientRect().width);
         return current === nextWidth ? current : nextWidth;
       });
+
+      if (!legendWasDraggedRef.current && typeof window !== "undefined") {
+        const viewportMode = window.innerWidth < 640 ? "mobile" : "desktop";
+        if (lastLegendViewportRef.current !== viewportMode) {
+          setLegendPosition({
+            x: 12,
+            y: viewportMode === "mobile" ? 285 : 580,
+          });
+          lastLegendViewportRef.current = viewportMode;
+        }
+      }
     };
 
     updateWidth();
