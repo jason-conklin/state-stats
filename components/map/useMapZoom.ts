@@ -22,6 +22,7 @@ const DEFAULT_TRANSFORM: MapTransform = {
 };
 
 const ZOOM_EPSILON = 0.01;
+const PAN_DRAG_THRESHOLD = 6;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -187,9 +188,6 @@ export function useMapZoom({ containerRef, minScale = 1, maxScale = 4.5 }: UseMa
       panRef.current.lastY = event.clientY;
       panRef.current.dragDistance = 0;
       panRef.current.suppressClickUntil = 0;
-      setIsPanning(true);
-      event.currentTarget.setPointerCapture(event.pointerId);
-      event.preventDefault();
     },
     [cancelAnimation, hasFinePointer, minScale],
   );
@@ -205,6 +203,17 @@ export function useMapZoom({ containerRef, minScale = 1, maxScale = 4.5 }: UseMa
       panRef.current.lastX = event.clientX;
       panRef.current.lastY = event.clientY;
       panRef.current.dragDistance += Math.hypot(dx, dy);
+
+      if (!isPanning && panRef.current.dragDistance <= PAN_DRAG_THRESHOLD) {
+        return;
+      }
+
+      if (!isPanning) {
+        setIsPanning(true);
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
+      }
 
       const rect = event.currentTarget.getBoundingClientRect();
       const next = clampTransform(
@@ -223,7 +232,7 @@ export function useMapZoom({ containerRef, minScale = 1, maxScale = 4.5 }: UseMa
       setTransform(next);
       event.preventDefault();
     },
-    [maxScale, minScale],
+    [isPanning, maxScale, minScale],
   );
 
   const endPan = useCallback((event: ReactPointerEvent<SVGSVGElement>) => {
@@ -233,7 +242,8 @@ export function useMapZoom({ containerRef, minScale = 1, maxScale = 4.5 }: UseMa
 
     panRef.current.isActive = false;
     panRef.current.pointerId = -1;
-    panRef.current.suppressClickUntil = panRef.current.dragDistance > 6 ? performance.now() + 250 : 0;
+    panRef.current.suppressClickUntil =
+      panRef.current.dragDistance > PAN_DRAG_THRESHOLD ? performance.now() + 250 : 0;
     setIsPanning(false);
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
