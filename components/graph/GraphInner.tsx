@@ -124,7 +124,8 @@ export default function GraphInner({
     [metricUnit, normalization],
   );
   const baseStrokeWidth = selectedStateIds.length >= 24 ? 1.7 : 2;
-  const visibleVerticalGridLines = visibleData.length <= 12;
+  const verticalGridStroke = visibleData.length <= 12 ? "rgba(148, 163, 184, 0.18)" : "rgba(148, 163, 184, 0.12)";
+  const verticalGridDash = visibleData.length <= 12 ? "3 7" : "2 10";
 
   const handleResetZoom = useCallback(() => {
     setZoomWindow({
@@ -304,11 +305,10 @@ export default function GraphInner({
             vertical={false}
           />
           <CartesianGrid
-            stroke="rgba(148, 163, 184, 0.18)"
-            strokeDasharray="3 7"
+            stroke={verticalGridStroke}
+            strokeDasharray={verticalGridDash}
             horizontal={false}
-            vertical={visibleVerticalGridLines}
-            verticalPoints={visibleVerticalGridLines ? undefined : []}
+            vertical
             syncWithTicks
           />
           <XAxis
