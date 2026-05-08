@@ -22,6 +22,13 @@ type ZoomWindow = {
   endIndex: number;
 };
 
+type PanSession = {
+  initialEndIndex: number;
+  initialStartIndex: number;
+  pointerId: number;
+  startClientX: number;
+};
+
 const MIN_VISIBLE_POINTS = 3;
 const ZOOM_IN_MULTIPLIER = 0.88;
 const ZOOM_OUT_MULTIPLIER = 1.14;
@@ -77,7 +84,9 @@ export default function GraphInner({
   normalization,
 }: Props) {
   const chartAreaRef = useRef<HTMLDivElement | null>(null);
+  const panSessionRef = useRef<PanSession | null>(null);
   const [hoveredStateId, setHoveredStateId] = useState<string | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
   const [zoomWindow, setZoomWindow] = useState<ZoomWindow>({
     startIndex: 0,
     endIndex: Math.max(0, chartData.length - 1),
@@ -172,8 +181,93 @@ export default function GraphInner({
     setHoveredStateId(null);
   }, []);
 
+  const endPan = useCallback((pointerId?: number) => {
+    const session = panSessionRef.current;
+    if (!session) return;
+
+    if (pointerId !== undefined && session.pointerId !== pointerId) {
+      return;
+    }
+
+    if (chartAreaRef.current?.hasPointerCapture(session.pointerId)) {
+      chartAreaRef.current.releasePointerCapture(session.pointerId);
+    }
+
+    panSessionRef.current = null;
+    setIsPanning(false);
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isZoomed || event.button !== 0 || event.pointerType !== "mouse") return;
+      if (!chartAreaRef.current) return;
+
+      event.preventDefault();
+
+      const currentStart = clamp(zoomWindow.startIndex, 0, maxIndex);
+      const currentEnd = clamp(zoomWindow.endIndex, currentStart, maxIndex);
+
+      panSessionRef.current = {
+        initialEndIndex: currentEnd,
+        initialStartIndex: currentStart,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+      };
+
+      chartAreaRef.current.setPointerCapture(event.pointerId);
+      setIsPanning(true);
+      hideHoverTooltip();
+    },
+    [hideHoverTooltip, isZoomed, maxIndex, zoomWindow.endIndex, zoomWindow.startIndex],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const session = panSessionRef.current;
+      if (!session || session.pointerId !== event.pointerId || !chartAreaRef.current) return;
+
+      event.preventDefault();
+
+      const chartWidth = Math.max(chartAreaRef.current.clientWidth, 1);
+      const visiblePoints = session.initialEndIndex - session.initialStartIndex + 1;
+      const deltaX = event.clientX - session.startClientX;
+      const offsetPoints = Math.round((deltaX / chartWidth) * Math.max(visiblePoints - 1, 1));
+
+      const nextStart = clamp(
+        session.initialStartIndex - offsetPoints,
+        0,
+        Math.max(0, chartData.length - visiblePoints),
+      );
+      const nextEnd = nextStart + visiblePoints - 1;
+
+      setZoomWindow((previous) => {
+        if (previous.startIndex === nextStart && previous.endIndex === nextEnd) {
+          return previous;
+        }
+
+        return { startIndex: nextStart, endIndex: nextEnd };
+      });
+    },
+    [chartData.length],
+  );
+
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      endPan(event.pointerId);
+    },
+    [endPan],
+  );
+
   return (
-    <div ref={setChartAreaNode} className="relative h-full w-full" onWheel={handleWheelZoom}>
+    <div
+      ref={setChartAreaNode}
+      className={`relative h-full w-full ${isZoomed ? (isPanning ? "cursor-grabbing select-none" : "cursor-grab") : ""}`}
+      onWheel={handleWheelZoom}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
       {isZoomed ? (
         <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-wrap items-center justify-end gap-2">
           {visibleRangeLabel ? (
@@ -257,13 +351,25 @@ export default function GraphInner({
                   r: 4,
                   strokeWidth: 0,
                   fill: color,
-                  onMouseEnter: () => setHoveredStateId(stateId),
-                  onMouseMove: () => setHoveredStateId(stateId),
+                  onMouseEnter: () => {
+                    if (panSessionRef.current) return;
+                    setHoveredStateId(stateId);
+                  },
+                  onMouseMove: () => {
+                    if (panSessionRef.current) return;
+                    setHoveredStateId(stateId);
+                  },
                 }}
                 isAnimationActive={false}
                 connectNulls
-                onMouseEnter={() => setHoveredStateId(stateId)}
-                onMouseMove={() => setHoveredStateId(stateId)}
+                onMouseEnter={() => {
+                  if (panSessionRef.current) return;
+                  setHoveredStateId(stateId);
+                }}
+                onMouseMove={() => {
+                  if (panSessionRef.current) return;
+                  setHoveredStateId(stateId);
+                }}
                 onMouseLeave={() => {
                   setHoveredStateId((previous) => (previous === stateId ? null : previous));
                 }}
