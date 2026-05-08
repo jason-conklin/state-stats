@@ -3,18 +3,18 @@ import { DataSourceInfo, MetricDefinition } from "./types";
 
 export const dataSources: DataSourceInfo[] = [
   {
-    id: "census_acs",
-    name: "U.S. Census American Community Survey",
-    description: "Annual estimates on income, demographics, housing, and more.",
-    homepageUrl: "https://www.census.gov/programs-surveys/acs",
-    apiDocsUrl: "https://www.census.gov/data/developers/data-sets/acs-1year.html",
-  },
-  {
     id: "bls_laus",
     name: "BLS Local Area Unemployment Statistics",
     description: "Unemployment rates and labor market estimates from BLS LAUS.",
     homepageUrl: "https://www.bls.gov/lau/",
     apiDocsUrl: "https://download.bls.gov/pub/time.series/la/",
+  },
+  {
+    id: "census_acs",
+    name: "U.S. Census American Community Survey",
+    description: "Annual estimates on income, demographics, housing, and more.",
+    homepageUrl: "https://www.census.gov/programs-surveys/acs",
+    apiDocsUrl: "https://www.census.gov/data/developers/data-sets/acs-1year.html",
   },
 ];
 
