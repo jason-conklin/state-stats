@@ -124,8 +124,23 @@ export default function GraphInner({
     [metricUnit, normalization],
   );
   const baseStrokeWidth = selectedStateIds.length >= 24 ? 1.7 : 2;
-  const verticalGridStroke = visibleData.length <= 12 ? "rgba(148, 163, 184, 0.18)" : "rgba(148, 163, 184, 0.12)";
-  const verticalGridDash = visibleData.length <= 12 ? "3 7" : "2 10";
+  const verticalGridCoordinatesGenerator = useCallback(
+    ({ offset }: { offset?: { left?: number; width?: number } }) => {
+      if (visibleData.length <= 1) {
+        return [];
+      }
+
+      const left = offset?.left ?? 0;
+      const width = offset?.width ?? 0;
+      if (width <= 0) {
+        return [];
+      }
+
+      const step = width / (visibleData.length - 1);
+      return Array.from({ length: visibleData.length }, (_, index) => left + step * index);
+    },
+    [visibleData.length],
+  );
 
   const handleResetZoom = useCallback(() => {
     setZoomWindow({
@@ -285,7 +300,10 @@ export default function GraphInner({
           <button
             type="button"
             onClick={handleResetZoom}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+            className="pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden />
             <span>Reset zoom</span>
@@ -302,14 +320,8 @@ export default function GraphInner({
           <CartesianGrid
             stroke="rgba(148, 163, 184, 0.34)"
             strokeDasharray="4 6"
-            vertical={false}
-          />
-          <CartesianGrid
-            stroke={verticalGridStroke}
-            strokeDasharray={verticalGridDash}
-            horizontal={false}
             vertical
-            syncWithTicks
+            verticalCoordinatesGenerator={verticalGridCoordinatesGenerator}
           />
           <XAxis
             dataKey="year"
