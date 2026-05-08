@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { StateInfo } from "@/lib/types";
+import { getStateSeriesColor } from "./seriesStyle";
 
 type MetricOption = {
   id: string;
@@ -26,13 +27,6 @@ type Props = {
 };
 
 export type ChartDataRow = { year: number; [stateId: string]: number | null };
-
-const COLOR_PALETTE = ["#166534", "#22a66f", "#0f766e", "#4ade80", "#065f46", "#22c55e", "#0ea5a7", "#84cc16", "#15803d"];
-
-function getColorForState(stateId: string, selectedStateIds: string[]) {
-  const index = selectedStateIds.indexOf(stateId);
-  return COLOR_PALETTE[index % COLOR_PALETTE.length];
-}
 
 function normalizeSeries(
   series: Series[],
@@ -193,11 +187,20 @@ export function GraphExplorer({
   const legendItems = selectedStateIds
     .map((id) => {
       const state = states.find((s) => s.id === id);
-      return { id, name: state?.name ?? id, color: getColorForState(id, selectedStateIds) };
+      return { id, name: state?.name ?? id, color: getStateSeriesColor(id) };
     })
     .filter(Boolean);
 
   const selectedMetric = metrics.find((m) => m.id === selectedMetricId);
+  const chartInstanceKey = [
+    selectedMetricId,
+    normalization,
+    yearRange.start,
+    yearRange.end,
+    selectedStateIds.join(","),
+    chartData[0]?.year ?? "none",
+    chartData[chartData.length - 1]?.year ?? "none",
+  ].join("|");
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -376,6 +379,7 @@ export function GraphExplorer({
         ) : (
           <div className="mt-4 h-[420px] w-full min-w-0">
             <ChartContainer
+              key={chartInstanceKey}
               chartData={chartData}
               selectedStateIds={selectedStateIds}
               states={states}
