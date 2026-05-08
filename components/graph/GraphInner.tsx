@@ -253,7 +253,13 @@ export default function GraphInner({
                 strokeDasharray={dashArray}
                 strokeOpacity={hoveredStateId ? (isHovered ? 1 : 0.2) : 0.94}
                 dot={false}
-                activeDot={{ r: 4, strokeWidth: 0, fill: color }}
+                activeDot={{
+                  r: 4,
+                  strokeWidth: 0,
+                  fill: color,
+                  onMouseEnter: () => setHoveredStateId(stateId),
+                  onMouseMove: () => setHoveredStateId(stateId),
+                }}
                 isAnimationActive={false}
                 connectNulls
                 onMouseEnter={() => setHoveredStateId(stateId)}
