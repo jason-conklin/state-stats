@@ -476,19 +476,23 @@ export default function GraphInner({
                   strokeDasharray={dashArray}
                   strokeOpacity={hoveredStateId ? (isHovered ? 1 : 0.2) : 0.94}
                   dot={false}
-                  activeDot={{
-                    r: 4,
-                    strokeWidth: 0,
-                    fill: color,
-                    onMouseEnter: () => {
-                      if (panSessionRef.current) return;
-                      setHoveredStateId(stateId);
-                    },
-                    onMouseMove: () => {
-                      if (panSessionRef.current) return;
-                      setHoveredStateId(stateId);
-                    },
-                  }}
+                  activeDot={
+                    isHovered
+                      ? {
+                          r: 4,
+                          strokeWidth: 0,
+                          fill: color,
+                          onMouseEnter: () => {
+                            if (panSessionRef.current) return;
+                            setHoveredStateId(stateId);
+                          },
+                          onMouseMove: () => {
+                            if (panSessionRef.current) return;
+                            setHoveredStateId(stateId);
+                          },
+                        }
+                      : false
+                  }
                   isAnimationActive={false}
                   connectNulls
                 />,
