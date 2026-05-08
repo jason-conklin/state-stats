@@ -128,61 +128,64 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
-          <div className="grid gap-6 md:grid-cols-[320px_1fr] md:gap-8">
-            <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                About the creator
-              </p>
-              <div className="flex items-start gap-4">
-                <div className="flex shrink-0 justify-start">
-                  <Image
-                    src="/jason_conklin.png"
-                    alt="Portrait of Jason Conklin, creator of StateStats"
-                    width={112}
-                    height={112}
-                    className="h-28 w-28 rounded-full border border-white/10 object-cover shadow-md"
-                    priority
-                  />
-                </div>
-                <div className="min-w-0 space-y-2">
-                  <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Built by</p>
-                  <div className="space-y-1.5">
-                    <p className="text-xl font-semibold text-slate-50">Jason Conklin</p>
-                    <p className="text-sm text-slate-300">Creator of StateStats</p>
-                    <p className="text-sm leading-relaxed text-slate-400">
-                      B.S. Computer Science, New Jersey Institute of Technology (NJIT)
-                    </p>
+        <section className="space-y-4 md:space-y-5">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">About the creator</p>
+            <h3 className="text-xl font-semibold text-white md:text-2xl">The perspective and intent behind StateStats</h3>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.22)] md:p-7">
+            <div className="grid gap-6 md:grid-cols-[320px_1fr] md:gap-8">
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex shrink-0 justify-start">
+                    <Image
+                      src="/jason_conklin.png"
+                      alt="Portrait of Jason Conklin, creator of StateStats"
+                      width={112}
+                      height={112}
+                      className="h-28 w-28 rounded-full border border-white/10 object-cover shadow-md"
+                      priority
+                    />
+                  </div>
+                  <div className="min-w-0 space-y-2">
+                    <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Built by</p>
+                    <div className="space-y-1.5">
+                      <p className="text-xl font-semibold text-slate-50">Jason Conklin</p>
+                      <p className="text-sm text-slate-300">Creator of StateStats</p>
+                      <p className="text-sm leading-relaxed text-slate-400">
+                        B.S. Computer Science, New Jersey Institute of Technology (NJIT)
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="border-t border-white/10 pt-6 md:border-l md:border-t-0 md:pt-0 md:pl-8">
-              <div className="max-w-prose border-l-2 border-emerald-400/40 pl-5">
-                <div className="text-4xl leading-none text-emerald-300/25">“</div>
-                <div className="mt-2 space-y-4 text-sm leading-relaxed text-slate-200 md:text-[15px]">
-                  <p>
-                    I created StateStats to make U.S. state-level data easier to explore, compare, and
-                    trust without needing spreadsheets or complicated tools. I enjoy combining clean
-                    design with public data so students, journalists, and policy-curious citizens can
-                    quickly see how states differ over time.
-                  </p>
-                  <p>
-                    My goal is to keep this site clear, transparent, and genuinely useful as new
-                    metrics and years of data are added.
-                  </p>
-                  <p>
-                    Learn more about Jason at{" "}
-                    <a
-                      href="https://jasonconklin.dev"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-emerald-300 underline-offset-2 hover:underline"
-                    >
-                      jasonconklin.dev
-                    </a>
-                    .
-                  </p>
+              <div className="border-t border-white/10 pt-6 md:border-l md:border-t-0 md:pt-0 md:pl-8">
+                <div className="max-w-prose border-l-2 border-emerald-400/40 pl-5">
+                  <div className="text-4xl leading-none text-emerald-300/25">“</div>
+                  <div className="mt-2 space-y-4 text-sm leading-relaxed text-slate-200 md:text-[15px]">
+                    <p>
+                      I created StateStats to make U.S. state-level data easier to explore, compare, and
+                      trust without needing spreadsheets or complicated tools. I enjoy combining clean
+                      design with public data so students, journalists, and policy-curious citizens can
+                      quickly see how states differ over time.
+                    </p>
+                    <p>
+                      My goal is to keep this site clear, transparent, and genuinely useful as new
+                      metrics and years of data are added.
+                    </p>
+                    <p>
+                      Learn more about Jason at{" "}
+                      <a
+                        href="https://jasonconklin.dev"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-emerald-300 underline-offset-2 hover:underline"
+                      >
+                        jasonconklin.dev
+                      </a>
+                      .
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
