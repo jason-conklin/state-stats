@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StateInfo } from "@/lib/types";
 import { formatMetricValue } from "@/lib/format";
 import { TooltipContent } from "./TooltipContent";
@@ -394,6 +394,12 @@ export default function GraphInner({
             axisLine={false}
             tickMargin={10}
             tick={{ fontSize: 12, fill: "#475569" }}
+          />
+          <Tooltip
+            content={() => null}
+            cursor={false}
+            isAnimationActive={false}
+            wrapperStyle={{ display: "none" }}
           />
           {selectedStateIds.map((stateId) => {
             const state = statesById.get(stateId);
