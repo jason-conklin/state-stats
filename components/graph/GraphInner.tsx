@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StateInfo } from "@/lib/types";
@@ -126,6 +126,7 @@ export default function GraphInner({
     [metricUnit, normalization],
   );
   const baseStrokeWidth = selectedStateIds.length >= 24 ? 1.7 : 2;
+  const interactionStrokeWidth = 14;
   const verticalGridCoordinatesGenerator = useCallback(
     ({ offset }: { offset?: { left?: number; width?: number } }) => {
       if (visibleData.length <= 1) {
@@ -369,43 +370,56 @@ export default function GraphInner({
             const isHovered = hoveredStateId === stateId;
 
             return (
-              <Line
-                key={stateId}
-                type="monotone"
-                dataKey={stateId}
-                name={state?.name ?? stateId}
-                stroke={color}
-                strokeWidth={isHovered ? 3 : baseStrokeWidth}
-                strokeDasharray={dashArray}
-                strokeOpacity={hoveredStateId ? (isHovered ? 1 : 0.2) : 0.94}
-                dot={false}
-                activeDot={{
-                  r: 4,
-                  strokeWidth: 0,
-                  fill: color,
-                  onMouseEnter: () => {
+              <Fragment key={stateId}>
+                <Line
+                  type="monotone"
+                  dataKey={stateId}
+                  name={state?.name ?? stateId}
+                  stroke={color}
+                  strokeWidth={interactionStrokeWidth}
+                  strokeOpacity={0}
+                  dot={false}
+                  activeDot={false}
+                  isAnimationActive={false}
+                  connectNulls
+                  onMouseEnter={() => {
                     if (panSessionRef.current) return;
                     setHoveredStateId(stateId);
-                  },
-                  onMouseMove: () => {
+                  }}
+                  onMouseMove={() => {
                     if (panSessionRef.current) return;
                     setHoveredStateId(stateId);
-                  },
-                }}
-                isAnimationActive={false}
-                connectNulls
-                onMouseEnter={() => {
-                  if (panSessionRef.current) return;
-                  setHoveredStateId(stateId);
-                }}
-                onMouseMove={() => {
-                  if (panSessionRef.current) return;
-                  setHoveredStateId(stateId);
-                }}
-                onMouseLeave={() => {
-                  setHoveredStateId((previous) => (previous === stateId ? null : previous));
-                }}
-              />
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredStateId((previous) => (previous === stateId ? null : previous));
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={stateId}
+                  name={state?.name ?? stateId}
+                  stroke={color}
+                  strokeWidth={isHovered ? 3 : baseStrokeWidth}
+                  strokeDasharray={dashArray}
+                  strokeOpacity={hoveredStateId ? (isHovered ? 1 : 0.2) : 0.94}
+                  dot={false}
+                  activeDot={{
+                    r: 4,
+                    strokeWidth: 0,
+                    fill: color,
+                    onMouseEnter: () => {
+                      if (panSessionRef.current) return;
+                      setHoveredStateId(stateId);
+                    },
+                    onMouseMove: () => {
+                      if (panSessionRef.current) return;
+                      setHoveredStateId(stateId);
+                    },
+                  }}
+                  isAnimationActive={false}
+                  connectNulls
+                />
+              </Fragment>
             );
           })}
         </LineChart>
