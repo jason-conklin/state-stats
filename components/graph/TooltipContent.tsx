@@ -6,14 +6,23 @@ import { formatMetricValue } from "@/lib/format";
 type TooltipPayloadEntry = NonNullable<TooltipProps<number, string>["payload"]>[number];
 
 type Props = TooltipProps<number, string> & {
+  hoveredStateId?: string | null;
   metricUnit?: string | null;
   normalization: "raw" | "indexed";
 };
 
-export function TooltipContent({ active, payload, label, metricUnit, normalization }: Props) {
-  const entry = (payload?.[0] ?? null) as TooltipPayloadEntry | null;
+export function TooltipContent({
+  active,
+  payload,
+  label,
+  hoveredStateId,
+  metricUnit,
+  normalization,
+}: Props) {
+  const entry =
+    ((payload ?? []).find((item) => item.dataKey?.toString() === hoveredStateId) ?? null) as TooltipPayloadEntry | null;
 
-  if (!active || !entry || typeof entry.value !== "number" || !Number.isFinite(entry.value)) {
+  if (!active || !hoveredStateId || !entry || typeof entry.value !== "number" || !Number.isFinite(entry.value)) {
     return null;
   }
 

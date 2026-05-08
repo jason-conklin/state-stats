@@ -23,12 +23,19 @@ type ZoomWindow = {
 };
 
 type ChartMouseState = {
+  activeCoordinate?: { x?: number; y?: number };
   activePayload?: Array<{
+    color?: string;
     dataKey?: string | number;
+    name?: string | number;
+    value?: number | null;
   }>;
+  chartY?: number;
+  yAxisMap?: Record<string, { scale?: unknown }>;
 };
 
 const MIN_VISIBLE_POINTS = 3;
+const TOOLTIP_PROXIMITY_THRESHOLD = 18;
 const ZOOM_IN_MULTIPLIER = 0.88;
 const ZOOM_OUT_MULTIPLIER = 1.14;
 
@@ -180,12 +187,44 @@ export default function GraphInner({
 
   const handleChartMouseMove = useCallback(
     (nextState: ChartMouseState) => {
-      const activeDataKey = nextState.activePayload?.[0]?.dataKey?.toString();
-      if (!activeDataKey) {
+      const pointerY =
+        typeof nextState.chartY === "number"
+          ? nextState.chartY
+          : typeof nextState.activeCoordinate?.y === "number"
+            ? nextState.activeCoordinate.y
+            : null;
+      const activePayload = nextState.activePayload ?? [];
+      const yAxis = nextState.yAxisMap ? Object.values(nextState.yAxisMap)[0] : undefined;
+      const scale = yAxis?.scale;
+
+      if (pointerY === null || !activePayload.length || typeof scale !== "function") {
         hideHoverTooltip();
         return;
       }
-      setHoveredStateId((previous) => (previous === activeDataKey ? previous : activeDataKey));
+
+      const nearestEntry = activePayload
+        .map((entry) => {
+          const stateId = entry.dataKey?.toString() ?? "";
+          const value = typeof entry.value === "number" && Number.isFinite(entry.value) ? entry.value : null;
+          if (!stateId || value === null) return null;
+
+          const scaledY = scale(value);
+          if (typeof scaledY !== "number" || !Number.isFinite(scaledY)) return null;
+
+          return {
+            distance: Math.abs(pointerY - scaledY),
+            stateId,
+          };
+        })
+        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+        .sort((left, right) => left.distance - right.distance)[0];
+
+      if (!nearestEntry || nearestEntry.distance > TOOLTIP_PROXIMITY_THRESHOLD) {
+        hideHoverTooltip();
+        return;
+      }
+
+      setHoveredStateId((previous) => (previous === nearestEntry.stateId ? previous : nearestEntry.stateId));
     },
     [hideHoverTooltip],
   );
@@ -243,7 +282,13 @@ export default function GraphInner({
             tick={{ fontSize: 12, fill: "#475569" }}
           />
           <Tooltip
-            content={<TooltipContent metricUnit={metricUnit} normalization={normalization} />}
+            content={
+              <TooltipContent
+                hoveredStateId={hoveredStateId}
+                metricUnit={metricUnit}
+                normalization={normalization}
+              />
+            }
             cursor={false}
             shared={false}
             allowEscapeViewBox={{ x: false, y: false }}

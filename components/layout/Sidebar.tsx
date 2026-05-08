@@ -137,7 +137,7 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
               if (collapsed) {
                 return (
                   <li key={link.href}>
-                    <Link
+                  <Link
                       href={link.href}
                       className={`flex h-14 w-14 items-center justify-center rounded-2xl transition ${
                         active
@@ -147,13 +147,15 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
                       aria-current={active ? "page" : undefined}
                       title={link.label}
                     >
-                      <IconComp
-                        className={`h-9 w-9 ${
-                          active
-                            ? "text-white"
-                            : "text-blue-200 group-hover:text-white"
-                        }`}
-                      />
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center">
+                        <IconComp
+                          className={`h-9 w-9 shrink-0 ${
+                            active
+                              ? "text-white"
+                              : "text-blue-200 group-hover:text-white"
+                          }`}
+                        />
+                      </span>
                     </Link>
                   </li>
                 );
@@ -162,19 +164,21 @@ export function Sidebar({ navLinks, statusText, collapsed, onSetCollapsed }: Pro
                 <li key={link.href}>
                   <Link
                   href={link.href}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition ${
+                  className={`group flex min-w-0 items-center gap-3 overflow-hidden rounded-lg px-3 py-3 transition ${
                     active
                       ? "bg-blue-800 text-white"
                       : "text-blue-100 hover:bg-blue-900 hover:text-white"
                   } justify-start`}
                   aria-current={active ? "page" : undefined}
                 >
-                  <IconComp
-                    className={`h-9 w-9 ${
-                      active ? "text-white" : "text-blue-200 group-hover:text-white"
-                    }`}
-                  />
-                  <span className="truncate text-base">{link.label}</span>
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center">
+                    <IconComp
+                      className={`h-9 w-9 shrink-0 ${
+                        active ? "text-white" : "text-blue-200 group-hover:text-white"
+                      }`}
+                    />
+                  </span>
+                  <span className="min-w-0 truncate text-base">{link.label}</span>
                 </Link>
                 </li>
               );
